@@ -487,22 +487,42 @@
                     button.disabled = true;
                     button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Connecting to Paymob…';
                     try {
+                        const tokenEl = document.querySelector('#checkoutModal input[name="__RequestVerificationToken"]');
+                        const token = tokenEl ? tokenEl.value : '';
                         const response = await fetch('/api/payment/checkout', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'RequestVerificationToken': document.querySelector('#checkoutModal input[name="__RequestVerificationToken"]').value
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'RequestVerificationToken': token
                             },
-                            body: JSON.stringify({ appointmentId: @Model.Id, promoCode: document.getElementById('promoCodeInput').value.trim() || null, acceptTerms: termsCheckbox.checked, termsVersion: 'v1.0-2026' })
+                            body: JSON.stringify({ appointmentId: @Model.Id, promoCode: document.getElementById('promoCodeInput')?.value.trim() || null, acceptTerms: termsCheckbox.checked, termsVersion: 'v1.0-2026' })
                         });
-                        const result = await response.json();
-                        if (response.ok && result.success && result.checkoutUrl) {
+
+                        if (response.status === 401 || (response.redirected && response.url.includes('/Account/Login'))) {
+                            alertBox.textContent = document.documentElement.lang === 'ar' ? 'انتهت صلاحية الجلسة. جاري تحويلك لتسجيل الدخول...' : 'Session expired. Redirecting to sign in...';
+                            alertBox.classList.remove('d-none');
+                            setTimeout(() => {
+                                window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(window.location.pathname);
+                            }, 1200);
+                            return;
+                        }
+
+                        let result = null;
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            result = await response.json();
+                        }
+
+                        if (response.ok && result && result.success && result.checkoutUrl) {
                             window.location.assign(result.checkoutUrl);
                             return;
                         }
-                        alertBox.textContent = result.error || 'تعذر بدء الدفع. حاول مرة أخرى.';
-                    } catch {
-                        alertBox.textContent = 'تعذر الاتصال بخدمة الدفع. حاول مرة أخرى.';
+                        alertBox.textContent = (result && result.error) ? result.error : (document.documentElement.lang === 'ar' ? 'تعذر بدء الدفع. حاول مرة أخرى.' : 'Payment setup failed. Please try again.');
+                    } catch (err) {
+                        console.error('Checkout error:', err);
+                        alertBox.textContent = document.documentElement.lang === 'ar' ? 'تعذر الاتصال بخدمة الدفع. حاول مرة أخرى.' : 'Could not connect to payment service. Please try again.';
                     }
                     alertBox.classList.remove('d-none');
                     button.disabled = false;

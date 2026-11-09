@@ -34,6 +34,7 @@ public sealed class PaymobCheckoutService : IPaymobCheckoutService
     {
     }
 
+    [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
     public PaymobCheckoutService(
         ApplicationDbContext db,
         HttpClient http,
