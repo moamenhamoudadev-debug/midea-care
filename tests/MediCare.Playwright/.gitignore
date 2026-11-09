@@ -1,0 +1,11 @@
+node_modules/
+playwright-report/
+test-results/
+dist/
+.local-browsers/
+.local-cert/
+stage*-evidence/
+stage*-results/
+*.webm
+*.png
+*.zip

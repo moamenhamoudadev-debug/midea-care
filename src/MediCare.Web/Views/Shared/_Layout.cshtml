@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MediCare Clinic System</title>
+    <!-- Instant Zero-Flash Theme & Localization Loader -->
+    <script>
+        (function() {
+            var savedTheme = localStorage.getItem('medicare-theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            var savedLang = localStorage.getItem('medicare-lang') || 'en';
+            document.documentElement.setAttribute('lang', savedLang);
+            document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+        })();
+    </script>
+    <!-- Typography: Cairo & Inter (Self-Hosted under wwwroot/lib/fonts/) -->
+    <link rel="stylesheet" href="~/lib/fonts/fonts.css" asp-append-version="true" />
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons 1.11.3 (Self-Hosted) -->
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" asp-append-version="true" />
+    <!-- Progressive Web App (PWA) Manifest -->
+    <meta name="theme-color" content="#0066F5" />
+    <link rel="manifest" href="~/manifest.json" />
+    <link rel="apple-touch-icon" href="~/images/pwa-icon-192.png" />
+    <!-- Custom World-Class Design System -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- MediCare Animation System -->
+    <link rel="stylesheet" href="~/css/animations.css" asp-append-version="true" />
+    <noscript>
+        <style>
+            .reveal, .reveal-scale, [class*="reveal-delay-"] {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        </style>
+    </noscript>
+</head>
+<body>
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 p-2 bg-white text-primary rounded-end shadow" href="#main-content" data-i18n="skipToContent">Skip to main content</a>
+    <header class="mc-header">
+        <nav class="navbar navbar-expand-lg mc-navbar">
+            <div class="container-fluid px-lg-4 px-xl-5">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <div class="brand-icon">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                    <span>MediCare</span>
+                    <span class="brand-badge">Healthcare</span>
+                </a>
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="bi bi-list fs-2 text-dark"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door"></i> <span data-i18n="home">Home</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold" asp-controller="Doctors" asp-action="Index">
+                                <i class="bi bi-search-heart"></i> <span data-i18n="findDoctors">Find Doctors</span>
+                            </a>
+                        </li>
+                        @if (User.IsInRole("Doctor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Doctor" asp-action="Schedule">
+                                    <i class="bi bi-calendar-range"></i> <span data-i18n="schedule">Schedule</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Doctor" asp-action="Leaves">
+                                    <i class="bi bi-calendar-x"></i> <span data-i18n="leaves">Leaves</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Doctor" asp-action="Appointments">
+                                    <i class="bi bi-clipboard2-pulse"></i> <span data-i18n="appointments">Appointments</span>
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Patient"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Appointments" asp-action="MyAppointments">
+                                    <i class="bi bi-calendar-check"></i> <span data-i18n="myAppointments">My Appointments</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Payment" asp-action="History">
+                                    <i class="bi bi-wallet2"></i> <span data-i18n="paymentHistoryNav">Payment History</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="MedicalRecords" asp-action="MyHistory">
+                                    <i class="bi bi-journal-medical"></i> <span data-i18n="medicalRecords">Medical Records</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Profile">
+                                    <i class="bi bi-person-circle"></i> <span data-i18n="myProfile">My Profile</span>
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index">
+                                    <i class="bi bi-speedometer2"></i> <span data-i18n="dashboard">Dashboard</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Patients">
+                                    <i class="bi bi-people"></i> <span>Patients</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Pharmacists">
+                                    <i class="bi bi-capsule"></i> <span>Pharmacists</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Specializations">
+                                    <i class="bi bi-tags"></i> <span>Specializations</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Approvals">
+                                    <i class="bi bi-person-check"></i> <span data-i18n="approvals">Approvals</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Reports">
+                                    <i class="bi bi-bar-chart-line"></i> <span data-i18n="reports">Reports</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Payments">
+                                    <i class="bi bi-wallet2"></i> <span data-i18n="adminPaymentsNav">Financials</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-2">
+                        <!-- Theme Toggle Button -->
+                        <li class="nav-item">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 d-flex align-items-center gap-1" id="themeToggleBtn" type="button" title="Toggle Dark/Light Mode" aria-label="Toggle color theme" aria-pressed="false">
+                                <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+                                <span class="d-none d-md-inline small fw-medium" id="themeLabel">Dark</span>
+                            </button>
+                        </li>
+
+                        <!-- Language Toggle Button -->
+                        <li class="nav-item">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 d-flex align-items-center gap-1" id="langToggleBtn" type="button" title="Toggle Arabic / English" aria-label="Toggle language" aria-pressed="false">
+                                <i class="bi bi-translate"></i>
+                                <span class="small fw-bold" id="langLabel">العربية</span>
+                            </button>
+                        </li>
+
+                        <!-- PWA Install Button -->
+                        <li class="nav-item" id="pwaInstallLi" style="display: none;">
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-2 py-1 d-flex align-items-center gap-1" id="pwaNavInstallBtn" type="button" title="Install App" aria-label="Install MediCare app">
+                                <i class="bi bi-download"></i>
+                                <span class="d-none d-md-inline small fw-semibold" data-i18n="installAppBtn">Install App</span>
+                            </button>
+                        </li>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <!-- Real-Time Notification Bell Dropdown -->
+                            <li class="nav-item dropdown position-relative">
+                                <button class="notification-bell-btn" id="notificationDropdownBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications" title="Real-time Notifications">
+                                    <i class="bi bi-bell"></i>
+                                    <span id="notificationBadge" class="notification-pulse-badge d-none">
+                                        0
+                                    </span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg p-0 border-0 rounded-3 mt-2" aria-labelledby="notificationDropdownBtn" style="min-width: 340px; max-width: 380px;">
+                                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light rounded-top-3">
+                                        <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                            <i class="bi bi-bell-fill text-primary"></i> <span data-i18n="notifications">Notifications</span>
+                                        </div>
+                                        <span id="notificationCountLabel" class="badge bg-primary rounded-pill px-2 py-1">0 unread</span>
+                                    </div>
+                                    <ul class="list-group list-group-flush" id="notificationList" style="max-height: 320px; overflow-y: auto;">
+                                        <li class="list-group-item text-center text-muted small py-4">
+                                            <i class="bi bi-arrow-repeat spin me-1"></i> Checking notifications...
+                                        </li>
+                                    </ul>
+                                    <div class="p-2 border-top text-center bg-light rounded-bottom-3">
+                                        <a href="/Notifications" class="small text-primary text-decoration-none fw-semibold d-inline-flex align-items-center gap-1">
+                                            <i class="bi bi-bell-fill"></i> <span data-i18n="viewAllNotifications">View All Notifications</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- User Profile Chip -->
+                            <li class="nav-item">
+                                <div class="user-chip">
+                                    <div class="user-avatar-badge">
+                                        @(string.IsNullOrEmpty(User.Identity.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div class="d-none d-sm-block text-start">
+                                        <div class="fw-bold text-dark lh-1 small">@User.Identity.Name</div>
+                                    </div>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <span class="user-role-badge user-role-admin">Admin</span>
+                                    }
+                                    else if (User.IsInRole("Doctor"))
+                                    {
+                                        <span class="user-role-badge user-role-doctor">Doctor</span>
+                                    }
+                                    else if (User.IsInRole("Patient"))
+                                    {
+                                        <span class="user-role-badge user-role-patient">Patient</span>
+                                    }
+                                </div>
+                            </li>
+
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm" title="Log out of system">
+                                        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline" data-i18n="logout">Log Out</span>
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-outline-primary btn-sm" asp-controller="Account" asp-action="Login">
+                                    <i class="bi bi-box-arrow-in-right"></i> <span data-i18n="signIn">Sign In</span>
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-plus"></i> <span data-i18n="join">Join MediCare</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2">
+                                    <li>
+                                        <a class="dropdown-item py-2 px-3 rounded-2" asp-controller="Account" asp-action="RegisterPatient">
+                                            <div class="fw-semibold text-dark"><i class="bi bi-person me-2 text-primary"></i> <span data-i18n="patientAccount">Patient Account</span></div>
+                                            <div class="small text-muted ps-4">Book slots & view digital medical records</div>
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <a class="dropdown-item py-2 px-3 rounded-2" asp-controller="Account" asp-action="RegisterDoctor">
+                                            <div class="fw-semibold text-dark"><i class="bi bi-hospital me-2 text-success"></i> <span data-i18n="doctorPractice">Doctor Practice</span></div>
+                                            <div class="small text-muted ps-4">Manage schedules & clinical encounters</div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container my-4 flex-grow-1">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert" style="background-color: #ECFDF5; border-left: 4px solid #10B981 !important; color: #065F46;">
+                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                <div class="flex-grow-1">
+                    <strong>Success:</strong> @TempData["SuccessMessage"]
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert" style="background-color: #FEF2F2; border-left: 4px solid #EF4444 !important; color: #991B1B;">
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                <div class="flex-grow-1">
+                    <strong>Notice:</strong> @TempData["ErrorMessage"]
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert" style="background-color: #EFF6FF; border-left: 4px solid #0066F5 !important; color: #1E40AF;">
+                <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                <div class="flex-grow-1">
+                    <strong>Information:</strong> @TempData["InfoMessage"]
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <main id="main-content" role="main" tabindex="-1">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- World-Class 4-Column Footer -->
+    <footer class="mc-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="brand-icon" style="width: 32px; height: 32px; font-size: 1rem;">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                        </div>
+                        <span class="fw-bold fs-5 text-dark">MediCare</span>
+                        <span class="brand-badge" data-i18n="footerHealthcareBadge">Healthcare OS</span>
+                    </div>
+                    <p class="text-muted small pe-lg-4" data-i18n="footerDesc">
+                        A clinic management graduation project for appointment booking and basic digital clinical workflows.
+                    </p>
+                    <div class="d-flex align-items-center gap-2 text-muted small mt-3">
+                        <span class="d-inline-block rounded-circle bg-success" style="width: 8px; height: 8px;"></span>
+                            <span class="fw-semibold text-dark" data-i18n="footerOperational">Demo version</span>
+                        <span class="text-secondary" data-i18n="footerCairoTime">• Egypt Standard Time</span>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="footer-heading" data-i18n="footerForPatients">For Patients</h6>
+                    <ul class="footer-link-list">
+                        <li><a asp-controller="Doctors" asp-action="Index"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerFindDoctors">Find Doctors</span></a></li>
+                        <li><a asp-controller="Home" asp-action="Index"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerSpecialties">Specialties</span></a></li>
+                        <li><a asp-controller="Appointments" asp-action="MyAppointments"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerMyVisits">My Visits</span></a></li>
+                        <li><a asp-controller="MedicalRecords" asp-action="MyHistory"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerDigitalRecords">Digital Records</span></a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 col-6">
+                    <h6 class="footer-heading" data-i18n="footerClinicalPortals">Clinical Portals</h6>
+                    <ul class="footer-link-list">
+                        <li><a asp-controller="Account" asp-action="RegisterDoctor"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerJoinDoctor">Join as Physician</span></a></li>
+                        <li><a asp-controller="Doctor" asp-action="Schedule"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerShiftMgmt">Shift Management</span></a></li>
+                        <li><a asp-controller="Doctor" asp-action="Appointments"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerPatientQueue">Patient Queue</span></a></li>
+                        <li><a asp-controller="Admin" asp-action="Approvals"><i class="bi bi-chevron-right small me-1"></i> <span data-i18n="footerDoctorLicensing">Doctor Licensing</span></a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="footer-heading" data-i18n="footerArchTrust">Architecture & Trust</h6>
+                    <ul class="footer-link-list">
+                        <li class="text-muted small"><i class="bi bi-shield-check text-success me-1"></i> <span data-i18n="footerSqlConcurrency">SQL Server Filtered Concurrency</span></li>
+                        <li class="text-muted small"><i class="bi bi-broadcast text-primary me-1"></i> <span data-i18n="footerSignalR">Real-time SignalR 8.0 Hub</span></li>
+                        <li class="text-muted small"><i class="bi bi-file-earmark-medical text-info me-1"></i> <span data-i18n="footerRxGen">Digital Prescription Generator</span></li>
+                        <li class="text-muted small"><i class="bi bi-mortarboard text-warning me-1"></i> <span data-i18n="footerDepi">DEPI .NET Full Stack Project</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- DEPI Official Project Attribution Banner -->
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-3" style="border-color: rgba(226, 232, 240, 0.4) !important;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary text-white px-2 py-1 fw-bold rounded-pill shadow-xs" style="font-size: 0.72rem; letter-spacing: 0.04em;">DEPI 2026</span>
+                    <span class="small fw-semibold text-dark" data-i18n="footerDepiGraduates">
+                        مشروع تخرج مُطوّر ومُنفّذ بواسطة: خريجي منحة مبادرة رواد مصر الرقمية (DEPI - Digital Egypt Pioneers Initiative)
+                    </span>
+                </div>
+                <div class="text-muted small d-flex align-items-center gap-1" data-i18n="footerDepiTrack">
+                    <i class="bi bi-mortarboard-fill text-warning"></i> مسار تطوير تطبيقات الويب المتكاملة (.NET Full Stack Track)
+                </div>
+            </div>
+
+            <div class="footer-bottom d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-2">
+                <div>
+                    &copy; 2026 <strong data-i18n="footerBrandName">MediCare Healthcare Systems</strong>. <span data-i18n="footerAllRights">All rights reserved.</span>
+                </div>
+                    <div class="d-flex align-items-center gap-2"><a asp-controller="Home" asp-action="Privacy" class="small" data-i18n="privacyTitle">Privacy and Demo Data</a><span class="text-secondary small">�</span><a asp-controller="Home" asp-action="Terms" class="small" data-i18n="termsTitle">Terms & Conditions</a></div>
+                <div class="text-muted small" data-i18n="footerCredits">
+                    Built with ASP.NET Core 8.0 LTS &bull; Entity Framework Core &bull; Clean 3-Tier Architecture
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Real-Time Floating Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;" id="realtimeToastContainer"></div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        window.escapeHtml = function (string) {
+            if (string === null || string === undefined) return '';
+            return String(string)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        };
+
+        window.sanitizeUrl = function (url) {
+            if (!url) return '';
+            const trimmed = String(url).trim();
+            if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/\\')) {
+                return encodeURI(trimmed);
+            }
+            return '';
+        };
+    </script>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <!-- SignalR 8.0 Client (Self-Hosted) -->
+        <script src="~/lib/signalr/signalr.min.js" asp-append-version="true"></script>
+        <script>
+            (function () {
+                const badge = document.getElementById('notificationBadge');
+                const list = document.getElementById('notificationList');
+                const countLabel = document.getElementById('notificationCountLabel');
+                const toastContainer = document.getElementById('realtimeToastContainer');
+                let unreadCount = 0;
+
+                function updateBadge(count) {
+                    unreadCount = Math.max(0, count);
+                    if (countLabel) countLabel.textContent = unreadCount + ' unread';
+                    if (badge) {
+                        badge.textContent = unreadCount;
+                        if (unreadCount > 0) {
+                            badge.classList.remove('d-none');
+                        } else {
+                            badge.classList.add('d-none');
+                        }
+                    }
+                }
+
+                window.showMediCareToast = function(title, message, type = 'primary') {
+                    if (!toastContainer) return;
+                    const toastId = 'toast_' + Date.now();
+                    const bgClass = type === 'success' ? 'text-bg-success' : (type === 'danger' ? 'text-bg-danger' : (type === 'warning' ? 'text-bg-warning text-dark' : 'text-bg-primary'));
+                    const iconClass = type === 'success' ? 'bi-check-circle-fill' : (type === 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-bell-fill');
+                    const safeTitle = window.escapeHtml(title);
+                    const safeMessage = window.escapeHtml(message);
+                    const toastHtml = `
+                        <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 shadow-lg mb-2 rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body p-3">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="bi ${iconClass}"></i>
+                                        <strong class="fs-6">${safeTitle}</strong>
+                                    </div>
+                                    <div class="small opacity-90">${safeMessage}</div>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>`;
+                    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                    const toastEl = document.getElementById(toastId);
+                    const bsToast = new bootstrap.Toast(toastEl, { delay: 6000 });
+                    bsToast.show();
+                    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+                };
+
+                function showToast(title, message) {
+                    window.showMediCareToast(title, message, 'primary');
+                }
+
+                function addNotificationItem(item, prepend = false) {
+                    if (!list) return;
+                    const safeId = parseInt(item.id, 10) || 0;
+                    const safeTitle = window.escapeHtml(item.title);
+                    const safeMessage = window.escapeHtml(item.message);
+                    const safeUrl = window.sanitizeUrl(item.url || item.actionUrl);
+                    const urlMarkup = safeUrl
+                        ? `<a href="${safeUrl}" class="small text-primary text-decoration-none d-inline-flex align-items-center gap-1 mt-1"><i class="bi bi-box-arrow-up-right"></i> Details</a>`
+                        : '';
+                    const itemHtml = `
+                        <li class="list-group-item p-3 list-group-item-action d-flex justify-content-between align-items-start border-bottom" id="notif_${safeId}">
+                            <div class="me-2">
+                                <div class="fw-bold small text-dark d-flex align-items-center gap-1">
+                                    <i class="bi bi-info-circle text-primary"></i> ${safeTitle}
+                                </div>
+                                <div class="text-secondary small mt-1">${safeMessage}</div>
+                                ${urlMarkup}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0 mark-read-btn" data-id="${safeId}" title="Mark as read" aria-label="Mark notification as read">
+                                <i class="bi bi-x-circle fs-6"></i>
+                            </button>
+                        </li>`;
+                    if (prepend) {
+                        list.insertAdjacentHTML('afterbegin', itemHtml);
+                    } else {
+                        list.insertAdjacentHTML('beforeend', itemHtml);
+                    }
+                    attachMarkReadHandlers();
+                }
+
+                function attachMarkReadHandlers() {
+                    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+                        btn.onclick = function (e) {
+                            e.stopPropagation();
+                            const id = this.getAttribute('data-id');
+                            fetch(`/api/notifications/mark-read/${id}`, { method: 'POST' })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        const li = document.getElementById('notif_' + id);
+                                        if (li) li.remove();
+                                        updateBadge(unreadCount - 1);
+                                        if (list.children.length === 0) {
+                                            list.innerHTML = '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> All caught up! No unread alerts.</li>';
+                                        }
+                                    }
+                                });
+                        };
+                    });
+                }
+
+                // Initial load from DB
+                fetch('/api/notifications/unread')
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.success && res.data) {
+                            updateBadge(res.data.length);
+                            if (res.data.length === 0) {
+                                list.innerHTML = '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> All caught up! No unread alerts.</li>';
+                            } else {
+                                list.innerHTML = '';
+                                res.data.forEach(item => addNotificationItem(item, false));
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        if (list) list.innerHTML = '<li class="list-group-item text-center text-muted small py-3 text-danger"><i class="bi bi-wifi-off me-1"></i> Unable to load notifications.</li>';
+                    });
+
+                // SignalR Connection
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/hubs/appointment")
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on("UnreadCountChanged", function (count) { updateBadge(count); });
+
+                connection.on("ReceiveNotification", function (notification) {
+                    showToast(notification.title, notification.message);
+                    updateBadge(unreadCount + 1);
+                    if (list.querySelector('.text-muted.py-4') || list.querySelector('.text-muted.py-3')) {
+                        list.innerHTML = '';
+                    }
+                    addNotificationItem(notification, true);
+                });
+
+                connection.on("AppointmentStatusChanged", function (appointmentId, status) {
+                    showToast("Appointment Status Updated", `Appointment #${appointmentId} is now ${status}.`);
+                });
+
+                connection.start().catch(err => console.error("SignalR Connection Error: ", err));
+            })();
+        </script>
+    }
+
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        <!-- =====================================================================
+             🔒 ELEGANT BILINGUAL GUEST AUTHENTICATION PROMPT MODAL
+             ===================================================================== -->
+        <div class="modal fade auth-prompt-modal" id="authPromptModal" tabindex="-1" aria-labelledby="authPromptModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+                <div class="modal-content text-center p-3 p-md-4 position-relative border-0 shadow-lg">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                    <div class="modal-body p-2 pt-1">
+                        <div class="auth-prompt-icon-bubble">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+
+                        <h4 class="fw-bold text-dark mb-1" id="authPromptModalLabel" data-i18n="authPromptTitle">
+                            تسجيل الدخول مطلوب للمتابعة
+                        </h4>
+                        <div class="text-primary fw-semibold small mb-3" data-i18n="authPromptSubtitle">
+                            مرحباً بك في منظومة MediCare للرعاية الصحية
+                        </div>
+
+                        <p class="text-secondary small mb-3" style="line-height: 1.6;" data-i18n="authPromptMessage">
+                            حرصاً على خصوصية البيانات الطبية وضمان حجز مواعيد دقيقة ومؤكدة بدون تضارب، يُرجى تسجيل الدخول إلى حسابك أو إنشاء حساب مريض جديد لاستعراض قائمة الأطباء المعتمدين، تصفح الأقسام التخصصية، وحجز الاستشارات الطبية.
+                        </p>
+
+                        <div class="d-flex flex-column gap-2 mb-4 text-start">
+                            <div class="auth-prompt-feature-item">
+                                <i class="bi bi-patch-check-fill text-success auth-prompt-feature-icon"></i>
+                                <div class="small fw-semibold text-dark" data-i18n="authPromptPoint1">
+                                    استعرض الأطباء والتخصصات المتاحة في البيانات التجريبية
+                                </div>
+                            </div>
+                            <div class="auth-prompt-feature-item">
+                                <i class="bi bi-calendar2-check-fill text-primary auth-prompt-feature-icon"></i>
+                                <div class="small fw-semibold text-dark" data-i18n="authPromptPoint2">
+                                    فحص تعارض المواعيد عند الحجز
+                                </div>
+                            </div>
+                            <div class="auth-prompt-feature-item">
+                                <i class="bi bi-file-medical-fill text-info auth-prompt-feature-icon"></i>
+                                <div class="small fw-semibold text-dark" data-i18n="authPromptPoint3">
+                                    ملف طبي رقمي متكامل لروشتاتك وفحوصاتك مع كل كشف
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="/Account/Login" id="authPromptLoginBtn" class="btn btn-primary py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                                <i class="bi bi-box-arrow-in-right"></i> <span data-i18n="authPromptLoginBtn">تسجيل الدخول الآن</span>
+                            </a>
+                            <a href="/Account/RegisterPatient" id="authPromptRegisterBtn" class="btn btn-outline-primary py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-person-plus-fill"></i> <span data-i18n="authPromptRegisterBtn">إنشاء حساب مريض جديد (مجاناً)</span>
+                            </a>
+                            <button type="button" class="btn btn-link text-muted btn-sm text-decoration-none mt-1" data-bs-dismiss="modal" data-i18n="authPromptDismissBtn">
+                                متابعة التصفح كزائر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- =====================================================================
+         🤖 CLINIC GUIDE WIDGET
+         ===================================================================== -->
+    <div id="aiChatbotContainer">
+        <!-- Floating Trigger Button -->
+        <button id="chatbotFloatingBtn" class="chatbot-floating-btn" type="button" aria-label="Open MediCare Clinic Guide" title="Chat with MediCare Clinic Guide">
+            <i class="bi bi-robot fs-4" id="chatBtnIcon"></i>
+        </button>
+
+        <!-- Floating Chat Window -->
+        <div id="chatbotWindow" class="chatbot-window">
+            <!-- Header -->
+            <div class="chatbot-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center shadow-sm" style="width: 34px; height: 34px;">
+                        <i class="bi bi-heart-pulse-fill text-danger fs-6"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-6 text-white lh-1" data-i18n="chatTitle">MediCare Clinic Guide</div>
+                        <div class="small text-white-50 mt-1 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                            <span class="d-inline-block rounded-circle bg-success" style="width: 6px; height: 6px;"></span>
+                            <span data-i18n="chatStatus">Booking help and specialty guide</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="chatbotCloseBtn" class="btn btn-sm btn-link text-white text-decoration-none p-1" title="Close Chat" aria-label="Close chat">
+                    <i class="bi bi-x-lg fs-6"></i>
+                </button>
+            </div>
+
+            <div class="px-3 py-2 small border-bottom bg-warning-subtle text-dark" role="note" data-i18n="chatPrivacyNotice">
+                Educational guide only. Do not enter real health or personal information. When AI is enabled, messages are sent to OpenAI.
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="chatbot-messages-container" id="chatMessages">
+                <div class="chat-bubble chat-bubble-bot">
+                    <p class="mb-1 fw-semibold">👋 Welcome to MediCare!</p>
+                    <p class="mb-0 small" id="chatGreetingText" data-i18n="chatGreeting">
+                        I can help with booking information or suggest a specialty from keywords. This guide does not provide a medical diagnosis.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Symptom Chips -->
+            <div class="chat-chips-container" id="chatChipsContainer">
+                <span class="chat-chip" data-query="Chest pain and shortness of breath" data-i18n="chipChestPain">🩺 Chest pain</span>
+                <span class="chat-chip" data-query="Severe skin itching and rash" data-i18n="chipSkinRash">🧴 Skin rash</span>
+                <span class="chat-chip" data-query="Child persistent cough and high fever" data-i18n="chipChildFever">👶 Child fever</span>
+                <span class="chat-chip" data-query="Severe knee joint pain and swelling" data-i18n="chipJointPain">🦴 Joint pain</span>
+                <span class="chat-chip" data-query="How do I book an appointment?" data-i18n="chipHowToBook">📅 How to book?</span>
+            </div>
+
+            <!-- Explicit Consent Notice & Checkbox (Unchecked by default) -->
+            <div class="px-3 py-2 bg-light border-top border-bottom small text-muted" id="aiConsentContainer">
+                <div class="form-check m-0 d-flex align-items-start gap-2">
+                    <input type="checkbox" id="aiConsentCheckbox" class="form-check-input mt-1 flex-shrink-0" />
+                    <label for="aiConsentCheckbox" class="form-check-label" style="font-size: 0.72rem; line-height: 1.25;" data-i18n="chatConsentLabel">
+                        I agree to send entered symptom text to the external AI provider for analysis. I understand this is for general guidance only and not medical diagnosis, and I will not enter identifying details.
+                    </label>
+                </div>
+            </div>
+
+            <!-- Input Bar -->
+            <form id="chatbotForm" class="chatbot-input-bar">
+                <input type="text" id="chatInput" class="form-control form-control-sm" placeholder="Type your symptoms..." maxlength="1000" autocomplete="off" data-i18n-ph="chatPlaceholder" />
+                <button type="submit" id="chatSendBtn" class="btn btn-primary btn-sm px-3" title="Send message" data-i18n-title="chatSend">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         GLOBAL SCRIPTS: THEME, LOCALIZATION, CLINIC GUIDE
+         ===================================================================== -->
+    <script>
+        (function () {
+            // -------------------------------------------------------------
+            // 1. Dark Mode / Light Mode Engine
+            // -------------------------------------------------------------
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeLabel = document.getElementById('themeLabel');
+
+            function updateThemeUI(theme) {
+                if (themeToggleBtn) themeToggleBtn.setAttribute('aria-pressed', String(theme === 'dark'));
+                if (theme === 'dark') {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                    if (themeIcon) themeIcon.className = 'bi bi-sun-fill text-warning';
+                    if (themeLabel) themeLabel.textContent = document.documentElement.getAttribute('lang') === 'ar' ? 'فاتح' : 'Light';
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', 'light');
+                    if (themeIcon) themeIcon.className = 'bi bi-moon-stars-fill';
+                    if (themeLabel) themeLabel.textContent = document.documentElement.getAttribute('lang') === 'ar' ? 'داكن' : 'Dark';
+                }
+            }
+
+            const initialTheme = localStorage.getItem('medicare-theme') || 'light';
+            updateThemeUI(initialTheme);
+
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', function () {
+                    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('medicare-theme', newTheme);
+                    updateThemeUI(newTheme);
+                });
+            }
+
+            // -------------------------------------------------------------
+            // 2. Bilingual English / Arabic Localization Engine
+            // -------------------------------------------------------------
+            const langToggleBtn = document.getElementById('langToggleBtn');
+            const langLabel = document.getElementById('langLabel');
+
+            const translations = {
+                en: {
+                    // Navbar & Account
+                    home: "Home",
+                    findDoctors: "Find Doctors",
+                    schedule: "Schedule",
+                    leaves: "Leaves",
+                    appointments: "Appointments",
+                    myAppointments: "My Appointments",
+                    paymentHistoryNav: "Payment History",
+                    medicalRecords: "Medical Records",
+                    dashboard: "Dashboard",
+                    approvals: "Approvals",
+                    reports: "Reports",
+                    adminPaymentsNav: "Financials",
+                    adminPaymentsTitle: "Financial & Payment Intelligence",
+                    adminPaymentsSubtitle: "Authoritative Paymob transactions, revenue intelligence, payment method distribution, and reconciliation queues.",
+                    notifications: "Notifications",
+                    viewAllNotifications: "View All Notifications",
+                    notificationCenterTitle: "Notification Center",
+                    notificationCenterSubtitle: "Real-time updates regarding your consultation bookings, payment verifications, and financial refunds.",
+                    markAllRead: "Mark All as Read",
+                    noNotificationsTitle: "No Notifications Found",
+                    noNotificationsSubtitle: "You're completely caught up! We will alert you here as soon as new appointment or payment events occur.",
+                    filterAll: "All",
+                    filterUnread: "Unread",
+                    filterPayments: "Payments",
+                    filterRefunds: "Refunds",
+                    filterAppointments: "Appointments",
+                    logout: "Log Out",
+                    signIn: "Sign In",
+                    join: "Join MediCare",
+                    patientAccount: "Patient Account",
+                    doctorPractice: "Doctor Practice",
+
+                    // Hero (Home)
+                    heroBadge: "MediCare \u2022 Graduation Project Demo",
+                    heroTitlePart1: "Modern Healthcare,",
+                    heroTitlePart2: "Seamlessly Scheduled.",
+                    heroSubtitle: "Browse the doctor directory, check available appointment slots, and manage clinic visits in one place.",
+                    heroSearchPlaceholder: "Search doctor name or specialty...",
+                    heroSearchBtn: "Find Doctors",
+                    popularSpecialties: "Popular:",
+                    specCardiology: "Cardiology",
+                    specDermatology: "Dermatology",
+                    specPediatrics: "Pediatrics",
+                    specOrthopedics: "Orthopedics",
+                    specInternal: "Internal Medicine",
+                    badgeAcidSafe: "Database booking control",
+                    badgeSqlEngine: "SQL Server",
+                    heroBadgeDoctors: "Browse demo doctors",
+                    heroBadgeGovs: "Locations in demo data",
+
+                    // Trust Stats
+                    statDoubleBooking: "Database booking conflict checks",
+                    statVerified: "Doctor applications reviewed",
+                    statFastBooking: "Appointment slot booking",
+                    statSignalR: "In-app notifications",
+
+                    // Medical Departments Visual Showcase
+                    deptBadge: "Specialized Medical Departments",
+                    deptTitle: "Explore the clinic specialties",
+                    deptAllLink: "Explore all specialties",
+
+                    // Engineering Excellence
+                    engBadge: "Engineering Excellence",
+                    whyChooseTitle: "Why Healthcare Providers Choose MediCare",
+                    whyChooseSubtitle: "Engineered from the ground up for medical data reliability, precision scheduling, and seamless doctor-patient interactions.",
+                    feat1Title: "الحماية من تعارض المواعيد",
+                    feat1Desc: "A SQL Server filtered unique index blocks overlapping active bookings for the same doctor and time slot.",
+                    feat1Tag: "ACID Atomic Transactions",
+                    feat2Title: "Doctor application review",
+                    feat2Desc: "Administrators can review doctor registration requests before approval. The demo does not independently verify medical credentials.",
+                    feat2Link: "Explore Directory",
+                    feat3Title: "Digital Health Passport",
+                    feat3Desc: "Automated clinical documentation upon encounter completion: diagnoses, physical symptoms, doctor notes, and printable digital prescriptions with dosage guidelines.",
+                    feat3Tag: "Printable Rx Ready",
+
+                    // How It Works
+                    howBadge: "Quick Walkthrough",
+                    howTitle: "Effortless Care in 3 Simple Steps",
+                    howSubtitle: "Designed to remove friction for both patients and clinicians, ensuring rapid consultations and continuous care.",
+                    step1Title: "Find Specialist",
+                    step1Desc: "Search by department, fee range, or weekly availability day.",
+                    step2Title: "Reserve Slot",
+                    step2Desc: "Select an open 30-minute interval on the interactive clinic calendar.",
+                    step3Title: "Consult & Rx",
+                    step3Desc: "Attend visit, receive medical diagnosis and digital prescription.",
+
+                    // Call To Action
+                    ctaPatientTitle: "Need Medical Care?",
+                    ctaPatientSub: "Browse the doctors and specialties in the demo directory",
+                    ctaPatientDesc: "Explore the doctor directory, view listed fees, and check appointment availability.",
+                    ctaPatientBtn: "Book Consultation Now",
+                    ctaDoctorTitle: "Are You a Physician?",
+                    ctaDoctorSub: "Expand your clinical reach with MediCare",
+                    ctaDoctorDesc: "Configure your weekly shifts, review patient appointments, manage attendance, and issue structured e-prescriptions.",
+                    ctaDoctorRegister: "Register Doctor Practice",
+                    ctaDoctorPortal: "Open Doctor Portal",
+                    ctaLoggedPatient: "Logged in as Patient",
+
+                    // Doctor Directory (Doctors/Index)
+                    docHeaderTitle: "Find a Doctor",
+                    docHeaderSubtitle: "Browse doctors in the demo directory, review listed fees, and check their available consultation times.",
+                    docDoctorsAvailable: "Doctors Available",
+                    docSearchLabel: "Doctor Name or Keyword",
+                    docSearchPlaceholder: "e.g. Ahmed, Cardiology...",
+                    docSpecLabel: "Specialization",
+                    docAllSpecs: "All Specializations",
+                    docFeeLabel: "Max Fee (EGP)",
+                    docFeePlaceholder: "Any",
+                    docDayLabel: "Available Day",
+                    docAnyDay: "Any Day",
+                    docFilterApplied: "Filtered results applied",
+                    docResetFilters: "Reset all filters",
+                    docNoDoctors: "No Doctors Found",
+                    docNoDoctorsDesc: "No doctors in the demo directory match your search. Try changing the filters or search term.",
+                    docClearFilters: "Clear Filters & View All",
+                    docConsultationFee: "Consultation Fee",
+                    docAvailableShifts: "Available Shifts:",
+                    docScheduleReq: "Schedule upon request",
+                    docProfile: "Profile",
+                    docBookSlot: "Book Slot",
+                    docPrev: "Previous",
+                    docNext: "Next",
+                    docVerifiedBadge: "Application approved in the demo",
+
+                    // Doctor Details (Doctors/Details)
+                    docAboutTitle: "About the Physician",
+                    docShiftsTitle: "Weekly Consultation Shifts",
+                    docNoShifts: "No recurring shifts are currently posted for this physician.",
+                    docBackDir: "Back to Directory",
+                    docLicense: "Medical License",
+                    docDuration: "Slot Duration",
+                    docMinPerConsult: "minutes per consultation",
+                    docClinicContact: "Clinic Contact",
+
+                    // Booking & Details (Appointments)
+                    bookSelectDate: "Select Consultation Date",
+                    bookCairoTime: "Cairo Time (UTC+2/UTC+3)",
+                    bookAvailSlots: "Available Consultation Slots",
+                    bookSelectDateNotice: "Select a date above to display available times.",
+                    bookHowToReserve: "How to Reserve: Select any day on the calendar, choose an open time interval below, and confirm your reservation.",
+                    apptDetailsTitle: "Appointment Details",
+                    apptAttendingPhysician: "Attending Physician",
+                    apptPatientDetails: "Patient Details",
+                    apptConsultationTime: "Consultation Time",
+                    apptFeePayment: "Consultation Fee & Payment",
+                    apptPaidOnline: "Payment confirmed",
+                    paymentConfirmed: "Payment confirmed",
+                    apptViewReceipt: "View Receipt",
+                    apptUnpaid: "Unpaid",
+                    apptPayOnline: "Pay with Paymob (test mode)",
+                    apptCancelBtn: "Cancel Appointment",
+
+                    // Payment & Receipt
+                    receiptPrint: "Print receipt",
+                    receiptReturn: "Return to Appointment",
+
+                    // Footer
+                    footerHealthcareBadge: "Clinic demo",
+                    footerDesc: "A clinic management graduation project for appointment booking and basic digital clinical workflows.",
+                    footerOperational: "Demo version",
+                    footerCairoTime: "\u2022 Egypt Standard Time",
+                    footerForPatients: "For Patients",
+                    footerFindDoctors: "Find Doctors",
+                    footerSpecialties: "Specialties",
+                    footerMyVisits: "My Visits",
+                    footerDigitalRecords: "Digital Records",
+                    footerClinicalPortals: "Clinical Portals",
+                    footerJoinDoctor: "Join as Physician",
+                    footerShiftMgmt: "Shift Management",
+                    footerPatientQueue: "Patient Queue",
+                    footerDoctorLicensing: "Doctor application review",
+                    footerArchTrust: "Architecture & Trust",
+                    footerSqlConcurrency: "Appointment conflict controls",
+                    footerSignalR: "Live in-app notifications",
+                    footerRxGen: "Digital Prescription Generator",
+                    footerDepi: "DEPI .NET Full Stack Project",
+                    footerBrandName: "MediCare Healthcare Systems",
+                    footerAllRights: "All rights reserved.",
+                    footerCredits: "Built with ASP.NET Core 8.0 LTS \u2022 Entity Framework Core \u2022 Clean 3-Tier Architecture",
+                    privacyDemoBadge: "Graduation project demo",
+                    skipToContent: "Skip to main content",
+                    privacyTitle: "Privacy and Demo Data",
+                    termsTitle: "Terms & Conditions",
+                    termsConsentPrefix: "I confirm that I have read and agree to MediCare's",
+                    termsModalLink: "Terms & Conditions and Cancellation/Refund Policy",
+                    termsQuickSummaryToggle: "View payment & refund summary",
+                    termsSummaryPoint1: "Payment Security: Processed securely via Paymob; MediCare never stores card numbers or CVV.",
+                    termsSummaryPoint2: "Cancellation: Appointments may be cancelled for a refund up to 24 hours before the scheduled time.",
+                    termsSummaryPoint3: "No-Show: Missed consultations without prior notice are non-refundable.",
+                    termsSummaryPoint4: "Telehealth: Requires a stable internet connection; not for medical emergencies (call 123).",
+                    privacyIntro: "This page explains how information is handled in this educational demonstration.",
+                    privacyWarning: "Do not enter real medical, identity, or payment-card information. This project is a graduation demonstration, not a live clinic service.",
+                    privacyCollectedTitle: "Information entered",
+                    privacyCollectedBody: "The application may store account details, appointment information, profile fields, and clinical notes entered during the demo. Use fictional sample data only.",
+                    privacyUseTitle: "How it is used",
+                    privacyUseBody: "Information is used to demonstrate sign-in, role-based pages, appointment workflows, records, and reports. Demo checkout does not charge a real card.",
+                    privacyAccessTitle: "Access and storage",
+                    privacyAccessBody: "Access is controlled by application roles. Data is stored in the configured project database; uploaded files may also be stored by the app. Appointment rooms open a third-party Jitsi service and use demo room names derived from appointment details. Do not share the link or real patient information there. Retention and hosting depend on the demo environment.",
+                    privacyAiTitle: "AI clinic guide",
+                    privacyAiBody: "When configured, only the chatbot message is sent to OpenAI to generate a reply. Do not include real symptoms, names, contact details, records, or other sensitive information. Without the connection, the local keyword-based demo responds instead.",
+                    privacyContactTitle: "Questions or data removal",
+                    privacyContactBody: "For this demonstration, contact the project owner or evaluator who provided access to request removal of demo data. This page is project information and is not a legal privacy notice for a commercial healthcare service.",
+
+                    // AI Chatbot
+                    chatTitle: "MediCare Clinic Guide",
+                    chatStatus: "Booking help and specialty guide",
+                    chatPrivacyNotice: "Educational guide only. Do not enter real health or personal information. When AI is enabled, messages are sent to OpenAI.",
+                    chatGreeting: "\ud83d\udc4b Welcome to MediCare! I can explain booking steps or suggest a broad specialty. I do not diagnose or recommend treatment.",
+                    chatPlaceholder: "Type your symptoms...",
+                    chatSend: "Send Message",
+                    chatConsentLabel: "I agree to send entered symptom text to the external AI provider for analysis. I understand this is for general guidance only and not medical diagnosis, and I will not enter identifying details.",
+                    chatConsentRequiredBadge: "Consent required for external AI",
+                    chatPiiRedactedBadge: "Personal identifiers redacted for privacy",
+                    chipChestPain: "\ud83e\ude7a Chest pain",
+                    chipSkinRash: "\ud83e\uddf4 Skin rash",
+                    chipChildFever: "\ud83d\udc76 Child fever",
+                    chipJointPain: "\ud83e\uddb4 Joint pain",
+                    chipHowToBook: "\ud83d\udcc5 How to book?",
+                    bookNow: "Book",
+
+                    // Telehealth & PWA
+                    telehealthReadyTitle: "Telehealth room demo",
+                    telehealthReadyDesc: "Opens the external Jitsi Meet service. Do not share real patient information in this demo.",
+                    telehealthExternalNotice: "The room opens the external Jitsi service and its demo name is based on appointment details. Do not share the link or real patient information.",
+                    joinTelehealthBtn: "Open Room Demo",
+                    videoConsultationBtn: "Video",
+                    telehealthLiveTitle: "Consultation room demo",
+                    telehealthEncrypted: "Local camera preview only",
+                    telehealthWaitingStatus: "This page is a local preview demo; no remote participant is connected here.",
+                    telehealthSignalRSync: "Remote video signaling is not configured",
+                    telehealthYou: "You (Local)",
+                    telehealthMicToggle: "Mute",
+                    telehealthCamToggle: "Video",
+                    telehealthScreenToggle: "Share Screen",
+                    telehealthEndCall: "End Consultation",
+                    telehealthEncounterCard: "Clinical Encounter Details",
+                    telehealthPhysicianLabel: "Physician",
+                    telehealthPatientLabel: "Patient",
+                    telehealthScheduleLabel: "Scheduled Interval",
+                    telehealthSymptomsLabel: "Reported Symptoms / Chief Complaint",
+                    telehealthNotesLabel: "Live Clinical Notes & Diagnosis",
+                    telehealthNotesPlaceholder: "Document real-time examination findings, differential diagnosis, and recommended clinical management plan...",
+                    telehealthAutoSave: "Draft saved in this browser only; it is not added to the medical record.",
+                    telehealthStartPreview: "Enable local camera preview",
+                    telehealthFinalizeRx: "Finalize Consultation & Issue Rx",
+                    telehealthReturnDetails: "Return to Appointment Details",
+                    installAppBtn: "Install App",
+                    pwaInstallTitle: "Install MediCare App",
+                    pwaInstallSubtitle: "Fast experience & direct access from your home screen",
+                    pwaInstallAction: "Install",
+
+                    // Registration & Authentication
+                    regPatientTitle: "Create Patient Account",
+                    regPatientSubtitle: "Register to book doctors listed in the demo directory and access your records.",
+                    regDoctorTitle: "Doctor Practice Registration",
+                    regDoctorSubtitle: "Submit a doctor account request for administrator review in the demo.",
+                    regDoctorPolicy: "Verification Policy: In accordance with clinic regulations, new doctor profiles undergo credential review by clinic administration before activation.",
+                    formFullName: "Full Legal Name",
+                    phFullName: "e.g. John Doe",
+                    formEmail: "Email Address",
+                    phEmail: "name@example.com",
+                    formPassword: "Password",
+                    phPassword: "••••••••",
+                    formConfirmPassword: "Confirm Password",
+                    phConfirmPassword: "••••••••",
+                    formPhone: "Phone Number",
+                    phPhone: "+2010...",
+                    formDob: "Date of Birth",
+                    formGender: "Gender",
+                    optMale: "Male",
+                    optFemale: "Female",
+                    formBloodGroup: "Blood Group",
+                    optSelectBloodGroup: "Unknown / Select",
+                    formEmergencyContact: "Emergency Contact",
+                    phEmergencyContact: "Contact number of kin/guardian",
+                    formAllergies: "Known Allergies",
+                    phAllergies: "e.g. Penicillin, Peanuts, Latex, Aspirin (optional)",
+                    formMedicalHistory: "Medical History & Chronic Conditions",
+                    phMedicalHistory: "e.g. Hypertension diagnosed 2020, Asthma (optional)",
+                    btnCompleteReg: "Complete Registration",
+                    alreadyRegistered: "Already registered?",
+                    signInHere: "Sign in here",
+                    formDocName: "Full Legal Name",
+                    phDocName: "Dr. First Last",
+                    formClinicEmail: "Clinic Email Address",
+                    phClinicEmail: "doctor@clinic.com",
+                    formDocSpec: "Clinical Specialization",
+                    optSelectSpecialization: "-- Select Specialization --",
+                    formDocLicense: "Medical Syndicate License #",
+                    phDocLicense: "e.g. EGY-MED-2022-1234",
+                    formDocFee: "Visit Fee (EGP)",
+                    currencyEgp: "EGP",
+                    formDocGov: "Clinic Location / Governorate",
+                    formDocBio: "Professional Biography",
+                    phDocBio: "Brief clinical background, education, fellowships, and areas of expertise...",
+                    btnSubmitDoctorApp: "Submit Practice Application",
+                    alreadyApproved: "Already approved?",
+                    loginTitle: "Welcome Back",
+                    loginSubtitle: "Access your MediCare health portal",
+                    rememberMe: "Keep me signed in",
+                    signInBtn: "Sign In",
+                    newToMedicare: "New to MediCare?",
+                    patientSignUp: "Patient Sign Up",
+                    doctorPractice: "Doctor Practice",
+
+                    // Password Rules & Strength Meter
+                    pwdSecurityLevel: "Password Security Level:",
+                    pwdNotStarted: "Not started",
+                    pwdWeak: "Weak",
+                    pwdFair: "Fair",
+                    pwdStrong: "Strong",
+                    pwdVeryStrong: "Very Strong",
+                    pwdRuleMinLength: "At least 8 characters",
+                    pwdRuleUpper: "At least one uppercase letter (A-Z)",
+                    pwdRuleLower: "At least one lowercase letter (a-z)",
+                    pwdRuleNumber: "At least one number (0-9)",
+                    pwdRuleSpecial: "At least one special symbol (!@@#$%^&*)",
+                    pwdMatchSuccess: "Passwords match",
+                    pwdMatchError: "Passwords do not match",
+
+                    // Profile
+                    profileHeaderTitle: "Patient Medical Profile",
+                    profileHeaderSubtitle: "View and update your personal information, emergency contacts, and clinical allergies.",
+                    profPersonalInfo: "Personal Identity",
+                    formRegisteredEmail: "Registered Email",
+                    profEmailNotice: "Email address is managed by authentication security.",
+                    profSafetyHeading: "Clinical Safety & Medical History",
+                    profAllergiesNotice: "This critical safety information is displayed to attending physicians during clinical consultations.",
+                    btnBackToAppointments: "Back to Appointments",
+                    btnSaveChanges: "Save Changes",
+
+                    // Home & Directories
+                    authNoticeTitle: "Access Notice:",
+                    authNoticeDesc: "Sign in or register to browse the demo doctor directory and book appointments.",
+                    authNoticeAction: "Sign In to Continue",
+                    docVerifiedReviews: "Patient Reviews",
+                    docYearsExp: "years experience",
+
+                    // DEPI Footer
+                    footerDepiGraduates: "Graduation Project Developed by: Digital Egypt Pioneers Initiative (DEPI) Graduates",
+                    footerDepiTrack: ".NET Full Stack Web Development Track",
+
+                    // Department Showcase Cards
+                    deptCardioBadge: "Cardiac Care & Cath Lab",
+                    deptCardioTitle: "Cardiovascular & Heart Diseases",
+                    deptPediatricBadge: "Neonatal & Pediatric Care",
+                    deptPediatricTitle: "Pediatrics & Child Care",
+                    deptDentalBadge: "Implants & Cosmetic Dentistry",
+                    deptDentalTitle: "Dental Medicine & Surgery",
+                    deptOrthoBadge: "Arthroscopy & Sports Medicine",
+                    deptOrthoTitle: "Orthopedic & Joint Surgery",
+
+                    // Guest Auth Prompt Modal
+                    authPromptTitle: "Sign In Required to Continue",
+                    authPromptSubtitle: "Welcome to MediCare Healthcare Network",
+                    authPromptMessage: "Sign in or create a patient account to browse the demo doctor directory and use appointment booking.",
+                    authPromptPoint1: "Browse doctors and specialties available in the demo data",
+                    authPromptPoint2: "Appointment availability with database conflict checks",
+                    authPromptPoint3: "Integrated digital health passport for e-prescriptions & clinical visit history",
+                    authPromptLoginBtn: "Sign In Now",
+                    authPromptRegisterBtn: "Create Free Patient Account",
+                    authPromptDismissBtn: "Keep Browsing as Guest"
+                },
+                ar: {
+                    // Navbar & Account
+                    home: "الرئيسية",
+                    findDoctors: "ابحث عن طبيب",
+                    schedule: "جدول المواعيد",
+                    leaves: "الإجازات",
+                    appointments: "المواعيد",
+                    myAppointments: "مواعيدي",
+                    paymentHistoryNav: "سجل المدفوعات",
+                    medicalRecords: "السجلات الطبية",
+                    dashboard: "لوحة الإدارة",
+                    approvals: "اعتماد الأطباء",
+                    reports: "التقارير",
+                    adminPaymentsNav: "المالية والمدفوعات",
+                    adminPaymentsTitle: "لوحة المالية والمدفوعات الذكية",
+                    adminPaymentsSubtitle: "معاملات Paymob المعتمدة، تحليلات الإيرادات، توزيع وسائل الدفع، وإدارة طوابير التسوية المالية.",
+                    notifications: "الإشعارات",
+                    viewAllNotifications: "عرض جميع الإشعارات",
+                    notificationCenterTitle: "مركز الإشعارات",
+                    notificationCenterSubtitle: "تحديثات فورية حول حجوزات الكشف وتأكيد الدفع واسترداد المبالغ المالية.",
+                    markAllRead: "تحديد الكل كمقروء",
+                    noNotificationsTitle: "لا توجد إشعارات حالياً",
+                    noNotificationsSubtitle: "أنت على اطلاع بكل جديد! سنقوم بإشعارك فور حدوث أي مستجدات بالدفع أو المواعيد.",
+                    filterAll: "الكل",
+                    filterUnread: "غير المقروءة",
+                    filterPayments: "المدفوعات",
+                    filterRefunds: "الاستردادات",
+                    filterAppointments: "المواعيد",
+                    logout: "تسجيل الخروج",
+                    signIn: "تسجيل الدخول",
+                    join: "انضم إلى ميديكير",
+                    patientAccount: "حساب مريض",
+                    doctorPractice: "عيادة طبيب",
+
+                    // Hero (Home)
+                    heroBadge: "ميدي كير • عرض مشروع تخرج",
+                    heroTitlePart1: "رعاية صحية متطورة،",
+                    heroTitlePart2: "بجدولة دقيقة وفورية.",
+                    heroSubtitle: "تواصل مع نخبة من الأطباء الاستشاريين المعتمدين، واحجز مواعيد مؤكدة بدون أي تضارب، وتابع رحلتك العلاجية وسجلاتك الطبية عبر منصة رقمية متكاملة.",
+                    heroSearchPlaceholder: "ابحث باسم الطبيب، التخصص، أو الأعراض...",
+                    heroSearchBtn: "بحث عن أطباء",
+                    popularSpecialties: "الأكثر طلباً:",
+                    specCardiology: "أمراض القلب",
+                    specDermatology: "الجلدية والتناسلية",
+                    specPediatrics: "طب الأطفال",
+                    specOrthopedics: "جراحة العظام",
+                    specInternal: "الباطنة العامة",
+                    badgeAcidSafe: "ضوابط حجز بقاعدة البيانات",
+                    badgeSqlEngine: "SQL Server",
+                    heroBadgeDoctors: "استعرض أطباء النسخة التجريبية",
+                    heroBadgeGovs: "مواقع مضافة للبيانات التجريبية",
+
+                    // Trust Stats
+                    statDoubleBooking: "ضوابط تعارض الحجز بقاعدة البيانات",
+                    statVerified: "مراجعة طلبات تسجيل الأطباء",
+                    statFastBooking: "حجز المواعيد المتاحة",
+                    statSignalR: "إشعارات داخل الموقع",
+
+                    // Medical Departments Visual Showcase
+                    deptBadge: "أقسام العيادات التخصصية",
+                    deptTitle: "استكشف تخصصات العيادة",
+                    deptAllLink: "استكشف كل التخصصات",
+
+                    // Engineering Excellence
+                    engBadge: "التميز الهندسي والتقني",
+                    whyChooseTitle: "لماذا يختار مقدمو الرعاية الصحية ميديكير؟",
+                    whyChooseSubtitle: "صُممت المنظومة من الصفر لتضمن موثوقية السجلات الطبية، ودقة الجدولة الزمنية، وسلاسة تجربة الطبيب والمريض.",
+                    feat1Title: "انعدام التضارب في الحجوزات",
+                    feat1Desc: "مُطبقة ومحمية على مستوى محرك قاعدة البيانات عبر فهارس التزامن المصفاة لمنع أي تداخل بين المواعيد حتى في أوقات الذروة.",
+                    feat1Tag: "معاملات ذرية غير قابلة للتجزئة",
+                    feat2Title: "أطباء استشاريون معتمدون",
+                    feat2Desc: "يخضع كل طبيب للتحقق من ترخيص مزاولة المهنة قبل الاعتماد. تصفح الشهادات، ورسوم الكشف الشفافة، ومواعيد العيادات الأسبوعية.",
+                    feat2Link: "استكشف قائمة الأطباء",
+                    feat3Title: "ملف طبي إلكتروني موحد",
+                    feat3Desc: "توثيق سريري فوري عقب انتهاء الكشف: التشخيص الطبي، الأعراض، ملاحظات الطبيب، وروشتة رقمية جاهزة للطباعة مع الجرعات.",
+                    feat3Tag: "روشتة إلكترونية للطباعة",
+
+                    // How It Works
+                    howBadge: "كيف تعمل المنظومة",
+                    howTitle: "رعاية طبية سهلة في 3 خطوات بسيطة",
+                    howSubtitle: "صُممت لتوفير وقت المريض والطبيب وضمان تجربة علاجية سريعة ومستمرة.",
+                    step1Title: "١. اختر الطبيب",
+                    step1Desc: "ابحث بالتخصص، أو نطاق السعر، أو أيام العيادة المتاحة.",
+                    step2Title: "٢. احجز الموعد",
+                    step2Desc: "اختر موعداً متاحاً في التقويم التفاعلي بضغطة زر واحدة.",
+                    step3Title: "٣. استشر الطبيب والروشتة",
+                    step3Desc: "احضر موعدك، واستلم تشخيصك والروشتة الرقمية المعتمدة.",
+
+                    // Call To Action
+                    ctaPatientTitle: "هل تبحث عن رعاية طبية؟",
+                    ctaPatientSub: "نخبة من الاستشاريين في كافة التخصصات",
+                    ctaPatientDesc: "تصفح قائمة الأطباء المعتمدين، واعرف المواعيد المتاحة بتوقيت القاهرة، واحجز موعدك دون أي احتمال للتضارب.",
+                    ctaPatientBtn: "احجز استشارتك الآن",
+                    ctaDoctorTitle: "هل أنت طبيب ممارس؟",
+                    ctaDoctorSub: "طوّر إدارة عيادتك مع منظومة ميديكير",
+                    ctaDoctorDesc: "حدد مواعيد عيادتك الأسبوعية، وراجع قائمة حجوزات المرضى، وسجل الحضور، وأصدر الروشتات الرقمية المعتمدة.",
+                    ctaDoctorRegister: "تسجيل عيادة طبيب",
+                    ctaDoctorPortal: "الدخول لبوابة الطبيب",
+                    ctaLoggedPatient: "أنت مسجل حالياً كحساب مريض",
+
+                    // Doctor Directory (Doctors/Index)
+                    docHeaderTitle: "ابحث عن طبيب",
+                    docHeaderSubtitle: "تصفح الأطباء الاستشاريين المعتمدين، واطلع على رسوم الكشف ومواعيد العيادات الأسبوعية.",
+                    docDoctorsAvailable: "أطباء متاحون",
+                    docSearchLabel: "اسم الطبيب أو كلمة البحث",
+                    docSearchPlaceholder: "مثال: د. أحمد، قلب...",
+                    docSpecLabel: "التخصص الطبي",
+                    docAllSpecs: "جميع التخصصات",
+                    docFeeLabel: "الحد الأقصى للفيزيتا (جنيه)",
+                    docFeePlaceholder: "أي سعر",
+                    docDayLabel: "يوم العيادة",
+                    docAnyDay: "أي يوم",
+                    docFilterApplied: "تم تطبيق معايير التصفية",
+                    docResetFilters: "إعادة ضبط التصفية",
+                    docNoDoctors: "لم يتم العثور على أطباء",
+                    docNoDoctorsDesc: "لم نجد أطباء يطابقون خيارات البحث الحالية. جرب تغيير معايير البحث أو اختيار تخصص آخر.",
+                    docClearFilters: "عرض جميع الأطباء",
+                    docConsultationFee: "رسوم الكشف",
+                    docAvailableShifts: "الأيام المتاحة:",
+                    docScheduleReq: "المواعيد حسب الطلب",
+                    docProfile: "الملف الشخصي",
+                    docBookSlot: "حجز موعد",
+                    docPrev: "السابق",
+                    docNext: "التالي",
+                    docVerifiedBadge: "تمت الموافقة على الحساب داخل النسخة التجريبية",
+
+                    // Doctor Details (Doctors/Details)
+                    docAboutTitle: "نبذة عن الطبيب",
+                    docShiftsTitle: "مواعيد العيادة الأسبوعية",
+                    docNoShifts: "لا توجد مواعيد عمل أسبوعية مسجلة حالياً لهذا الطبيب.",
+                    docBackDir: "العودة لقائمة الأطباء",
+                    docLicense: "ترخيص مزاولة المهنة",
+                    docDuration: "مدة الكشف",
+                    docMinPerConsult: "دقيقة لكل كشف",
+                    docClinicContact: "التواصل مع العيادة",
+
+                    // Booking & Details (Appointments)
+                    bookSelectDate: "اختر تاريخ الكشف",
+                    bookCairoTime: "توقيت القاهرة",
+                    bookAvailSlots: "المواعيد المتاحة للكشف",
+                    bookSelectDateNotice: "اختر يوماً من التقويم أعلاه لعرض المواعيد المتاحة.",
+                    bookHowToReserve: "طريقة الحجز: اختر يوماً من التقويم، ثم حدد الفترة الزمنية المناسبة وأكد حجزك.",
+                    apptDetailsTitle: "تفاصيل الموعد",
+                    apptAttendingPhysician: "الطبيب المعالج",
+                    apptPatientDetails: "بيانات المريض",
+                    apptConsultationTime: "وقت الكشف",
+                    apptFeePayment: "رسوم الكشف والدفع",
+                    apptPaidOnline: "تم تأكيد الدفع",
+                    paymentConfirmed: "تم تأكيد الدفع",
+                    apptViewReceipt: "عرض الإيصال",
+                    apptUnpaid: "في انتظار الدفع",
+                    apptPayOnline: "الدفع عبر Paymob (وضع الاختبار)",
+                    apptCancelBtn: "إلغاء الموعد",
+
+                    // Payment & Receipt
+                    receiptPrint: "طباعة الإيصال",
+                    receiptReturn: "العودة لتفاصيل الموعد",
+
+                    // Footer
+                    footerHealthcareBadge: "عرض تجريبي للعيادة",
+                    footerDesc: "مشروع تخرج لإدارة العيادات، يشمل حجز المواعيد وبعض الخدمات الطبية الرقمية.",
+                    footerOperational: "نسخة تجريبية",
+                    footerCairoTime: "• توقيت جمهورية مصر العربية",
+                    footerForPatients: "للمرضى",
+                    footerFindDoctors: "ابحث عن طبيب",
+                    footerSpecialties: "التخصصات الطبية",
+                    footerMyVisits: "مواعيدي السابقة",
+                    footerDigitalRecords: "السجلات الطبية",
+                    footerClinicalPortals: "البوابات الإكلينيكية",
+                    footerJoinDoctor: "انضم كطبيب",
+                    footerShiftMgmt: "إدارة نوبات العمل",
+                    footerPatientQueue: "طابور المرضى",
+                    footerDoctorLicensing: "مراجعة طلبات الأطباء",
+                    footerArchTrust: "البنية التحتية والموثوقية",
+                    footerSqlConcurrency: "ضوابط لمنع تعارض المواعيد",
+                    footerSignalR: "إشعارات مباشرة داخل الموقع",
+                    footerRxGen: "منظومة الروشتة الإلكترونية",
+                    footerDepi: "مشروع تخرج مبادرة رواد مصر الرقمية DEPI",
+                    footerBrandName: "منظومة ميديكير للرعاية الصحية",
+                    footerAllRights: "جميع الحقوق محفوظة.",
+                    footerCredits: "مبني بـ ASP.NET Core 8.0 LTS • Entity Framework Core • معمارية ثلاثية الطبقات",
+                    privacyDemoBadge: "نسخة تجريبية لمشروع تخرج",
+                    skipToContent: "انتقل إلى المحتوى الرئيسي",
+                    privacyTitle: "الخصوصية والبيانات التجريبية",
+                    privacyIntro: "توضح هذه الصفحة كيفية التعامل مع البيانات في النسخة التعليمية التجريبية.",
+                    privacyWarning: "يُرجى عدم إدخال بيانات طبية أو شخصية أو بيانات بطاقات دفع حقيقية. هذا مشروع تخرج تجريبي وليس خدمة عيادة فعلية.",
+                    privacyCollectedTitle: "البيانات التي قد تُدخلها",
+                    privacyCollectedBody: "قد يحتفظ التطبيق ببيانات الحساب والمواعيد والملف الشخصي والملاحظات الطبية التي تُدخل أثناء العرض. استخدم بيانات وهمية فقط.",
+                    privacyUseTitle: "استخدام البيانات",
+                    privacyUseBody: "تُستخدم البيانات لعرض تسجيل الدخول والصلاحيات وحجز المواعيد والسجلات والتقارير. عملية الدفع التجريبية لا تخصم أموالاً حقيقية.",
+                    privacyAccessTitle: "الوصول والتخزين",
+                    privacyAccessBody: "تُحدد صلاحيات الوصول حسب أدوار التطبيق، وتُخزن البيانات في قاعدة بيانات المشروع وقد تُخزن الملفات المرفوعة أيضاً. تفتح غرف المواعيد خدمة Jitsi خارجية وتستخدم أسماء تجريبية مشتقة من بيانات الموعد؛ لذلك لا تشارك الرابط أو بيانات مرضى حقيقية. تعتمد مدة الاحتفاظ والاستضافة على بيئة النسخة التجريبية.",
+                    privacyAiTitle: "دليل العيادة بالذكاء الاصطناعي",
+                    privacyAiBody: "عند إعداد الاتصال، تُرسل رسالة الدردشة فقط إلى OpenAI لإنشاء الرد. لا تكتب أعراضاً حقيقية أو أسماء أو بيانات اتصال أو سجلات أو معلومات حساسة. من دون الاتصال، يرد المساعد المحلي القائم على الكلمات المفتاحية.",
+                    privacyContactTitle: "الاستفسار أو حذف البيانات",
+                    privacyContactBody: "لطلب حذف بيانات تجريبية، تواصل مع صاحب المشروع أو الجهة التي منحتك صلاحية الوصول. هذه معلومات خاصة بالمشروع وليست إشعار خصوصية قانونياً لخدمة طبية تجارية.",
+
+                    // AI Chatbot
+                    chatTitle: "دليل MediCare",
+                    chatStatus: "معلومات الحجز والتخصصات",
+                    chatPrivacyNotice: "دليل تعليمي فقط. لا تكتب بيانات صحية أو شخصية حقيقية. عند تفعيل AI تُرسل الرسالة إلى OpenAI.",
+                    chatGreeting: "👋 أهلاً بك في MediCare. أستطيع شرح خطوات الحجز أو اقتراح تخصص عام. لا أقدم تشخيصاً أو علاجاً.",
+                    chatPlaceholder: "اكتب الأعراض التي تشعر بها...",
+                    chatSend: "إرسال الرسالة",
+                    chatConsentLabel: "أوافق على إرسال نص الأعراض المدخل لمزود الذكاء الاصطناعي الخارجي للمعالجة. أقر بأن الرد استرشادي ولا يمثل تشخيصاً طبياً، ولن أقوم بإدخال أي بيانات شخصية.",
+                    chatConsentRequiredBadge: "يلزم تأكيد الموافقة لتشغيل المساعد الخارجي",
+                    chatPiiRedactedBadge: "تم حجب البيانات المعرّفة لحماية الخصوصية",
+                    chipChestPain: "🩺 ألم بالصدر",
+                    chipSkinRash: "🧴 طفح جلدي",
+                    chipChildFever: "👶 حمى طفل",
+                    chipJointPain: "🦴 آلام المفاصل",
+                    chipHowToBook: "📅 طريقة الحجز؟",
+                    bookNow: "حجز",
+
+                    // Telehealth & PWA
+                    telehealthReadyTitle: "عرض تجريبي لغرفة الاستشارة",
+                    telehealthReadyDesc: "تُفتح الغرفة عبر خدمة Jitsi الخارجية. لا تشارك بيانات مرضى حقيقية في هذا العرض.",
+                    telehealthExternalNotice: "تُفتح الغرفة عبر خدمة Jitsi خارجية، واسمها التجريبي مشتق من بيانات الموعد. لا تشارك الرابط أو بيانات مرضى حقيقية.",
+                    joinTelehealthBtn: "فتح عرض الغرفة",
+                    videoConsultationBtn: "كشف مرئي",
+                    telehealthLiveTitle: "عرض تجريبي لغرفة الاستشارة",
+                    telehealthEncrypted: "معاينة الكاميرا المحلية فقط",
+                    telehealthWaitingStatus: "هذه الصفحة معاينة محلية تجريبية ولا يوجد بها اتصال بالطرف الآخر.",
+                    telehealthSignalRSync: "لم يتم إعداد ربط الفيديو بالطرف الآخر",
+                    telehealthYou: "أنت (الكاميرا الحالية)",
+                    telehealthMicToggle: "كتم الصوت",
+                    telehealthCamToggle: "الكاميرا",
+                    telehealthScreenToggle: "مشاركة الشاشة في المعاينة المحلية",
+                    telehealthEndCall: "العودة للموعد",
+                    telehealthEncounterCard: "بيانات الاستشارة الطبية",
+                    telehealthPhysicianLabel: "الطبيب المعالج",
+                    telehealthPatientLabel: "المريض",
+                    telehealthScheduleLabel: "الموعد والوقت المعتمد",
+                    telehealthSymptomsLabel: "الأعراض والشكوى الرئيسية",
+                    telehealthNotesLabel: "مسودة ملاحظات محلية",
+                    telehealthNotesPlaceholder: "اكتب ملاحظات تجريبية؛ لا تُحفظ في السجل الطبي...",
+                    telehealthAutoSave: "تُحفظ المسودة في هذا المتصفح فقط ولا تُضاف إلى السجل الطبي.",
+                    telehealthStartPreview: "تشغيل معاينة الكاميرا المحلية",
+                    telehealthFinalizeRx: "الانتقال لإكمال بيانات الزيارة",
+                    telehealthReturnDetails: "العودة لتفاصيل الموعد",
+                    installAppBtn: "تثبيت التطبيق",
+                    pwaInstallTitle: "تثبيت تطبيق MediCare",
+                    pwaInstallSubtitle: "احصل على تجربة سريعة وتصفح مباشر من شاشة هاتفك الرئيسية",
+                    pwaInstallAction: "تثبيت",
+
+                    // Registration & Authentication
+                    regPatientTitle: "إنشاء حساب مريض",
+                    regPatientSubtitle: "أنشئ حساباً لحجز الأطباء المدرجين في الدليل التجريبي ومتابعة سجلاتك.",
+                    regDoctorTitle: "تسجيل عيادة طبيب جديدة",
+                    regDoctorSubtitle: "قدّم طلب حساب طبيب لمراجعته من الإدارة داخل النسخة التجريبية.",
+                    regDoctorPolicy: "سياسة الاعتماد: وفقاً للوائح الطبية للعيادات، تخضع طلبات تسجيل الأطباء الجدد للمراجعة والتحقق من التراخيص قبل التفعيل.",
+                    formFullName: "الاسم القانوني الرباعي",
+                    phFullName: "مثال: أحمد محمود إبراهيم",
+                    formEmail: "البريد الإلكتروني",
+                    phEmail: "name@example.com",
+                    formPassword: "كلمة المرور",
+                    phPassword: "••••••••",
+                    formConfirmPassword: "تأكيد كلمة المرور",
+                    phConfirmPassword: "••••••••",
+                    formPhone: "رقم الهاتف المحمول",
+                    phPhone: "+2010...",
+                    formDob: "تاريخ الميلاد",
+                    formGender: "النوع",
+                    optMale: "ذكر",
+                    optFemale: "أنثى",
+                    formBloodGroup: "فصيلة الدم",
+                    optSelectBloodGroup: "غير محدد / اختر الفصيلة",
+                    formEmergencyContact: "رقم هاتف الطوارئ / صلة القرابة",
+                    phEmergencyContact: "رقم هاتف للتواصل في الحالات الطارئة",
+                    formAllergies: "الحساسية الدوائية والغذائية المعروفة",
+                    phAllergies: "مثال: حساسية البنسلين، الأسبرين، اللاتكس (اختياري)",
+                    formMedicalHistory: "التاريخ المرضي والأمراض المزمنة",
+                    phMedicalHistory: "مثال: ارتفاع ضغط الدم، السكري، الربو (اختياري)",
+                    btnCompleteReg: "إتمام إنشاء الحساب",
+                    alreadyRegistered: "لديك حساب بالفعل؟",
+                    signInHere: "تسجيل الدخول من هنا",
+                    formDocName: "الاسم القانوني للطبيب",
+                    phDocName: "د. الاسم الكامل",
+                    formClinicEmail: "البريد الإلكتروني للعيادة",
+                    phClinicEmail: "doctor@clinic.com",
+                    formDocSpec: "التخصص الطبي الإكلينيكي",
+                    optSelectSpecialization: "-- اختر التخصص الطبي --",
+                    formDocLicense: "رقم ترخيص مزاولة المهنة (النقابة)",
+                    phDocLicense: "مثال: EGY-MED-2022-1234",
+                    formDocFee: "رسوم الكشف بالعيادة (ج.م)",
+                    currencyEgp: "ج.م",
+                    formDocGov: "مقر العيادة / المحافظة",
+                    formDocBio: "السيرة الذاتية المهنية والمؤهلات",
+                    phDocBio: "نبذة عن المؤهلات العلمية، الزمالات الدولية، وسنوات الخبرة الإكلينيكية...",
+                    btnSubmitDoctorApp: "تقديم طلب انضمام العيادة",
+                    alreadyApproved: "تم اعتمادك بالفعل؟",
+                    loginTitle: "مرحباً بك مجدداً",
+                    loginSubtitle: "تسجيل الدخول إلى بوابتك الصحية في ميديكير",
+                    rememberMe: "تذكر بيانات الدخول",
+                    signInBtn: "تسجيل الدخول",
+                    newToMedicare: "جديد في ميديكير؟",
+                    patientSignUp: "حساب مريض جديد",
+                    doctorPractice: "تسجيل عيادة طبيب",
+
+                    // Password Rules & Strength Meter
+                    pwdSecurityLevel: "مستوى أمان كلمة المرور:",
+                    pwdNotStarted: "لم تبدأ الكتابة بعد",
+                    pwdWeak: "ضعيفة",
+                    pwdFair: "متوسطة",
+                    pwdStrong: "قوية",
+                    pwdVeryStrong: "ممتازة وقوية جداً",
+                    pwdRuleMinLength: "8 أحرف على الأقل",
+                    pwdRuleUpper: "حرف كبير واحد على الأقل (A-Z)",
+                    pwdRuleLower: "حرف صغير واحد على الأقل (a-z)",
+                    pwdRuleNumber: "رقم واحد على الأقل (0-9)",
+                    pwdRuleSpecial: "رمز خاص واحد على الأقل (!@@#$%^&*)",
+                    pwdMatchSuccess: "كلمتا المرور متطابقتان",
+                    pwdMatchError: "كلمتا المرور غير متطابقتين",
+
+                    // Profile
+                    profileHeaderTitle: "الملف الطبي للمريض",
+                    profileHeaderSubtitle: "عرض وتحديث بياناتك الشخصية، أرقام الطوارئ، والحساسية الإكلينيكية.",
+                    profPersonalInfo: "البيانات الشخصية والتعريفية",
+                    formRegisteredEmail: "البريد الإلكتروني المسجل",
+                    profEmailNotice: "البريد الإلكتروني محمي ومربوط بإجراءات أمان الحساب.",
+                    profSafetyHeading: "السلامة الإكلينيكية والتاريخ المرضي",
+                    profAllergiesNotice: "تظهر هذه المعلومات الحيوية للطبيب المعالج أثناء الكشف الطبي لضمان سلامتك وصرف العلاج المناسب.",
+                    btnBackToAppointments: "العودة إلى مواعيدي",
+                    btnSaveChanges: "حفظ التعديلات",
+
+                    // Home & Directories
+                    authNoticeTitle: "ملاحظة الخصوصية:",
+                    authNoticeDesc: "سجل الدخول أو أنشئ حساباً لاستعراض دليل الأطباء التجريبي وحجز المواعيد.",
+                    authNoticeAction: "تسجيل الدخول للمتابعة",
+                    docVerifiedReviews: "تقييمات المرضى",
+                    docYearsExp: "سنوات خبرة",
+
+                    // DEPI Footer
+                    footerDepiGraduates: "مشروع تخرج مُطوّر ومُنفّذ بواسطة: خريجي منحة مبادرة رواد مصر الرقمية (DEPI - Digital Egypt Pioneers Initiative)",
+                    footerDepiTrack: "مسار تطوير تطبيقات الويب المتكاملة (.NET Full Stack Track)",
+
+                    // Department Showcase Cards
+                    deptCardioBadge: "رعاية القلب والقسطرة",
+                    deptCardioTitle: "أمراض القلب والأوعية",
+                    deptPediatricBadge: "حديثي الولادة والمناعة",
+                    deptPediatricTitle: "طب الأطفال ورعايتهم",
+                    deptDentalBadge: "زراعة وتجميل الأسنان",
+                    deptDentalTitle: "طب وجراحة الأسنان",
+                    deptOrthoBadge: "مناظير ومفاصل رياضية",
+                    deptOrthoTitle: "جراحة العظام والمفاصل",
+
+                    // Guest Auth Prompt Modal
+                    authPromptTitle: "تسجيل الدخول مطلوب للمتابعة",
+                    authPromptSubtitle: "مرحباً بك في منظومة MediCare للرعاية الصحية",
+                    authPromptMessage: "سجل الدخول أو أنشئ حساب مريض لاستعراض دليل الأطباء التجريبي واستخدام خدمة حجز المواعيد.",
+                    authPromptPoint1: "استعرض الأطباء والتخصصات المتاحة في البيانات التجريبية",
+                    authPromptPoint2: "فحص تعارض المواعيد عند الحجز",
+                    authPromptPoint3: "ملف طبي رقمي متكامل لروشتاتك وفحوصاتك مع كل كشف",
+                    authPromptLoginBtn: "تسجيل الدخول الآن",
+                    authPromptRegisterBtn: "إنشاء حساب مريض جديد (مجاناً)",
+                    authPromptDismissBtn: "متابعة التصفح كزائر"
+                }
+            };
+
+            // -------------------------------------------------------------
+            // Dictionaries for Bilingual Doctors & Specialties
+            // -------------------------------------------------------------
+            const doctorNamesAr = {
+                "Dr. Ahmed Mahmoud": "د. أحمد محمود",
+                "Dr. Mona Mansour": "د. منى منصور",
+                "Dr. Reham Abdel-Aziz": "د. ريهام عبد العزيز",
+                "Dr. Hossam El-Maghraby": "د. حسام المغربي",
+                "Dr. Dalia Farouk": "د. داليا فاروق",
+                "Dr. Amr El-Shennawy": "د. عمرو الشناوي",
+                "Dr. Sara Al-Sayed": "د. سارة السيد",
+                "Dr. Youssef Nabil": "د. يوسف نبيل",
+                "Dr. Sherif Ghoneim": "د. شريف غنيم",
+                "Dr. Nourhan El-Shazly": "د. نورهان الشاذلي",
+                "Dr. Mohamed El-Desouky": "د. محمد الدسوقي",
+                "Dr. Rania El-Deeb": "د. رانيا الديب",
+                "Dr. Tarek Ezzat": "د. طارق عزت",
+                "Dr. Marwa El-Ganzoury": "د. مروة الجنزوري",
+                "Dr. Ahmed El-Banna": "د. أحمد البنا",
+                "Dr. Essam Badawy": "د. عصام بدوي",
+                "Dr. Menna El-Sayed": "د. منة السيد",
+                "Dr. Hazem Mostafa": "د. حازم مصطفى",
+                "Dr. Wael Fouad": "د. وائل فؤاد",
+                "Dr. Salma El-Naggar": "د. سلمى النجار",
+                "Dr. Karim Abdel-Hameed": "د. كريم عبد الحميد",
+                "Dr. Hany Mansour": "د. هاني منصور",
+                "Dr. Heba Soliman": "د. هبة سليمان",
+                "Dr. Tamer El-Wakil": "د. تامر الوكيل",
+                "Dr. Yasser El-Gammal": "د. ياسر الجمال",
+                "Dr. Inas El-Kady": "د. إيناس القاضي",
+                "Dr. Mahmoud Saber": "د. محمود صابر",
+                "Dr. Khaled El-Gendy": "د. خالد الجندي",
+                "Dr. Mariam El-Nahas": "د. مريم النحاس",
+                "Dr. Mohamed El-Attar": "د. محمد العطار",
+                "Dr. Mostafa Radwan": "د. مصطفى رضوان",
+                "Dr. Rasha El-Batal": "د. رشا البطل",
+                "Dr. Ahmed El-Sawy": "د. أحمد الصاوي",
+                "Dr. Omar El-Farouq": "د. عمر الفاروق",
+                "Dr. Fatma El-Zahraa": "د. فاطمة الزهراء",
+                "Dr. Ahmed Abdel-Mawgoud": "د. أحمد عبد الموجود",
+                "Dr. Walid Kassem": "د. وليد قاسم",
+                "Dr. Shaimaa El-Rify": "د. شيماء الريفي",
+                "Dr. Medhat El-Kashef": "د. مدحت الكاشف",
+                "Dr. Ehab Mowafi": "د. إيهاب موافي",
+                "Dr. Noha El-Sayed": "د. نهى السيد",
+                "Dr. Tarek Kamel": "د. طارق كامل",
+                "Dr. Samer Malak": "د. سامر ملاك",
+                "Dr. Basma Abdel-Hamid": "د. بسمة عبد الحميد",
+                "Dr. Ashraf El-Miniawy": "د. أشرف المنياوي",
+                "Dr. Gamal El-Qinawy": "د. جمال القناوي",
+                "Dr. Asmaa El-Hawary": "د. أسماء الهواري",
+                "Dr. Mahmoud Aboul-Magd": "د. محمود أبو المجد",
+                "Dr. Alaa El-Din Youssef": "د. علاء الدين يوسف",
+                "Dr. Shereen El-Shazly": "د. شيرين الشاذلي",
+                "Dr. Remon Nashed": "د. ريمون ناشد",
+                "Dr. Hesham Nouh": "د. هشام نوح",
+                "Dr. Rehab El-Khatib": "د. رحاب الخطيب",
+                "Dr. Mina Safwat": "د. مينا صفوت",
+                "Dr. Ayman El-Gammal": "د. أيمن الجمال",
+                "Dr. Dina Abdel-Salam": "د. دينا عبد السلام",
+                "Dr. Bahaa El-Din Hegazy": "د. بهاء الدين حجازي",
+                "Dr. Emad El-Wakil": "د. عماد الوكيل",
+                "Dr. Abeer Abdel-Bary": "د. عبير عبد الباري",
+                "Dr. Adel Hamed": "د. عادل حامد",
+                "Dr. Magdy El-Sherbiny": "د. مجدي الشربيني",
+                "Dr. Ghada Mansour": "د. غادة منصور",
+                "Dr. Raafat El-Maghraby": "د. رأفت المغربي",
+                "Dr. Saeed El-Attar": "د. سعيد العطار",
+                "Dr. Lamia El-Kafrawy": "د. لمياء الكفراوي",
+                "Dr. Hamdy El-Gammal": "د. حمدي الجمال",
+                "Dr. Michael Samy": "د. مايكل سامي",
+                "Dr. Dalia Nassar": "د. داليا نصار",
+                "Dr. Peter Shenouda": "د. بيتر شنودة",
+                "Dr. Karim Abdel-Moneim": "د. كريم عبد المنعم",
+                "Dr. Nada El-Shawarby": "د. ندى الشواربي",
+                "Dr. George Wadie": "د. جورج وديع",
+                "Dr. Moamen El-Arishy": "د. مؤمن العريشي",
+                "Dr. Heba El-Shennawy": "د. هبة الشناوي",
+                "Dr. Ziad El-Boushi": "د. زياد البوشي",
+                "Dr. Farag El-Matrouhy": "د. فرج المطروحي",
+                "Dr. Nesreen El-Hawary": "د. نسرين الهواري",
+                "Dr. Saber Badran": "د. صابر بدران",
+                "Dr. Mamdouh El-Wadawy": "د. ممدوح الوداوي",
+                "Dr. Naglaa Saad": "د. نجلاء سعد",
+                "Dr. Mohsen Abdel-Hady": "د. محسن عبد الهادي"
+            };
+
+            const specialtiesAr = {
+                "Cardiology": "أمراض القلب",
+                "Dermatology": "الجلدية والتناسلية",
+                "Pediatrics": "طب الأطفال",
+                "Orthopedics": "جراحة العظام",
+                "General Internal Medicine": "الباطنة العامة",
+                "Ophthalmology": "طب وجراحة العيون",
+                "Obstetrics & Gynecology": "النساء والتوليد",
+                "Neurology": "المخ والأعصاب",
+                "ENT / Ear, Nose & Throat": "الأنف والأذن والحنجرة",
+                "General Surgery": "الجراحة العامة",
+                "Dentistry": "طب وجراحة الأسنان",
+                "Urology": "المسالك البولية",
+                "Pulmonology": "الأمراض الصدرية",
+                "Psychiatry": "الطب النفسي"
+            };
+
+            function setLanguage(lang) {
+                document.documentElement.setAttribute('lang', lang);
+                document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+                localStorage.setItem('medicare-lang', lang);
+                if (langToggleBtn) langToggleBtn.setAttribute('aria-pressed', String(lang === 'ar'));
+
+                if (langLabel) {
+                    langLabel.textContent = lang === 'ar' ? 'English' : 'العربية';
+                }
+
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+                updateThemeUI(currentTheme);
+
+                const dict = translations[lang] || translations.en;
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (dict[key]) {
+                        el.textContent = dict[key];
+                    }
+                });
+
+                document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-ph');
+                    if (dict[key]) {
+                        el.setAttribute('placeholder', dict[key]);
+                    }
+                });
+
+                document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-title');
+                    if (dict[key]) {
+                        el.setAttribute('title', dict[key]);
+                    }
+                });
+
+                // Update Doctor Names across cards, details, and breadcrumbs
+                document.querySelectorAll('[data-doc-name-en]').forEach(el => {
+                    const enName = el.getAttribute('data-doc-name-en');
+                    if (!enName) return;
+                    if (lang === 'ar') {
+                        if (doctorNamesAr[enName]) {
+                            el.textContent = doctorNamesAr[enName];
+                        } else if (enName.startsWith('Dr. ')) {
+                            el.textContent = 'د. ' + enName.substring(4);
+                        } else {
+                            el.textContent = 'د. ' + enName;
+                        }
+                    } else {
+                        el.textContent = enName;
+                    }
+                });
+
+                // Update Specialties
+                document.querySelectorAll('[data-i18n-spec]').forEach(el => {
+                    const enSpec = el.getAttribute('data-i18n-spec');
+                    if (!enSpec) return;
+                    if (lang === 'ar') {
+                        el.textContent = specialtiesAr[enSpec] || enSpec;
+                    } else {
+                        el.textContent = enSpec;
+                    }
+                });
+
+                const chatInput = document.getElementById('chatInput');
+                if (chatInput && dict.chatPlaceholder) {
+                    chatInput.setAttribute('placeholder', dict.chatPlaceholder);
+                }
+                const chatGreeting = document.getElementById('chatGreetingText');
+                if (chatGreeting && dict.chatGreeting) {
+                    chatGreeting.innerHTML = dict.chatGreeting;
+                }
+
+                window.dispatchEvent(new CustomEvent('medicare:langChange', { detail: { lang } }));
+            }
+
+            window.getMedicareLang = function() {
+                return document.documentElement.getAttribute('lang') || 'en';
+            };
+            window.setMedicareLanguage = setLanguage;
+
+            const initialLang = localStorage.getItem('medicare-lang') || 'en';
+            setLanguage(initialLang);
+
+            if (langToggleBtn) {
+                langToggleBtn.addEventListener('click', function () {
+                    const currentLang = document.documentElement.getAttribute('lang') || 'en';
+                    const nextLang = currentLang === 'ar' ? 'en' : 'ar';
+                    setLanguage(nextLang);
+                });
+            }
+
+            // -------------------------------------------------------------
+            // 3. AI Medical Assistant Chatbot Engine
+            // -------------------------------------------------------------
+            const chatbotFloatingBtn = document.getElementById('chatbotFloatingBtn');
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            const chatbotCloseBtn = document.getElementById('chatbotCloseBtn');
+            const chatbotForm = document.getElementById('chatbotForm');
+            const chatInput = document.getElementById('chatInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatChips = document.querySelectorAll('.chat-chip');
+
+            let isChatOpen = false;
+
+            function toggleChat() {
+                isChatOpen = !isChatOpen;
+                if (isChatOpen) {
+                    chatbotWindow.style.display = 'flex';
+                    if (chatInput) chatInput.focus();
+                } else {
+                    chatbotWindow.style.display = 'none';
+                }
+            }
+
+            if (chatbotFloatingBtn) {
+                chatbotFloatingBtn.addEventListener('click', toggleChat);
+            }
+
+            if (chatbotCloseBtn) {
+                chatbotCloseBtn.addEventListener('click', function () {
+                    isChatOpen = false;
+                    chatbotWindow.style.display = 'none';
+                });
+            }
+
+            // Quick suggestion chips
+            chatChips.forEach(chip => {
+                chip.addEventListener('click', function () {
+                    const query = this.getAttribute('data-query');
+                    if (query && chatInput) {
+                        chatInput.value = query;
+                        sendUserMessage(query);
+                    }
+                });
+            });
+
+            if (chatbotForm) {
+                chatbotForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const text = chatInput.value.trim();
+                    if (!text) return;
+                    sendUserMessage(text);
+                });
+            }
+
+            function appendBubble(contentHtml, isUser = false) {
+                const bubble = document.createElement('div');
+                bubble.className = isUser ? 'chat-bubble chat-bubble-user' : 'chat-bubble chat-bubble-bot';
+                bubble.innerHTML = contentHtml;
+                chatMessages.appendChild(bubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return bubble;
+            }
+
+            async function sendUserMessage(text) {
+                appendBubble(escapeHtml(text), true);
+                chatInput.value = '';
+
+                const sendBtn = document.getElementById('chatSendBtn');
+                const consentCheckbox = document.getElementById('aiConsentCheckbox');
+                const isConsentGiven = consentCheckbox ? consentCheckbox.checked : false;
+
+                if (sendBtn) sendBtn.disabled = true;
+
+                // Typing indicator
+                const typingBubble = appendBubble('<div class="d-flex align-items-center gap-2"><span class="spinner-grow spinner-grow-sm text-primary" role="status"></span> <span class="small text-muted">MediCare is checking your message...</span></div>', false);
+
+                try {
+                    const currentLang = document.documentElement.getAttribute('lang') || 'en';
+                    const response = await fetch('/api/chatbot/message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: text,
+                            culture: currentLang,
+                            consentGiven: isConsentGiven
+                        })
+                    });
+
+                    const res = await response.json();
+                    typingBubble.remove();
+                    if (sendBtn) sendBtn.disabled = false;
+
+                    if (res.success && res.data) {
+                        renderBotResponse(res.data);
+                    } else {
+                        const errorMsg = escapeHtml(res.error || 'Unable to analyze request at this moment.');
+                        appendBubble(`<div class="text-danger small"><i class="bi bi-exclamation-circle me-1"></i> ${errorMsg}</div>`, false);
+                    }
+                } catch (err) {
+                    typingBubble.remove();
+                    if (sendBtn) sendBtn.disabled = false;
+                    appendBubble('<div class="text-danger small"><i class="bi bi-wifi-off me-1"></i> Unable to connect to the clinic guide.</div>', false);
+                }
+            }
+
+            function renderBotResponse(data) {
+                const isAr = document.documentElement.getAttribute('lang') === 'ar';
+                let engineLabel = isAr ? 'وضع تجريبي محلي' : 'Local demo mode';
+                let badgeClass = 'text-bg-light border';
+
+                if (data.engineMode === 'openai') {
+                    engineLabel = isAr ? 'مساعد AI (OpenAI)' : 'AI Assistant (OpenAI)';
+                    badgeClass = 'bg-primary-subtle text-primary border border-primary-subtle';
+                } else if (data.engineMode === 'azure_openai') {
+                    engineLabel = isAr ? 'مساعد AI (Azure OpenAI)' : 'AI Assistant (Azure OpenAI)';
+                    badgeClass = 'bg-info-subtle text-info-emphasis border border-info-subtle';
+                } else if (data.engineMode === 'unconfigured_local') {
+                    engineLabel = isAr ? 'الذكاء الاصطناعي غير مهيأ' : 'AI unconfigured';
+                    badgeClass = 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+                }
+
+                let html = `<div class="d-flex flex-wrap gap-1 mb-2"><span class="badge ${badgeClass}">${engineLabel}</span>`;
+
+                if (data.consentRequired) {
+                    const consentMsg = isAr ? 'يلزم تأكيد الموافقة لتشغيل المساعد الخارجي' : 'Consent required for external AI';
+                    html += `<span class="badge bg-secondary-subtle text-secondary border">${consentMsg}</span>`;
+                }
+
+                if (data.piiDetected) {
+                    const piiMsg = isAr ? 'تم حجب المعرفات الشخصية للخصوصية' : 'Personal identifiers redacted';
+                    html += `<span class="badge bg-warning-subtle text-warning-emphasis border"><i class="bi bi-shield-lock-fill me-1"></i>${piiMsg}</span>`;
+                }
+                html += `</div><div>${escapeHtml(data.replyMessage || data.replyText).replace(/\n/g, '<br>')}</div>`;
+
+                const disclaimer = data.disclaimer || (isAr ? 'معلومات إرشادية فقط، وليست تشخيصاً أو بديلاً عن استشارة الطبيب.' : 'For general guidance only. This is not a diagnosis or a substitute for medical advice.');
+                html += `<div class="small text-muted mt-2 border-top pt-1" style="font-size: 0.72rem;">${escapeHtml(disclaimer)}</div>`;
+
+                if (data.isEmergency) {
+                    html += `
+                        <div class="alert alert-danger py-2 px-3 my-2 small fw-bold border-0 shadow-sm" style="background-color: #FEF2F2; color: #991B1B;">
+                            <i class="bi bi-exclamation-octagon-fill text-danger me-1"></i> ${escapeHtml(data.emergencyNotice)}
+                        </div>`;
+                }
+
+                if (data.specialtySuggested) {
+                    const dispSpec = isAr ? (specialtiesAr[data.specialtySuggested] || data.specialtySuggested) : data.specialtySuggested;
+                    html += `
+                        <div class="mt-2 mb-1">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-1 px-2">
+                                <i class="bi bi-hospital me-1"></i> ${isAr ? 'التخصص الطبي:' : 'Specialty:'} ${escapeHtml(dispSpec)}
+                            </span>
+                        </div>`;
+                }
+
+                if (data.recommendedDoctors && data.recommendedDoctors.length > 0) {
+                    html += `<div class="mt-2 fw-semibold small text-muted">${isAr ? 'الأطباء الاستشاريون المقترحون:' : 'Recommended Specialist Doctors:'}</div>`;
+                    data.recommendedDoctors.forEach(doc => {
+                        const cleanDocName = (doc.fullName || 'Doctor').replace(/^Dr\.\s*/i, '').trim();
+                        const nameParts = cleanDocName.split(/\s+/).filter(Boolean);
+                        const initials = nameParts.length >= 2 ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() : cleanDocName.substring(0, 2).toUpperCase();
+                        const displayName = isAr ? (doctorNamesAr[doc.fullName] || (doc.fullName.startsWith('Dr. ') ? 'د. ' + doc.fullName.substring(4) : 'د. ' + doc.fullName)) : doc.fullName;
+                        const displaySpec = isAr ? (specialtiesAr[doc.specialization] || doc.specialization) : doc.specialization;
+                        const feeText = isAr ? `${doc.consultationFee.toFixed(0)} ج.م` : `${doc.consultationFee.toFixed(0)} EGP`;
+                        const bookText = isAr ? 'احجز' : 'Book';
+
+                        const avatarMarkup = doc.profileImageUrl
+                            ? `<img src="${escapeHtml(doc.profileImageUrl)}" class="rounded-circle shadow-sm" style="width: 38px; height: 38px; object-fit: cover;" onerror="this.outerHTML='<div class=\\'rounded-circle d-flex align-items-center justify-content-center text-white fw-bold bg-primary shadow-sm\\' style=\\'width: 38px; height: 38px; font-size: 0.85rem; flex-shrink: 0;\\'>${escapeHtml(initials)}</div>';" alt="${escapeHtml(displayName)}" />`
+                            : `<div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold bg-primary shadow-sm" style="width: 38px; height: 38px; font-size: 0.85rem; flex-shrink: 0;">${escapeHtml(initials)}</div>`;
+
+                        const canBook = @((User.Identity?.IsAuthenticated != true || User.IsInRole("Patient")).ToString().ToLowerInvariant());
+                        const actionMarkup = canBook
+                            ? `<a href="/Appointments/Book/${encodeURIComponent(doc.doctorId)}" class="btn btn-primary btn-sm py-1 px-2" style="font-size: 0.75rem;">${bookText}</a>`
+                            : `<a href="/Doctors/Details/${encodeURIComponent(doc.doctorId)}" class="btn btn-outline-primary btn-sm py-1 px-2" style="font-size: 0.75rem;">${isAr ? 'عرض الطبيب' : 'View Doctor'}</a>`;
+
+                        html += `
+                            <div class="chat-doctor-card">
+                                ${avatarMarkup}
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="fw-bold small text-truncate text-dark" data-doc-name-en="${escapeHtml(doc.fullName)}">${escapeHtml(displayName)}</div>
+                                    <div class="text-muted small" style="font-size: 0.72rem;"><span data-i18n-spec="${escapeHtml(doc.specialization)}">${escapeHtml(displaySpec)}</span> &bull; ${feeText}</div>
+                                </div>
+                                ${actionMarkup}
+                            </div>`;
+                    });
+                }
+
+                appendBubble(html, false);
+            }
+
+            function escapeHtml(string) {
+                if (!string) return '';
+                return String(string)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            // -------------------------------------------------------------
+            // 4. Guest Authentication Interceptor for Doctors & Departments
+            // -------------------------------------------------------------
+            const authPromptModalEl = document.getElementById('authPromptModal');
+            if (authPromptModalEl) {
+                function showAuthModal(targetUrl) {
+                    const loginBtn = document.getElementById('authPromptLoginBtn');
+                    if (loginBtn) {
+                        const returnUrl = encodeURIComponent(targetUrl || '/Doctors');
+                        loginBtn.setAttribute('href', `/Account/Login?ReturnUrl=${returnUrl}`);
+                    }
+                    const registerBtn = document.getElementById('authPromptRegisterBtn');
+                    if (registerBtn) {
+                        const returnUrl = encodeURIComponent(targetUrl || '/Doctors');
+                        registerBtn.setAttribute('href', `/Account/RegisterPatient?ReturnUrl=${returnUrl}`);
+                    }
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(authPromptModalEl);
+                    bsModal.show();
+                }
+
+                document.addEventListener('click', function (e) {
+                    const targetLink = e.target.closest('a');
+                    if (targetLink) {
+                        const href = targetLink.getAttribute('href') || '';
+                        // Intercept links to Doctors directory, booking, department cards, and tagged links
+                        if (
+                            href.startsWith('/Doctors') ||
+                            href.startsWith('/Appointments/Book') ||
+                            targetLink.classList.contains('medical-dept-card') ||
+                            targetLink.classList.contains('specialty-quick-pill') ||
+                            targetLink.classList.contains('require-auth-guest')
+                        ) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showAuthModal(href);
+                            return;
+                        }
+                    }
+
+                    // Intercept Hero search form button submit
+                    const submitBtn = e.target.closest('button[type="submit"]');
+                    const searchForm = e.target.closest('form.hero-search-card');
+                    if (submitBtn && searchForm) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const searchInput = searchForm.querySelector('input[name="SearchTerm"]');
+                        const term = searchInput ? encodeURIComponent(searchInput.value.trim()) : '';
+                        const targetUrl = term ? `/Doctors?SearchTerm=${term}` : '/Doctors';
+                        showAuthModal(targetUrl);
+                    }
+                }, true);
+
+                // Intercept Enter key submit on Hero search form
+                const heroSearchForm = document.querySelector('form.hero-search-card');
+                if (heroSearchForm) {
+                    heroSearchForm.addEventListener('submit', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const searchInput = heroSearchForm.querySelector('input[name="SearchTerm"]');
+                        const term = searchInput ? encodeURIComponent(searchInput.value.trim()) : '';
+                        const targetUrl = term ? `/Doctors?SearchTerm=${term}` : '/Doctors';
+                        showAuthModal(targetUrl);
+                    });
+                }
+            }
+        })();
+    </script>
+
+    <!-- =====================================================================
+         📱 PWA MOBILE APP INSTALL BANNER & SERVICE WORKER
+         ===================================================================== -->
+    <div id="pwaInstallBanner" class="position-fixed bottom-0 start-50 translate-middle-x p-3 d-none" style="z-index: 1090; max-width: 480px; width: 95%;">
+        <div class="card pwa-banner-card border-0 rounded-4 p-3 d-flex flex-row align-items-center gap-3">
+            <div class="brand-icon flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.25rem;">
+                <i class="bi bi-heart-pulse-fill"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-bold text-dark small" data-i18n="pwaInstallTitle">Install MediCare App</div>
+                <div class="text-muted small" style="font-size: 0.75rem;" data-i18n="pwaInstallSubtitle">Fast experience & direct access from your home screen</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" id="pwaBannerInstallBtn" class="btn btn-primary btn-sm fw-bold px-3 shadow-xs">
+                    <i class="bi bi-download me-1"></i> <span data-i18n="pwaInstallAction">Install</span>
+                </button>
+                <button type="button" id="pwaDismissBtn" class="btn btn-outline-secondary btn-sm border-0" aria-label="Dismiss app install prompt">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PWA Single Canonical Service Worker Registration & App Install Prompt Engine
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => {
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            if (newWorker) {
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        console.log('MediCare PWA update available.');
+                                    }
+                                });
+                            }
+                        });
+                    })
+                    .catch(err => console.warn('MediCare PWA Service Worker registration failed:', err));
+            });
+        }
+
+        (function () {
+            let deferredPrompt = null;
+            const navLi = document.getElementById('pwaInstallLi');
+            const navBtn = document.getElementById('pwaNavInstallBtn');
+            const banner = document.getElementById('pwaInstallBanner');
+            const bannerBtn = document.getElementById('pwaBannerInstallBtn');
+            const dismissBtn = document.getElementById('pwaDismissBtn');
+
+            function triggerPwaInstall() {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(({ outcome }) => {
+                    if (outcome === 'accepted') {
+                        if (navLi) navLi.style.display = 'none';
+                        if (banner) banner.classList.add('d-none');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (navLi) {
+                    navLi.style.display = 'block';
+                }
+                if (banner && !sessionStorage.getItem('medicare-pwa-dismissed')) {
+                    banner.classList.remove('d-none');
+                }
+            });
+
+            if (navBtn) {
+                navBtn.addEventListener('click', triggerPwaInstall);
+            }
+            if (bannerBtn) {
+                bannerBtn.addEventListener('click', triggerPwaInstall);
+            }
+            if (dismissBtn) {
+                dismissBtn.addEventListener('click', () => {
+                    if (banner) banner.classList.add('d-none');
+                    sessionStorage.setItem('medicare-pwa-dismissed', 'true');
+                });
+            }
+
+            window.addEventListener('appinstalled', () => {
+                if (navLi) navLi.style.display = 'none';
+                if (banner) banner.classList.add('d-none');
+                deferredPrompt = null;
+            });
+        })();
+    </script>
+
+
+    <!-- Back-to-top button -->
+    <button id="mc-back-to-top" aria-label="Back to top" title="Back to top">
+        <i class="bi bi-chevron-up"></i>
+    </button>
+
+    <!-- MediCare Animation System -->
+    <script src="~/js/animations.js" asp-append-version="true"></script>
+
+    <!-- Real-time Input Sanitization & Smart Validation for FullName & Phone fields -->
+    <script>
+        (function () {
+            document.addEventListener('input', function (e) {
+                if (!e.target || !e.target.name) return;
+                const name = e.target.name;
+                const form = e.target.closest('form');
+                if (!form) return;
+
+                if (name === 'FullName') {
+                    const input = e.target;
+                    const val = input.value;
+                    const hasDigits = /[0-9\u0660-\u0669\u06F0-\u06F9]/.test(val);
+                    const feedback = form.querySelector('span[data-valmsg-for="FullName"]');
+                    if (hasDigits) {
+                        input.classList.add('is-invalid');
+                        if (feedback) {
+                            feedback.classList.remove('field-validation-valid');
+                            feedback.classList.add('field-validation-error');
+                            const isAr = (window.getMedicareLang && window.getMedicareLang() === 'ar') || document.documentElement.getAttribute('lang') === 'ar';
+                            feedback.textContent = isAr 
+                                ? 'الاسم يجب أن يحتوي على حروف فقط وبدون أرقام' 
+                                : 'Full Name must contain only letters and cannot contain numbers.';
+                        }
+                    } else if (input.classList.contains('is-invalid') && !hasDigits) {
+                        input.classList.remove('is-invalid');
+                        if (feedback && (feedback.textContent.includes('أرقام') || feedback.textContent.includes('numbers'))) {
+                            feedback.textContent = '';
+                        }
+                    }
+                } else if (name === 'PhoneNumber' || name === 'EmergencyContact') {
+                    const input = e.target;
+                    const val = input.value;
+                    const hasLetters = /[a-zA-Z\u0621-\u064A\u0671-\u06D3]/.test(val);
+                    const feedback = form.querySelector('span[data-valmsg-for="' + name + '"]');
+                    if (hasLetters) {
+                        input.classList.add('is-invalid');
+                        if (feedback) {
+                            feedback.classList.remove('field-validation-valid');
+                            feedback.classList.add('field-validation-error');
+                            const isAr = (window.getMedicareLang && window.getMedicareLang() === 'ar') || document.documentElement.getAttribute('lang') === 'ar';
+                            feedback.textContent = isAr 
+                                ? 'رقم الهاتف يجب أن يحتوي على أرقام فقط وبدون حروف' 
+                                : 'Phone number must contain only digits without letters.';
+                        }
+                    } else if (input.classList.contains('is-invalid') && !hasLetters) {
+                        input.classList.remove('is-invalid');
+                        if (feedback && (feedback.textContent.includes('أرقام فقط') || feedback.textContent.includes('digits without letters'))) {
+                            feedback.textContent = '';
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

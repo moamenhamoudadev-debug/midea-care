@@ -1,0 +1,47 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: medicare-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-YourStrong@Passw0rd!}"
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD:-YourStrong@Passw0rd!}\" -Q \"SELECT 1\" -C 2>/dev/null || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD:-YourStrong@Passw0rd!}\" -Q \"SELECT 1\" 2>/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medicare-web
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${WEB_HTTP_PORT:-5000}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=MediCareDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:-YourStrong@Passw0rd!};TrustServerCertificate=True;Connect Timeout=30;"
+      Seed__DefaultPassword: "${SEED_DEFAULT_PASSWORD:-Demo@Pass123!}"
+      Seed__AdminPassword: "${SEED_ADMIN_PASSWORD:-Admin@Demo123456!}"
+      Seed__PharmacistPassword: "${SEED_PHARMACIST_PASSWORD:-Pharm@Demo123!}"
+      SendGrid__ApiKey: "${SENDGRID_API_KEY:-}"
+      SendGrid__Enabled: "${SENDGRID_ENABLED:-false}"
+      PublicBaseUrl: "${PUBLIC_BASE_URL:-http://localhost:5000}"
+    volumes:
+      - medicare_uploads:/app/App_Data/uploads
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
+    driver: local
+  medicare_uploads:
+    driver: local

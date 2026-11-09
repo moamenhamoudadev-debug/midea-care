@@ -1,0 +1,254 @@
+@{
+    ViewData["Title"] = "Payment Terms & Cancellation Policy";
+}
+
+<main class="container py-5" style="max-width: 960px;">
+    <!-- Breadcrumb & Header -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2 small">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page" data-i18n="termsNavTitle">Terms & Cancellation Policy</li>
+            </ol>
+        </nav>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <span class="badge rounded-pill text-bg-warning mb-2 px-3 py-2 fw-medium text-dark" data-i18n="termsBadgePending">
+                    <i class="bi bi-hourglass-split me-1"></i> Proposed Draft Policy · Pending Business-Owner & Legal Ratification
+                </span>
+                <h1 class="fw-bold mb-1 text-dark" data-i18n="termsHeading">Payment Terms & Cancellation Policy</h1>
+                <p class="text-secondary mb-0 small" data-i18n="termsSubheading">Effective Date: November 2026 · Version 1.0 (Subject to Formal Legal & Compliance Ratification)</p>
+            </div>
+            <div>
+                <a asp-controller="Home" asp-action="Privacy" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-shield-lock me-1"></i> <span data-i18n="viewPrivacyBtn">Privacy Notice</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Governance & Legal Notice Banner -->
+    <div class="card border-0 bg-light rounded-4 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-info-circle-fill fs-3 text-primary mt-1"></i>
+                <div>
+                    <h5 class="fw-bold text-dark mb-1" data-i18n="termsGovernanceTitle">Regulatory Alignment & Legal Framework</h5>
+                    <p class="small text-secondary mb-2" data-i18n="termsGovernanceDesc">
+                        This document outlines the operational payment, cancellation, and refund rules for MediCare. It references Egyptian Consumer Protection Law No. 181/2018 (including Article 10 on clear terms and invoicing, Article 28 on service guarantees and defect remedies, Article 40 on distance contract withdrawal rights, and Article 41 on statutory withdrawal limitations), alongside Executive Regulations (Decree No. 82/2019). The 24-hour cancellation cutoff and no-show rules are proposed commercial operating policies established by clinic management, currently pending qualified healthcare legal review and ratification.
+                    </p>
+                    <div class="badge bg-white text-secondary border small px-2 py-1">
+                        <i class="bi bi-shield-check text-success me-1"></i> Note: Proposed commercial policies remain subject to formal legal ratification prior to commercial enforcement.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Structured Terms Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-body p-4 p-md-5">
+
+            <!-- Section 1 -->
+            <section class="mb-4 pb-3 border-bottom">
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-credit-card-2-front text-primary"></i>
+                    <span data-i18n="termsSec1Title">1. General Payment Terms & Scope</span>
+                </h2>
+                <p class="text-secondary small mb-2" data-i18n="termsSec1P1">
+                    These Payment Terms and Cancellation Policy govern all financial transactions conducted on the MediCare platform, including in-clinic consultations, specialized physician visits, and telemedicine video consultations.
+                </p>
+                <p class="text-secondary small mb-0" data-i18n="termsSec1P2">
+                    By scheduling an appointment and completing checkout, the patient (or legal guardian) acknowledges and accepts these terms. All fees are displayed in Egyptian Pounds (EGP) and represent the total payable amount inclusive of applicable administrative and technological platform charges.
+                </p>
+            </section>
+
+            <!-- Section 2 -->
+            <section class="mb-4 pb-3 border-bottom">
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-wallet2 text-primary"></i>
+                    <span data-i18n="termsSec2Title">2. Payment Methods: Active Channels & Integration Status</span>
+                </h2>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100 border">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-credit-card me-1 text-primary"></i> Bank Cards</h6>
+                                <span class="badge text-bg-success small">Active (Test Mode)</span>
+                            </div>
+                            <p class="small text-secondary mb-1">
+                                <strong>Supported:</strong> Visa, MasterCard, and Meeza debit/prepaid bank cards issued by licensed banks.
+                            </p>
+                            <p class="small text-muted mb-0">
+                                <em>Security:</em> Authenticated through 3D Secure (OTP). Card routing is handled exclusively via Paymob Card Integration (ID: 6048804).
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100 border">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-phone me-1 text-primary"></i> Egyptian Mobile Wallets</h6>
+                                <span class="badge text-bg-secondary small">Supported (Pending Gateway ID)</span>
+                            </div>
+                            <p class="small text-secondary mb-1">
+                                <strong>Supported Providers:</strong> Vodafone Cash, Orange Cash, e&amp; money, and WE Pay.
+                            </p>
+                            <p class="small text-muted mb-0">
+                                <em>Integration Note:</em> Requires merchant configuration of the dedicated Mobile Wallet Integration ID in Paymob Accept dashboard. Meeza plastic cards are routed via the card channel, not mobile wallets.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-info small py-2 px-3 mb-0">
+                    <i class="bi bi-shield-lock-fill me-1"></i> <strong>Zero Financial Credential Storage:</strong> MediCare never collects, stores, or logs credit card numbers, CVVs, wallet PINs, or OTP codes on its servers. All sensitive financial data is submitted directly to Paymob’s PCI-DSS compliant checkout.
+                </div>
+            </section>
+
+            <!-- Section 3 -->
+            <section class="mb-4 pb-3 border-bottom">
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-shield-check text-primary"></i>
+                    <span data-i18n="termsSec3Title">3. Server-Side Verification & Transaction Integrity</span>
+                </h2>
+                <ul class="text-secondary small mb-0 ps-3">
+                    <li class="mb-2"><strong>Server-to-Server HMAC Validation:</strong> Appointments are marked as Paid solely through authenticated server-to-server callbacks verified using SHA-512 HMAC signatures. Browser redirects or frontend responses are never trusted to confirm payments.</li>
+                    <li class="mb-2"><strong>Patient Data Minimization (Zero PHI in Gateways):</strong> In compliance with medical privacy principles, only the transaction reference, consultation fee, and required contact identifiers are transmitted to Paymob. Medical diagnoses, clinical notes, and patient records are strictly excluded from payment payloads.</li>
+                    <li><strong>Idempotency & Duplicate Prevention:</strong> Unique merchant references (<c>mc-{appointmentId}-{guid}</c>) and provider order IDs ensure that duplicate callbacks cannot produce duplicate bookings or double charges.</li>
+                </ul>
+            </section>
+
+            <!-- Section 4 -->
+            <section class="mb-4 pb-3 border-bottom">
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-clock-history text-primary"></i>
+                    <span data-i18n="termsSec4Title">4. Appointment Reservation Window & Expiration</span>
+                </h2>
+                <p class="text-secondary small mb-2" data-i18n="termsSec4P1">
+                    To maintain doctor schedule integrity and prevent slot hoarding, each pending checkout session holds the reserved timeslot for thirty (30) minutes.
+                </p>
+                <ul class="text-secondary small mb-0 ps-3">
+                    <li class="mb-1"><strong>Timeout Release:</strong> Unpaid reservations that exceed the 30-minute window expire automatically, releasing the slot for other patients.</li>
+                    <li class="mb-1"><strong>Late Payment Protection:</strong> If a customer completes payment after an appointment has been cancelled or reallocated, the transaction is securely recorded in the ledger and automatically flagged with an administrative conflict alert for immediate refund or rescheduling.</li>
+                    <li><strong>Concurrency Control:</strong> SQL Server application locks and unique filtered database indexes guarantee that concurrent checkout attempts cannot create duplicate bookings on the same doctor's schedule.</li>
+                </ul>
+            </section>
+
+            <!-- Section 5 -->
+            <section class="mb-4 pb-3 border-bottom">
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-arrow-repeat text-primary"></i>
+                    <span data-i18n="termsSec5Title">5. Cancellation, Rescheduling & Refund Policy</span>
+                </h2>
+                <p class="text-secondary small mb-3">
+                    In compliance with Egyptian Consumer Protection Law No. 181/2018 (including Articles 10, 28, 40, and 41), our operational refund framework balances consumer protections with physician availability commitments:
+                </p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Scenario / Case</th>
+                                <th>Refund Eligibility</th>
+                                <th>Remedy & Operational Procedure</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <i class="bi bi-person-x text-primary me-1"></i> Patient Cancellation ≥ 24 Hours Prior
+                                </td>
+                                <td><span class="badge text-bg-success">100% Full Refund</span></td>
+                                <td>Full fee returned to the original payment card/wallet. Promo codes are restored for future use (proposed commercial policy).</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <i class="bi bi-hospital text-danger me-1"></i> Doctor Absence or Clinic Closure
+                                </td>
+                                <td><span class="badge text-bg-success">100% Full Refund</span></td>
+                                <td>Mandatory immediate refund or priority slot rescheduling at the patient's sole choice (pursuant to Article 28 service guarantees).</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <i class="bi bi-wifi-off text-warning me-1"></i> Telehealth Technical Failure
+                                </td>
+                                <td><span class="badge text-bg-success">100% Full Refund or Rebooking</span></td>
+                                <td>If platform or connectivity issues prevent consultation delivery, patient receives immediate rebooking or full refund (Article 28).</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <i class="bi bi-heart-pulse text-danger me-1"></i> Documented Medical Force Majeure
+                                </td>
+                                <td><span class="badge text-bg-primary">Case Review / Full Credit</span></td>
+                                <td>Patients facing sudden hospitalization or documented emergency may request free rescheduling or refund review within 7 days.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <i class="bi bi-alarm text-secondary me-1"></i> Unexcused No-Show or Late Cancellation (&lt;24h)
+                                </td>
+                                <td><span class="badge text-bg-warning text-dark">Proposed Policy (Pending Ratification)</span></td>
+                                <td>Pursuant to proposed clinic commercial rules pending formal legal ratification, late cancellations within 24 hours and unexcused no-shows are non-refundable to offset reserved clinical availability and schedule allocation.</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">
+                                    <i class="bi bi-check2-circle text-success me-1"></i> Rendered & Completed Consultation
+                                </td>
+                                <td><span class="badge text-bg-secondary">Non-Refundable</span></td>
+                                <td>Professional clinical diagnostic services rendered by licensed physicians are final and non-refundable, subject to statutory service defect remedies (Art. 28).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-info-circle me-1"></i> Approved refunds are processed back to the original source card or mobile wallet through Paymob within 5 to 14 business days, depending on the issuing bank's clearing cycle.
+                </p>
+            </section>
+
+            <!-- Section 6 -->
+            <section class="mb-4 pb-3 border-bottom">
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    <span data-i18n="termsSec6Title">6. Non-Emergency Medical Service Declaration</span>
+                </h2>
+                <div class="alert alert-warning small mb-0" role="alert">
+                    <div class="fw-bold mb-1"><i class="bi bi-telephone-outbound-fill me-1"></i> Emergency Disclaimer (Egyptian Ambulance Authority 123)</div>
+                    MediCare appointment scheduling and telehealth features are designed exclusively for elective, scheduled, and non-emergency medical consultations. MediCare is not an emergency response dispatch service. In acute life-threatening situations, severe chest pain, major trauma, stroke symptoms, or acute respiratory distress, immediately dial the Egyptian National Ambulance Authority at <strong>123</strong> or proceed to the nearest emergency department.
+                </div>
+            </section>
+
+            <!-- Section 7 -->
+            <section class="mb-4 pb-3 border-bottom">
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-receipt text-primary"></i>
+                    <span data-i18n="termsSec7Title">7. Official Digital Receipts & Consumer Invoicing</span>
+                </h2>
+                <p class="text-secondary small mb-2">
+                    Pursuant to Article 10 of Law No. 181/2018 and Articles 8 &amp; 10 of Executive Regulations (Decree No. 82/2019), MediCare issues an electronic receipt and invoice immediately upon successful payment containing:
+                </p>
+                <ul class="text-secondary small mb-0 ps-3">
+                    <li>Provider name, clinical license details, and tax registration identifier.</li>
+                    <li>Unique transaction reference (<c>TXN-...</c>) and provider order ID.</li>
+                    <li>Itemized consultation fee, discount applied, applicable taxes, and net amount paid in EGP.</li>
+                    <li>Physician name, clinical specialization, and scheduled date/time.</li>
+                    <li>Patient name and payment provider channel (Card or specific Mobile Wallet).</li>
+                    <li>Accepted authoritative terms version (<c>v1.0-2026.11</c>) for auditability.</li>
+                </ul>
+            </section>
+
+            <!-- Section 8 -->
+            <section>
+                <h2 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-headset text-primary"></i>
+                    <span data-i18n="termsSec8Title">8. Consumer Complaints & Dispute Resolution</span>
+                </h2>
+                <p class="text-secondary small mb-2" data-i18n="termsSec8P1">
+                    Patients may submit inquiries, payment dispute notices, or refund requests directly to clinic administration:
+                </p>
+                <div class="d-flex flex-wrap gap-4 small text-secondary">
+                    <div><i class="bi bi-envelope-fill text-primary me-1"></i> <strong>Support Email:</strong> compliance@medicare-clinic.eg</div>
+                    <div><i class="bi bi-telephone-fill text-primary me-1"></i> <strong>Administrative Desk:</strong> Dokki Medical District, Giza, Egypt</div>
+                    <div><i class="bi bi-clock-fill text-primary me-1"></i> <strong>Working Hours:</strong> Saturday – Thursday, 9:00 AM – 9:00 PM</div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>

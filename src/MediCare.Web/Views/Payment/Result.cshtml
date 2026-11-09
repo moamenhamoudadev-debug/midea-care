@@ -1,0 +1,272 @@
+@model MediCare.Web.Models.PaymentResultViewModel
+@{
+    ViewData["Title"] = Model.State switch
+    {
+        "Success" => "Payment Confirmed - MediCare",
+        "Failed" => "Payment Declined - MediCare",
+        "Expired" => "Payment Expired - MediCare",
+        _ => "Verifying Payment - MediCare"
+    };
+}
+
+<main class="container py-5" style="max-width: 800px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Appointments" asp-action="MyAppointments">My Appointments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Payment Result</li>
+        </ol>
+    </nav>
+
+    <!-- STATE 1: SUCCESS -->
+    <div id="paymentSuccessCard" class="card border-0 shadow-sm rounded-4 overflow-hidden @(Model.State == "Success" ? "" : "d-none")">
+        <div class="card-header bg-success text-white py-4 text-center border-0 position-relative">
+            <div class="mb-2">
+                <i class="bi bi-check-circle-fill display-4"></i>
+            </div>
+            <h2 class="h4 fw-bold mb-1" data-i18n="paymentSuccessTitle">Payment Confirmed!</h2>
+            <p class="mb-0 small text-white-50" data-i18n="paymentSuccessSubtitle">Your clinic consultation is booked and confirmed.</p>
+        </div>
+        <div class="card-body p-4 p-md-5">
+            @if (Model.IsPostCancellationPayment)
+            {
+                <div class="alert alert-warning small mb-4">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <strong>Administrative Reconciliation Notice:</strong> This payment was received after the appointment had expired or been cancelled. A support conflict case has been flagged for prioritized refund to your original payment method or schedule transfer.
+                </div>
+            }
+
+            <!-- Transaction Highlights -->
+            <div class="p-3 bg-light rounded-3 border mb-4">
+                <div class="row g-3 small">
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block" data-i18n="paymentReceiptRef">Transaction Reference</span>
+                        <strong class="text-dark font-monospace fs-6" id="successTxnRef">@(Model.ProviderTransactionId ?? Model.MerchantReference)</strong>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <span class="text-muted d-block" data-i18n="paymentAmountPaid">Total Amount Paid</span>
+                        <strong class="text-success fs-5">@Model.AmountPaid.ToString("N2") @Model.Currency</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block" data-i18n="paymentMethodLabel">Payment Channel</span>
+                        <span class="badge text-bg-secondary"><i class="bi bi-credit-card me-1"></i> @(Model.PaymentMethodDetail ?? "Paymob Verified")</span>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <span class="text-muted d-block" data-i18n="paymentProcessedAt">Authorization Timestamp</span>
+                        <span class="text-secondary">@(Model.ProcessedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) UTC</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doctor & Appointment Summary -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-3" data-i18n="appointmentSummaryTitle">Appointment Details</h5>
+                <div class="p-3 bg-white rounded-3 border">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-person-badge fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">@Model.DoctorName</h6>
+                            <span class="badge bg-primary-subtle text-primary small">@Model.Specialization</span>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row g-2 text-secondary small">
+                        <div class="col-md-6">
+                            <i class="bi bi-calendar-event me-1 text-primary"></i>
+                            <strong>Date:</strong> @(Model.AppointmentDate?.ToString("dddd, MMMM d, yyyy") ?? "Scheduled")
+                        </div>
+                        <div class="col-md-6">
+                            <i class="bi bi-clock me-1 text-primary"></i>
+                            <strong>Time Slot:</strong> @(Model.StartTime?.ToString(@"hh\:mm") ?? "--:--") - @(Model.EndTime?.ToString(@"hh\:mm") ?? "--:--")
+                        </div>
+                        <div class="col-md-12">
+                            <i class="bi bi-geo-alt me-1 text-primary"></i>
+                            <strong>Clinic:</strong> @Model.ClinicLocation
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTAs -->
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center pt-3 border-top">
+                <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> <span data-i18n="backToAppointments">My Appointments</span>
+                </a>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Appointments" asp-action="Details" asp-route-id="@Model.AppointmentId" class="btn btn-outline-primary">
+                        <i class="bi bi-info-circle me-1"></i> <span data-i18n="viewDetailsBtn">View Details</span>
+                    </a>
+                    <a asp-controller="Payment" asp-action="Receipt" asp-route-appointmentId="@Model.AppointmentId" class="btn btn-primary">
+                        <i class="bi bi-receipt me-1"></i> <span data-i18n="viewReceiptBtn">Official Receipt</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATE 2: PROCESSING / PENDING VERIFICATION -->
+    <div id="paymentProcessingCard" class="card border-0 shadow-sm rounded-4 overflow-hidden text-center p-4 p-md-5 @(Model.State == "Processing" ? "" : "d-none")">
+        <div class="my-4">
+            <div class="spinner-border text-primary" style="width: 3.5rem; height: 3.5rem;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <h3 class="fw-bold text-dark mb-2" data-i18n="paymentVerifyingTitle">Verifying Payment with Paymob Gateway...</h3>
+        <p class="text-secondary small mb-4" style="max-width: 480px; margin: 0 auto;" data-i18n="paymentVerifyingDesc">
+            Please wait while we receive the secure cryptographic confirmation from Paymob and finalize your appointment booking. This usually takes just a few seconds.
+        </p>
+        <div class="p-3 bg-light rounded-3 border d-inline-block text-start small mb-4" style="max-width: 450px; margin: 0 auto;">
+            <div class="text-muted">Order Reference: <strong class="text-dark font-monospace">@Model.MerchantReference</strong></div>
+            <div class="text-muted">Status: <span class="badge text-bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> Pending Gateway Confirmation</span></div>
+        </div>
+        <div id="processingLongWaitNotice" class="alert alert-info small d-none mx-auto" style="max-width: 500px;">
+            <i class="bi bi-info-circle-fill me-1"></i> The gateway is taking longer than usual to reply. Your reservation remains secured. You can safely check your appointments page.
+            <div class="mt-2">
+                <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-sm btn-outline-primary">Go to My Appointments</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATE 3: FAILED -->
+    <div id="paymentFailedCard" class="card border-0 shadow-sm rounded-4 overflow-hidden @(Model.State == "Failed" ? "" : "d-none")">
+        <div class="card-header bg-danger text-white py-4 text-center border-0">
+            <div class="mb-2">
+                <i class="bi bi-x-circle-fill display-4"></i>
+            </div>
+            <h2 class="h4 fw-bold mb-1" data-i18n="paymentFailedTitle">Payment Unsuccessful</h2>
+            <p class="mb-0 small text-white-50" data-i18n="paymentFailedSubtitle">The transaction could not be authorized or was declined.</p>
+        </div>
+        <div class="card-body p-4 p-md-5">
+            <div class="alert alert-light border small mb-4">
+                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-x text-danger me-1"></i> Transaction Decline Details</h6>
+                <p class="text-secondary mb-1">
+                    @(string.IsNullOrWhiteSpace(Model.FailureReason)
+                        ? "Your card issuer or mobile wallet provider declined the charge. Possible reasons include insufficient funds, invalid 3D-Secure OTP, or an expired card."
+                        : Model.FailureReason)
+                </p>
+                <div class="text-muted">Zero Charge Guarantee: No funds have been deducted from your account.</div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center pt-3 border-top">
+                <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> <span data-i18n="backToAppointments">My Appointments</span>
+                </a>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Home" asp-action="Terms" class="btn btn-outline-secondary">
+                        <i class="bi bi-question-circle me-1"></i> <span>Payment Policy</span>
+                    </a>
+                    <a asp-controller="Appointments" asp-action="Details" asp-route-id="@Model.AppointmentId" class="btn btn-primary">
+                        <i class="bi bi-arrow-repeat me-1"></i> <span data-i18n="retryPaymentBtn">Retry Checkout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATE 4: EXPIRED -->
+    <div id="paymentExpiredCard" class="card border-0 shadow-sm rounded-4 overflow-hidden @(Model.State == "Expired" ? "" : "d-none")">
+        <div class="card-header bg-secondary text-white py-4 text-center border-0">
+            <div class="mb-2">
+                <i class="bi bi-clock-history display-4"></i>
+            </div>
+            <h2 class="h4 fw-bold mb-1" data-i18n="paymentExpiredTitle">Checkout Session Expired</h2>
+            <p class="mb-0 small text-white-50" data-i18n="paymentExpiredSubtitle">The 30-minute reservation window has elapsed.</p>
+        </div>
+        <div class="card-body p-4 p-md-5">
+            <p class="text-secondary small mb-4">
+                To prevent schedule locking and ensure other patients have fair access to physician slots, unconfirmed reservations expire after 30 minutes. The reserved slot has been released back into the doctor's schedule.
+            </p>
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> <span>My Appointments</span>
+                </a>
+                <a asp-controller="Doctors" asp-action="Index" class="btn btn-primary">
+                    <i class="bi bi-calendar-plus me-1"></i> <span>Book New Appointment</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATE 5: NOT FOUND -->
+    <div id="paymentNotFoundCard" class="card border-0 shadow-sm rounded-4 overflow-hidden p-5 text-center @(Model.State == "NotFound" ? "" : "d-none")">
+        <div class="mb-3 text-muted">
+            <i class="bi bi-search display-3"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">Payment Reference Not Found</h4>
+        <p class="text-secondary small mb-4">We could not correlate this payment session with an active booking record.</p>
+        <div>
+            <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-primary">Go to My Appointments</a>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script src="~/lib/canvas-confetti/confetti.browser.min.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const state = "@Model.State";
+            const merchantRef = "@Model.MerchantReference";
+            const appointmentId = @Model.AppointmentId;
+
+            if (state === "Success") {
+                if (window.confetti) {
+                    confetti({
+                        particleCount: 80,
+                        spread: 60,
+                        origin: { y: 0.6 }
+                    });
+                }
+            } else if (state === "Processing" && merchantRef && merchantRef !== "N/A") {
+                let attempts = 0;
+                const maxAttempts = 12; // 12 * 2s = 24 seconds
+                const pollInterval = setInterval(async () => {
+                    attempts++;
+                    try {
+                        const response = await fetch(`/api/payment/status?merchantReference=${encodeURIComponent(merchantRef)}`, {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.isPaid) {
+                                clearInterval(pollInterval);
+                                // Transition to success card
+                                document.getElementById('paymentProcessingCard').classList.add('d-none');
+                                const successCard = document.getElementById('paymentSuccessCard');
+                                if (data.transactionReference) {
+                                    const refEl = document.getElementById('successTxnRef');
+                                    if (refEl) refEl.innerText = data.transactionReference;
+                                }
+                                successCard.classList.remove('d-none');
+                                if (window.confetti) {
+                                    confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                                }
+                                return;
+                            } else if (data.status === "Failed") {
+                                clearInterval(pollInterval);
+                                document.getElementById('paymentProcessingCard').classList.add('d-none');
+                                document.getElementById('paymentFailedCard').classList.remove('d-none');
+                                return;
+                            } else if (data.isExpired) {
+                                clearInterval(pollInterval);
+                                document.getElementById('paymentProcessingCard').classList.add('d-none');
+                                document.getElementById('paymentExpiredCard').classList.remove('d-none');
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Status poll error", e);
+                    }
+
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        const longWait = document.getElementById('processingLongWaitNotice');
+                        if (longWait) longWait.classList.remove('d-none');
+                    }
+                }, 2000);
+            }
+        });
+    </script>
+}

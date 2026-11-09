@@ -1,0 +1,296 @@
+@model MediCare.Services.DTOs.DoctorDetailDto
+@{
+    ViewData["Title"] = $"Dr. {Model.FullName} - Specialist Profile & Reviews";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> <span data-i18n="home">Home</span></a></li>
+                <li class="breadcrumb-item"><a asp-action="Index"><span data-i18n="findDoctors">Doctors</span></a></li>
+                <li class="breadcrumb-item active" aria-current="page">Dr. @Model.FullName</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Doctor Profile Card -->
+    <div class="col-lg-4 reveal reveal-delay-1">
+        <div class="card p-4 bg-white shadow-sm h-100 border-0 rounded-4">
+            <div class="text-center mb-3">
+                <div class="position-relative d-inline-block mb-3">
+                    @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                    {
+                        <img src="@Model.ProfileImageUrl" alt="@Model.FullName" class="rounded-circle shadow-sm doctor-avatar-img" style="width: 100px; height: 100px; object-fit: cover; border: 3.5px solid #2563eb;" onerror="this.onerror=null; this.src='/images/doctors/doctor-default.svg';" />
+                    }
+                    else
+                    {
+                        <div class="doctor-avatar-circle mx-auto" style="width: 100px; height: 100px; font-size: 2.4rem;">
+                            @(string.IsNullOrEmpty(Model.FullName) ? "Dr" : Model.FullName.Substring(0, 1).ToUpper())
+                        </div>
+                    }
+                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle pulse-indicator" style="width: 18px; height: 18px;" title="Doctor account approved in demo" data-i18n-title="docVerifiedBadge"></span>
+                </div>
+
+                <h4 class="fw-bold mb-1 text-dark"><span class="doc-name" data-doc-name-en="@Model.FullName">@Model.FullName</span></h4>
+                
+                <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-2">
+                    <span class="badge badge-specialty fs-6">
+                        <i class="bi bi-heart-pulse-fill text-primary"></i> <span data-i18n-spec="@Model.SpecializationName">@Model.SpecializationName</span> <small class="text-muted">(مسجل بالحساب)</small>
+                    </span>
+                    @if (!string.IsNullOrWhiteSpace(Model.Title)) { <span class="badge bg-light text-dark border">@Model.Title</span> }
+                </div>
+
+                @if (Model.ReviewCount > 0) { <div class="text-muted small mb-2">@Model.ReviewCount مراجعة</div> }
+                <div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill">
+                        <i class="bi bi-patch-check-fill text-success me-1"></i> <span data-i18n="docVerifiedBadge">تمت الموافقة على الحساب داخل النسخة التجريبية</span>
+                    </span>
+                </div>
+            </div>
+
+            <hr class="my-3 opacity-25" />
+
+            <!-- Consultation Fee Box -->
+            <div class="mb-3 p-3 bg-light rounded-4 border">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="fs-2 text-primary"><i class="bi bi-cash-stack"></i></div>
+                    <div>
+                        <span class="text-muted small d-block" data-i18n="docConsultationFee">سعر الكشف</span>
+                        @if (Model.AcceptsInsurance)
+                        {
+                            <span class="fs-4 fw-bold text-success">@Model.DiscountedFee.ToString("N0") ج.م</span>
+                            <span class="text-muted text-decoration-line-through small ms-1">@Model.ConsultationFee.ToString("N0") ج.م <small class="text-muted">(سعر مُدخل في الملف، غير متحقق مستقلًا)</small></span>
+                        }
+                        else if (Model.ConsultationFee > 0)
+                        {
+                            <span class="fs-4 fw-bold text-dark">@Model.ConsultationFee.ToString("N0") ج.م <small class="text-muted">(السعر المُدخل في الملف، غير متحقق مستقلًا)</small></span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">السعر غير متاح — يرجى التواصل مع العيادة</span>
+                        }
+                        <span class="text-muted small d-block"> / @Model.SlotDurationMinutes دقيقة كشف شامل</span>
+                    </div>
+                </div>
+                @if (Model.AcceptsInsurance)
+                {
+                    <div class="p-2 bg-emerald-subtle rounded-3 border border-success-subtle text-success small d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check fs-5"></i>
+                        <div>
+                            <strong>يقبل التأمين وكارنيهات النقابات</strong>
+                            <div style="font-size: 0.78rem;">خصم فوري @Model.InsuranceDiscountPercentage% على الكشف (وفر @((Model.ConsultationFee - Model.DiscountedFee).ToString("N0")) ج.م)</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Clinic Location -->
+            <div class="mb-3">
+                <span class="text-muted small d-block fw-semibold mb-1">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> المحافظة المسجلة في الحساب (غير متحقق منها)
+                </span>
+                @if (!string.IsNullOrWhiteSpace(Model.ClinicAddress)) { <span class="text-dark fw-medium d-block">@Model.ClinicAddress</span> }
+                @if (!string.IsNullOrWhiteSpace(Model.Governorate)) { <span class="badge bg-secondary-subtle text-secondary mt-1">@Model.Governorate</span> } else { <span class="text-muted">غير متاح</span> }
+            </div>
+
+            <!-- Academic Degree -->
+            @if (!string.IsNullOrEmpty(Model.AcademicDegree))
+            {
+                <div class="mb-3">
+                    <span class="text-muted small d-block fw-semibold mb-1">
+                        <i class="bi bi-mortarboard-fill text-primary me-1"></i> الدرجة الأكاديمية والزمالة
+                    </span>
+                    <span class="text-dark small">@Model.AcademicDegree</span>
+                </div>
+            }
+
+            <!-- Experience -->
+            @if (Model.ExperienceYears > 0)
+            {
+            <div class="mb-3">
+                <span class="text-muted small d-block fw-semibold mb-1">
+                    <i class="bi bi-award-fill text-primary me-1"></i> سنوات الخبرة
+                </span>
+                <span class="text-dark">@Model.ExperienceYears سنة من الممارسة الطبية المعتمدة</span>
+            </div>
+            }
+
+            <!-- Slot Duration -->
+            <div class="mb-3">
+                <span class="text-muted small d-block fw-semibold mb-1">
+                    <i class="bi bi-clock-history text-primary me-1"></i> <span data-i18n="docDuration">مدة الجلسة</span>
+                </span>
+                <span class="text-dark">@Model.SlotDurationMinutes <span data-i18n="docMinPerConsult">دقيقة لكل كشف</span></span>
+            </div>
+
+            <div class="mt-auto pt-3">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-left"></i> <span data-i18n="docBackDir">العودة لقائمة الأطباء</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Biography, Subspecialties, Schedule & Reviews -->
+    <div class="col-lg-8 reveal reveal-delay-2">
+        <!-- Biography Card -->
+        <div class="card p-4 bg-white shadow-sm mb-4 border-0 rounded-4">
+            <h5 class="fw-bold text-dark border-bottom pb-3 mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-person text-primary"></i> <span data-i18n="docAboutTitle">نبذة الحساب</span>
+            </h5>
+            <p class="text-secondary mb-3" style="line-height: 1.8;">
+                @(string.IsNullOrWhiteSpace(Model.Bio) ? "لا توجد نبذة متاحة." : Model.Bio)
+            </p>
+            @if (!string.IsNullOrWhiteSpace(Model.Bio))
+            {
+                <small class="text-muted">النبذة مقدمة في ملف الحساب ولم يتم التحقق منها مستقلًا.</small>
+            }
+
+            @if (Model.SubSpecialties.Any())
+            {
+                <div class="pt-2">
+                    <h6 class="fw-bold text-dark small mb-2"><i class="bi bi-tags text-primary me-1"></i> التخصصات الدقيقة والخدمات العلاجية:</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var sub in Model.SubSpecialties)
+                        {
+                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small">
+                                <i class="bi bi-check2 text-success me-1"></i> @sub
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 🛡️ HEALTHCARE INSURANCE & SYNDICATE DISCOUNT CARD 🛡️ -->
+        <!-- ============================================================== -->
+        @if (Model.AcceptsInsurance)
+        {
+            <div class="card p-4 bg-white shadow-sm mb-4 border-0 rounded-4 position-relative overflow-hidden">
+                <div class="position-absolute top-0 end-0 p-3 opacity-10 d-none d-md-block">
+                    <i class="bi bi-shield-check" style="font-size: 6rem; color: #0d9488;"></i>
+                </div>
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-fill-check text-success"></i> <span>التأمين الطبي والخصومات النقابية المعتمدة</span>
+                    </h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                        خصم حتى @Model.InsuranceDiscountPercentage%
+                    </span>
+                </div>
+
+                <p class="text-secondary small mb-3" style="line-height: 1.7;">
+                    عيادة د. <span class="doc-name" data-doc-name-en="@Model.FullName">@Model.FullName</span> معتمدة رسمياً لدى كبرى شبكات التأمين الصحي والنقابات المهنية في مصر. يمكنك إبراز كارنيه النقابة أو بطاقة التأمين عند الزيارة للحصول على الخصم المباشر المعتمد.
+                </p>
+
+                <!-- Accepted Providers Badges -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark small mb-2"><i class="bi bi-buildings text-primary me-1"></i> الجهات والشركات المتعاقدة في العيادة:</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var provider in Model.InsuranceProviders)
+                        {
+                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small d-inline-flex align-items-center gap-1 shadow-xs">
+                                <i class="bi bi-check-circle-fill text-success"></i> @provider
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Interactive Discount & Co-pay Calculator -->
+                <div class="p-3 bg-light rounded-4 border">
+                    <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-calculator-fill text-primary"></i> <span>احسب قيمة كشفك بالخصم فوراً:</span>
+                    </h6>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-7">
+                            <label class="form-label small text-muted mb-1">اختر جهة التأمين أو الكارنيه النقابي:</label>
+                            <select id="calcInsuranceSelect" class="form-select form-select-sm" onchange="updateDetailFeeCalc()">
+                                @foreach (var provider in Model.InsuranceProviders)
+                                {
+                                    <option value="@Model.InsuranceDiscountPercentage">@provider</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="p-2 bg-white rounded-3 border text-center shadow-xs">
+                                <span class="small text-muted d-block" style="font-size: 0.78rem;">المبلغ المطلوب سداده في العيادة:</span>
+                                <span class="fs-4 fw-bold text-success" id="calcFinalFeeDisplay">@Model.DiscountedFee.ToString("N0") ج.م</span>
+                                <span class="small text-muted text-decoration-line-through ms-1">@Model.ConsultationFee.ToString("N0") ج.م <small class="text-muted">(سعر مُدخل في الملف، غير متحقق مستقلًا)</small></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-center text-md-start">
+                        <small class="text-success fw-semibold"><i class="bi bi-stars me-1"></i> توفير مؤكد بقيمة @((Model.ConsultationFee - Model.DiscountedFee).ToString("N0")) ج.م عند إبراز الكارنيه في العيادة.</small>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Working Hours Schedule Card -->
+        <div class="card p-4 bg-white shadow-sm mb-4 border-0 rounded-4">
+            <h5 class="fw-bold text-dark border-bottom pb-3 mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3-week text-primary"></i> <span data-i18n="docShiftsTitle">مواعيد وفترات العمل الأسبوعية</span>
+            </h5>
+            <small class="text-muted mb-2">الجدول المسجل داخل MediCare، وليس مزامنة مباشرة مع نظام العيادة.</small>
+
+            @if (!Model.WorkingHours.Any())
+            {
+                <div class="alert alert-light text-muted border" role="alert">
+                    <i class="bi bi-info-circle me-1"></i> <span data-i18n="docNoShifts">يتم تنسيق المواعيد هاتفياً أو عبر الحجز المباشر.</span>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <caption class="visually-hidden">Doctor working hours</caption>
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">اليوم (Day)</th>
+                                <th scope="col">بداية الوردية</th>
+                                <th scope="col">نهاية الوردية</th>
+                                <th scope="col">ساعات العمل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var wh in Model.WorkingHours)
+                            {
+                                <tr>
+                                    <td class="fw-semibold text-dark">
+                                        <i class="bi bi-calendar2-day text-primary me-1"></i> @wh.DayName
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border"><i class="bi bi-clock me-1 text-muted"></i> @DateTime.Today.Add(wh.StartTime).ToString("hh:mm tt")</span></td>
+                                    <td><span class="badge bg-light text-dark border"><i class="bi bi-clock me-1 text-muted"></i> @DateTime.Today.Add(wh.EndTime).ToString("hh:mm tt")</span></td>
+                                    <td>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                            @((wh.EndTime - wh.StartTime).TotalHours) ساعات
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (User.Identity?.IsAuthenticated != true || User.IsInRole("Patient"))
+            {
+                <div class="mt-4 pt-3 border-top">
+                    <a asp-controller="Appointments" asp-action="Book" asp-route-id="@Model.Id" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm py-3 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-calendar2-check-fill fs-5"></i> <span><span data-i18n="docBookSlot">احجز موعد كشف الآن</span> &bull; <span class="doc-name" data-doc-name-en="@Model.FullName">@Model.FullName</span></span>
+                    </a>
+                </div>
+            }
+        </div>
+
+        <!-- ============================================================== -->
+        <div class="card p-4 bg-white shadow-sm border-0 rounded-4 mb-4" aria-live="polite">
+            <h5 class="fw-bold text-dark mb-2"><i class="bi bi-star text-warning me-2"></i>تقييمات المرضى</h5>
+            <p class="text-muted mb-0">لا توجد مراجعات بعد.</p>
+        </div>
+    </div>
+</div>

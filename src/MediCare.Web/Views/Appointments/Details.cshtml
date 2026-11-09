@@ -1,0 +1,514 @@
+﻿@model MediCare.Services.DTOs.AppointmentSummaryDto
+@inject MediCare.Services.Common.IClinicClock ClinicClock
+@{
+    ViewData["Title"] = $"Appointment #{Model.Id} Details";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                @if (User.IsInRole("Doctor"))
+                {
+                    <li class="breadcrumb-item"><a asp-controller="Doctor" asp-action="Appointments">Appointments Queue</a></li>
+                }
+                else
+                {
+                    <li class="breadcrumb-item"><a asp-action="MyAppointments">My Appointments</a></li>
+                }
+                <li class="breadcrumb-item active" aria-current="page">#@Model.Id</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-white shadow-sm p-4 border-0 reveal">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 border-bottom pb-3">
+                <div>
+                    <h3 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar2-check-fill text-primary"></i> Appointment #@Model.Id
+                    </h3>
+                    <span class="text-muted small">Scheduled on @Model.FormattedDate</span>
+                </div>
+                <div>
+                    @switch (Model.Status)
+                    {
+                        case MediCare.Data.Enums.AppointmentStatus.Pending:
+                            <span class="status-pill status-pending fs-6 px-3 py-2">
+                                <span class="status-dot"></span> Pending Approval
+                            </span>
+                            break;
+                        case MediCare.Data.Enums.AppointmentStatus.Confirmed:
+                            <span class="status-pill status-confirmed fs-6 px-3 py-2">
+                                <span class="status-dot"></span> Confirmed
+                            </span>
+                            break;
+                        case MediCare.Data.Enums.AppointmentStatus.Completed:
+                            <span class="status-pill status-completed fs-6 px-3 py-2">
+                                <span class="status-dot"></span> Completed
+                            </span>
+                            break;
+                        case MediCare.Data.Enums.AppointmentStatus.Cancelled:
+                            <span class="status-pill status-cancelled fs-6 px-3 py-2">
+                                <span class="status-dot"></span> Cancelled
+                            </span>
+                            break;
+                        case MediCare.Data.Enums.AppointmentStatus.Rejected:
+                            <span class="status-pill status-rejected fs-6 px-3 py-2">
+                                <span class="status-dot"></span> Declined
+                            </span>
+                            break;
+                        case MediCare.Data.Enums.AppointmentStatus.NoShow:
+                            <span class="status-pill status-noshow fs-6 px-3 py-2">
+                                <span class="status-dot"></span> No-Show
+                            </span>
+                            break;
+                    }
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <span class="text-muted small d-block mb-1 fw-semibold"><i class="bi bi-person-badge text-primary me-1"></i> <span data-i18n="apptAttendingPhysician">Attending Physician</span></span>
+                        <h5 class="fw-bold text-dark mb-1">Dr. @Model.DoctorName</h5>
+                        <span class="badge badge-specialty">@Model.SpecializationName</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <span class="text-muted small d-block mb-1 fw-semibold"><i class="bi bi-person text-primary me-1"></i> <span data-i18n="apptPatientDetails">Patient Details</span></span>
+                        <h5 class="fw-bold text-dark mb-1">@Model.PatientName</h5>
+                        @if (!string.IsNullOrEmpty(Model.PatientPhoneNumber))
+                        {
+                            <span class="text-muted small"><i class="bi bi-telephone me-1"></i> @Model.PatientPhoneNumber</span>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <span class="text-muted small d-block mb-1 fw-semibold"><i class="bi bi-clock-history text-primary me-1"></i> <span data-i18n="apptConsultationTime">Consultation Time</span></span>
+                        <div class="fw-bold text-dark fs-5">@Model.FormattedTime</div>
+                        <span class="text-muted small">@Model.FormattedDate</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <span class="text-muted small d-block mb-1 fw-semibold"><i class="bi bi-cash-stack text-primary me-1"></i> <span data-i18n="apptFeePayment">Consultation Fee & Payment</span></span>
+                        <div class="fw-bold text-primary fs-5">@Model.ConsultationFee.ToString("N0") EGP</div>
+                        @if (Model.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Paid)
+                        {
+                            <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                    <i class="bi bi-check-circle-fill me-1"></i> <span data-i18n="apptPaidOnline">Payment confirmed</span>
+                                </span>
+                                <a asp-controller="Payment" asp-action="Receipt" asp-route-appointmentId="@Model.Id" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-receipt me-1"></i> <span data-i18n="apptViewReceipt">View Receipt</span>
+                                </a>
+                            </div>
+                        }
+                        else if (Model.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Refunded)
+                        {
+                            <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> <span>Refunded (demo)</span>
+                                </span>
+                                <a asp-controller="Payment" asp-action="Receipt" asp-route-appointmentId="@Model.Id" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-receipt me-1"></i> <span data-i18n="apptViewReceipt">View Receipt</span>
+                                </a>
+                            </div>
+                        }
+                        else if (User.IsInRole("Patient") && Model.Status != MediCare.Data.Enums.AppointmentStatus.Cancelled && Model.Status != MediCare.Data.Enums.AppointmentStatus.Rejected)
+                        {
+                            <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
+                                    <i class="bi bi-clock-history me-1"></i> <span data-i18n="apptUnpaid">Unpaid</span>
+                                </span>
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                                    <i class="bi bi-credit-card-fill me-1"></i> <span data-i18n="apptPayOnline">Simulate checkout</span> (@Model.ConsultationFee.ToString("N0") EGP)
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary">@Model.PaymentStatus (Pay at clinic)</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-1">
+                        <i class="bi bi-chat-left-text text-primary"></i> Patient Symptoms / Notes:
+                    </h6>
+                    <div class="p-3 bg-light rounded-3 border text-secondary">
+                        @Model.Notes
+                    </div>
+                </div>
+            }
+
+            <!-- =====================================================================
+                 🏥 LIVE CLINIC QUEUE TRACKER WIDGET (SignalR Real-Time Synchronized)
+                 ===================================================================== -->
+            @if (Model.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed || Model.Status == MediCare.Data.Enums.AppointmentStatus.Pending)
+            {
+                <div class="mb-4 p-3 p-md-4 rounded-4 shadow-xs border" style="background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); border-color: rgba(0, 102, 245, 0.2) !important;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                <i class="bi bi-broadcast me-1"></i> LIVE CLINIC QUEUE
+                            </span>
+                            <span class="small text-muted" data-i18n="queueTrackerNotice">تتبع طابور العيادة الذكي في الوقت الفعلي</span>
+                        </div>
+                        <div class="small fw-semibold text-primary d-flex align-items-center gap-1">
+                            <span class="status-dot" style="background:#0066F5; box-shadow:0 0 8px #0066F5;"></span>
+                            <span data-i18n="queueSignalRSync">متزامن مع شاشة الاستقبال</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 text-center mb-3">
+                        <div class="col-6 col-md-4">
+                            <div class="p-3 bg-white rounded-3 shadow-xs border h-100">
+                                <div class="text-muted small fw-semibold mb-1" data-i18n="queueYourTurn">رقم دورك في الكشف</div>
+                                <div class="display-6 fw-bold text-primary">#@Model.QueueNumber</div>
+                                <div class="text-muted small" style="font-size: 0.72rem;">بحسب جدول اليوم</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <div class="p-3 bg-white rounded-3 shadow-xs border h-100">
+                                <div class="text-muted small fw-semibold mb-1" data-i18n="queueNowServing">يجري فحص الحالة</div>
+                                <div class="display-6 fw-bold text-success">#@Model.CurrentServingQueueNumber</div>
+                                <div class="text-muted small" style="font-size: 0.72rem;">داخل غرفة الكشف</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="p-3 bg-white rounded-3 shadow-xs border h-100 d-flex flex-column justify-content-center">
+                                <div class="text-muted small fw-semibold mb-1" data-i18n="queueStatusTitle">حالة الانتظار الحالية</div>
+                                @if (Model.QueueNumber == Model.CurrentServingQueueNumber)
+                                {
+                                    <div class="badge bg-success text-white py-2 px-3 fw-bold fs-6">
+                                        <i class="bi bi-bell-fill me-1"></i> حان دورك الآن!
+                                    </div>
+                                    <div class="small text-success mt-1 fw-semibold">يرجى التوجه لغرفة الكشف</div>
+                                }
+                                else if (Model.QueueNumber > Model.CurrentServingQueueNumber)
+                                {
+                                    var remaining = Model.QueueNumber - Model.CurrentServingQueueNumber;
+                                    <div class="badge bg-info-subtle text-info-emphasis py-2 px-3 fw-bold fs-6">
+                                        متبقي قبلك: @remaining @(remaining == 1 ? "مريض" : "مرضى")
+                                    </div>
+                                    <div class="small text-muted mt-1">الوقت التقديري: @(remaining * 15) دقيقة</div>
+                                }
+                                else
+                                {
+                                    <div class="badge bg-secondary-subtle text-secondary py-2 px-3 fw-bold fs-6">
+                                        تم الانتهاء
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (User.IsInRole("Doctor") || User.IsInRole("Admin"))
+                    {
+                        var isToday = Model.AppointmentDate.Date == ClinicClock.Today;
+                        var isPhysicalVisit = Model.Type != MediCare.Data.Enums.AppointmentType.Telemedicine;
+                        var canCheckIn = isToday && isPhysicalVisit && !Model.IsCheckedIn && Model.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed;
+                        var canCallNext = isToday && isPhysicalVisit && Model.IsCheckedIn && Model.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed;
+
+                        <div class="d-flex justify-content-end align-items-center flex-wrap gap-2 pt-2 border-top">
+                            @if (Model.IsCheckedIn)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 fw-semibold d-flex align-items-center gap-1">
+                                    <i class="bi bi-check-circle-fill"></i> <span>تم تأكيد حضور المريض بالاستقبال @(Model.CheckedInAt.HasValue ? $"({Model.CheckedInAt.Value.ToLocalTime():hh:mm tt})" : "")</span>
+                                </span>
+                            }
+                            else if (canCheckIn)
+                            {
+                                <form asp-action="CheckIn" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-primary fw-semibold d-flex align-items-center gap-1 shadow-xs">
+                                        <i class="bi bi-person-check-fill"></i> <span>تسجيل وصول المريض (Check-in)</span>
+                                    </button>
+                                </form>
+                            }
+                            @if (canCallNext)
+                            {
+                                <form asp-action="CallNextQueue" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-success fw-bold d-flex align-items-center gap-1 shadow-xs">
+                                        <i class="bi bi-megaphone-fill"></i> <span data-i18n="queueCallPatientBtn">استدعاء هذا المريض لغرفة الكشف</span>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- =====================================================================
+                 💬 INSTANT WHATSAPP APPOINTMENT CONFIRMATION & REMINDER LINK
+                 ===================================================================== -->
+            @{
+                var whatsappPhone = Model.PatientPhoneNumber?.Replace("+", "").Replace(" ", "").Replace("-", "") ?? "201000000000";
+                var apptDetailsUrl = $"{Context.Request.Scheme}://{Context.Request.Host}/Appointments/Details/{Model.Id}";
+                var encodedReminder = Uri.EscapeDataString($"مرحباً! تفاصيل حجز موعدك في ميدي كير (MediCare):\nرقم الموعد: #{Model.Id}\nالطبيب: د. {Model.DoctorName} ({Model.SpecializationName})\nالتاريخ: {Model.FormattedDate}\nالوقت: {Model.FormattedTime}\nالمحافظة / المقر: {Model.Governorate}\nرقم الدور في العيادة: #{Model.QueueNumber}\nرابط الحجز: {apptDetailsUrl}");
+                var whatsappUrl = $"https://api.whatsapp.com/send?phone={whatsappPhone}&text={encodedReminder}";
+            }
+            <div class="mb-4 p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; font-size: 1.2rem;">
+                        <i class="bi bi-whatsapp"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark small" data-i18n="waTitle">مشاركة تفاصيل الموعد عبر WhatsApp</div>
+                        <div class="text-muted small" style="font-size: 0.75rem;" data-i18n="waSubtitle">أرسل أو احفظ تفاصيل الحجز، اسم الطبيب، والميعاد مباشرة على هاتفك بضغطة واحدة</div>
+                    </div>
+                </div>
+                <a href="@whatsappUrl" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success fw-semibold px-3 py-2 d-flex align-items-center gap-2 shadow-xs">
+                    <i class="bi bi-whatsapp"></i> <span data-i18n="waActionBtn">فتح رسالة واتساب</span>
+                </a>
+            </div>
+
+            @if (Model.Type == MediCare.Data.Enums.AppointmentType.Telemedicine && Model.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed)
+            {
+                <!-- =====================================================================
+                     Telehealth consultation entry point
+                     ===================================================================== -->
+                <div class="mb-4 p-3 p-md-4 rounded-3 border shadow-xs" style="background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%); border-color: #BFDBFE !important;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-xs" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                                <i class="bi bi-camera-video-fill"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark fs-6 d-flex align-items-center gap-2">
+                                    <span data-i18n="telehealthReadyTitle">Virtual Video Consultation Ready</span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">Telehealth</span>
+                                </div>
+                                <div class="text-muted small" data-i18n="telehealthReadyDesc">Protected video consultation room accessible to authorized doctor and patient within scheduled interval.</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Telehealth" asp-route-id="@Model.Id" class="btn btn-primary fw-bold d-flex align-items-center gap-2 shadow-xs">
+                                <i class="bi bi-camera-video-fill"></i> <span data-i18n="joinTelehealthBtn">Enter Telehealth Room</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- =====================================================================
+                 📄 DIAGNOSTIC LAB & RADIOLOGY ATTACHMENTS (UPLOAD & PREVIEW)
+                 ===================================================================== -->
+            @if (!User.IsInRole("Admin"))
+            {
+                <div class="mb-4 p-3 p-md-4 bg-white rounded-3 border shadow-xs">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 border-bottom pb-2">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-medical-fill text-primary"></i> <span data-i18n="medDocHeading">الأشعة والتحاليل والمستندات الطبية المرفقة</span>
+                            </h6>
+                            <span class="text-muted small" data-i18n="medDocSub">يمكن للمريض والطبيب مشاركة صور التحاليل وتقارير الأشعة السريرية بأمان</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.MedicalRecordAttachmentPath) && Model.MedicalRecordId.HasValue)
+                    {
+                        <div class="p-3 rounded-3 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: #F8FAFC; border: 1px solid #E2E8F0;">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-3"></i>
+                                <div>
+                                    <div class="fw-bold text-dark small">ملف الفحص والتحاليل المرفق</div>
+                                    <div class="text-muted small" style="font-size: 0.72rem;">@System.IO.Path.GetFileName(Model.MedicalRecordAttachmentPath)</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <a asp-controller="MedicalRecords" asp-action="DownloadAttachment" asp-route-id="@Model.MedicalRecordId.Value" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-download"></i> تحميل المرفق الطبي
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted small p-3 text-center bg-light rounded-3 mb-3 border border-dashed">
+                            <i class="bi bi-cloud-upload text-muted fs-4 d-block mb-1"></i>
+                            <span>لم يتم إرفاق ملفات تحاليل أو أشعة لهذا الموعد حتى الآن.</span>
+                        </div>
+                    }
+
+                    @if (Model.Status != MediCare.Data.Enums.AppointmentStatus.Cancelled && Model.Status != MediCare.Data.Enums.AppointmentStatus.Rejected)
+                    {
+                        <form asp-action="UploadAttachment" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2 flex-wrap">
+                            @Html.AntiForgeryToken()
+                            <div class="flex-grow-1 min-w-0">
+                                <input type="file" name="attachment" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required />
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary btn-sm px-3 fw-semibold">
+                                <i class="bi bi-upload me-1"></i> <span data-i18n="medDocUploadBtn">رفع تقرير/أشعة جديدة</span>
+                            </button>
+                        </form>
+                        <div class="text-muted small mt-1" style="font-size: 0.72rem;">الملفات المدعومة: PDF, JPG, PNG بحجم أقصى 10 ميجابايت.</div>
+                    }
+                </div>
+            }
+
+            @if (Model.Status == MediCare.Data.Enums.AppointmentStatus.Completed && !User.IsInRole("Admin"))
+            {
+                <div class="mb-4 p-3 bg-primary-subtle border border-primary-subtle rounded-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h6 class="fw-bold text-primary mb-1 d-flex align-items-center gap-1">
+                            <i class="bi bi-check-circle-fill"></i> Clinical Encounter Finalized
+                        </h6>
+                        <span class="text-secondary small">Medical encounter notes and digital prescription are safely archived.</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Prescriptions" asp-action="ByAppointment" asp-route-appointmentId="@Model.Id" class="btn btn-primary btn-sm" target="_blank">
+                            <i class="bi bi-printer"></i> View / Print Prescription
+                        </a>
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top flex-wrap gap-2">
+                @if (User.IsInRole("Doctor"))
+                {
+                    <a asp-controller="Doctor" asp-action="Appointments" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Queue
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="MyAppointments" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to My Appointments
+                    </a>
+                }
+
+                <div class="d-flex gap-2">
+                    @if (Model.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed && Model.Type == MediCare.Data.Enums.AppointmentType.Telemedicine)
+                    {
+                        <a asp-action="Telehealth" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="bi bi-camera-video-fill me-1"></i> <span data-i18n="joinTelehealthBtn">Join Video Consultation</span>
+                        </a>
+                    }
+                    @if (Model.CanCancel && (User.IsInRole("Patient") || User.IsInRole("Doctor") || User.IsInRole("Admin")))
+                    {
+                        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-x-circle"></i> Cancel Appointment
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (User.IsInRole("Patient") && Model.PaymentStatus != MediCare.Data.Enums.PaymentStatus.Paid)
+{
+    <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-light">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="checkoutModalLabel"><i class="bi bi-shield-lock text-primary me-1"></i> Pay securely</h5>
+                        <div class="small text-muted">Appointment #@Model.Id · @Model.ConsultationFee.ToString("N2") EGP</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    @Html.AntiForgeryToken()
+                    <div class="alert alert-info small">Payment details are entered on Paymob’s hosted checkout. MediCare does not collect or store your card number or CVV. Test-mode checkout only; no real charge is made.</div>
+                    <div id="checkoutAlert" class="alert alert-danger py-2 px-3 small d-none"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="promoCodeInput">Promo code (optional)</label>
+                        <input type="text" id="promoCodeInput" class="form-control text-uppercase" maxlength="50" />
+                    </div>
+
+                    <div class="form-check mb-3 p-3 bg-light rounded-3 border">
+                        <input class="form-check-input" type="checkbox" id="termsConsentCheck" />
+                        <label class="form-check-label small text-dark user-select-none" for="termsConsentCheck">
+                            <span data-i18n="termsConsentPrefix">I confirm that I have read and agree to MediCare's</span>
+                            <a asp-controller="Home" asp-action="Terms" target="_blank" class="fw-semibold text-primary text-decoration-underline" data-i18n="termsModalLink">Terms & Conditions and Cancellation/Refund Policy</a>.
+                        </label>
+                        <div class="mt-2 small text-muted">
+                            <a class="text-secondary text-decoration-none small" data-bs-toggle="collapse" href="#termsSummaryCollapse" role="button" aria-expanded="false" aria-controls="termsSummaryCollapse">
+                                <i class="bi bi-info-circle me-1"></i> <span data-i18n="termsQuickSummaryToggle">View payment & refund summary</span> <i class="bi bi-chevron-down small"></i>
+                            </a>
+                            <div class="collapse mt-2" id="termsSummaryCollapse">
+                                <div class="card card-body bg-white border-0 shadow-sm p-3 small text-secondary">
+                                    <ul class="mb-0 ps-3">
+                                        <li class="mb-1" data-i18n="termsSummaryPoint1"><strong>Payment Security:</strong> Processed securely via Paymob; MediCare never stores card numbers or CVV.</li>
+                                        <li class="mb-1" data-i18n="termsSummaryPoint2"><strong>Cancellation:</strong> Appointments may be cancelled for a refund up to 24 hours before the scheduled time.</li>
+                                        <li class="mb-1" data-i18n="termsSummaryPoint3"><strong>No-Show:</strong> Missed consultations without prior notice are non-refundable.</li>
+                                        <li data-i18n="termsSummaryPoint4"><strong>Telehealth:</strong> Requires a stable internet connection; not for medical emergencies (call 123).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="paySubmitBtn" class="btn btn-primary w-100 py-2 fw-semibold" disabled>
+                        <i class="bi bi-lock-fill me-1"></i> Continue to Paymob · @Model.ConsultationFee.ToString("N2") EGP
+                    </button>
+                </div>
+                <div class="modal-footer justify-content-center"><span class="text-muted small"><i class="bi bi-shield-check text-success me-1"></i> Hosted secure payment · Test mode</span></div>
+            </div>
+        </div>
+    </div>
+    @section Scripts {
+        <script>
+            (() => {
+                const button = document.getElementById('paySubmitBtn');
+                const alertBox = document.getElementById('checkoutAlert');
+                const termsCheckbox = document.getElementById('termsConsentCheck');
+
+                termsCheckbox?.addEventListener('change', () => {
+                    if (button) button.disabled = !termsCheckbox.checked;
+                    if (termsCheckbox.checked) alertBox?.classList.add('d-none');
+                });
+
+                button?.addEventListener('click', async () => {
+                    if (!termsCheckbox || !termsCheckbox.checked) {
+                        alertBox.textContent = document.documentElement.lang === 'ar' ? 'يجب الموافقة على شروط وأحكام الدفع وسياسة الإلغاء قبل المتابعة.' : 'Please accept the Terms & Conditions and Cancellation Policy to proceed.';
+                        alertBox.classList.remove('d-none');
+                        termsCheckbox?.focus();
+                        return;
+                    }
+                    alertBox.classList.add('d-none');
+                    button.disabled = true;
+                    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Connecting to Paymob…';
+                    try {
+                        const response = await fetch('/api/payment/checkout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('#checkoutModal input[name="__RequestVerificationToken"]').value
+                            },
+                            body: JSON.stringify({ appointmentId: @Model.Id, promoCode: document.getElementById('promoCodeInput').value.trim() || null, acceptTerms: termsCheckbox.checked, termsVersion: 'v1.0-2026' })
+                        });
+                        const result = await response.json();
+                        if (response.ok && result.success && result.checkoutUrl) {
+                            window.location.assign(result.checkoutUrl);
+                            return;
+                        }
+                        alertBox.textContent = result.error || 'تعذر بدء الدفع. حاول مرة أخرى.';
+                    } catch {
+                        alertBox.textContent = 'تعذر الاتصال بخدمة الدفع. حاول مرة أخرى.';
+                    }
+                    alertBox.classList.remove('d-none');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Continue to Paymob';
+                });
+            })();
+        </script>
+    }
+}

@@ -1,0 +1,289 @@
+﻿@model List<MediCare.Services.DTOs.AppointmentSummaryDto>
+@{
+    ViewData["Title"] = "My Appointments";
+    var upcoming = Model.Where(a => a.Status == MediCare.Data.Enums.AppointmentStatus.Pending || 
+                                    a.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed).ToList();
+    var past = Model.Where(a => a.Status != MediCare.Data.Enums.AppointmentStatus.Pending && 
+                                a.Status != MediCare.Data.Enums.AppointmentStatus.Confirmed).ToList();
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">My Appointments</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 reveal">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-check text-primary"></i> My Consultations
+        </h2>
+        <p class="text-secondary mb-0">Track upcoming clinic visits, doctor confirmations, and historical medical appointments.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-controller="Payment" asp-action="History" class="btn btn-outline-secondary">
+            <i class="bi bi-wallet2 me-1"></i> <span data-i18n="paymentHistoryNav">Payment History</span>
+        </a>
+        <a asp-controller="Doctors" asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Book New Appointment
+        </a>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<ul class="nav nav-pills mb-4 gap-2 reveal" id="appointmentTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="upcoming-tab" data-bs-toggle="pill" data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming" aria-selected="true">
+            <i class="bi bi-calendar2-event me-1"></i> Upcoming Visits <span class="badge bg-primary ms-1">@upcoming.Count</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="past-tab" data-bs-toggle="pill" data-bs-target="#past" type="button" role="tab" aria-controls="past" aria-selected="false">
+            <i class="bi bi-clock-history me-1"></i> Past & History <span class="badge bg-secondary ms-1">@past.Count</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="appointmentTabsContent">
+    <!-- Upcoming Appointments Tab -->
+    <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+        <div class="card bg-white shadow-sm border-0 reveal">
+            <div class="card-body p-0">
+                @if (upcoming.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <caption class="visually-hidden">Upcoming appointments</caption>
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Doctor</th>
+                                    <th scope="col">Date & Time</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Fee</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in upcoming)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">Dr. @item.DoctorName</div>
+                                            <span class="badge badge-specialty">@item.SpecializationName</span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark"><i class="bi bi-calendar-event text-primary me-1"></i> @item.FormattedDate</div>
+                                            <div class="text-muted small"><i class="bi bi-clock me-1"></i> @item.FormattedTime</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">@item.Type</span>
+                                        </td>
+                                        <td>
+                                            @if (item.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed)
+                                            {
+                                                <span class="status-pill status-confirmed">
+                                                    <span class="status-dot"></span> Confirmed
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-pill status-pending">
+                                                    <span class="status-dot"></span> Pending Approval
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">@item.ConsultationFee.ToString("N0") EGP</div>
+                                            @if (item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Paid)
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-check-circle-fill"></i> <span data-i18n="paymentConfirmed">Payment confirmed</span>
+                                                </span>
+                                            }
+                                            else if (item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Refunded)
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-arrow-counterclockwise"></i> <span>Refunded (demo)</span>
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-clock"></i> Unpaid
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                @if (item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Paid || item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Refunded)
+                                                {
+                                                    <a asp-controller="Payment" asp-action="Receipt" asp-route-appointmentId="@item.Id" class="btn btn-sm btn-outline-secondary" title="View Digital Receipt">
+                                                        <i class="bi bi-receipt"></i> Receipt
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Start Paymob sandbox checkout">
+                                                    <i class="bi bi-credit-card"></i> <span data-i18n="apptPayOnline">Pay with Paymob (test mode)</span>
+                                                    </a>
+                                                }
+                                                @if (item.Status == MediCare.Data.Enums.AppointmentStatus.Confirmed && item.Type == MediCare.Data.Enums.AppointmentType.Telemedicine)
+                                                {
+                                                    <a asp-action="Telehealth" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="Join Video Consultation">
+                                                        <i class="bi bi-camera-video-fill"></i> <span class="d-none d-md-inline" data-i18n="videoConsultationBtn">Video</span>
+                                                    </a>
+                                                }
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">
+                                                    Details
+                                                </a>
+                                                @if (item.CanCancel)
+                                                {
+                                                    <a asp-action="Reschedule" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning text-dark" title="Reschedule to another date or time">
+                                                        <i class="bi bi-calendar-range"></i> Reschedule
+                                                    </a>
+                                                    <form asp-action="Cancel" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this appointment? This will release the slot.');">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-x-circle"></i> Cancel
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-light text-muted disabled border" title="Cancellation not permitted within 2 hours of start time.">
+                                                        <i class="bi bi-lock-fill"></i> Locked (&lt; 2h)
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-5 text-center text-muted">
+                        <div class="mb-3" style="font-size: 3rem;">
+                            <i class="bi bi-calendar2-check text-secondary opacity-50"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">No Scheduled Appointments</h5>
+                        <p class="text-secondary col-md-6 mx-auto mb-4">You have no upcoming consultations. Browse doctors in the demo directory to schedule a clinic visit.</p>
+                        <a asp-controller="Doctors" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-search-heart"></i> Find Doctors
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Past & History Tab -->
+    <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+        <div class="card bg-white shadow-sm border-0">
+            <div class="card-body p-0">
+                @if (past.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <caption class="visually-hidden">Past appointments</caption>
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Doctor</th>
+                                    <th scope="col">Date & Time</th>
+                                    <th scope="col">Outcome / Status</th>
+                                    <th scope="col">Fee</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in past)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">Dr. @item.DoctorName</div>
+                                            <span class="badge badge-specialty">@item.SpecializationName</span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark"><i class="bi bi-calendar-event text-primary me-1"></i> @item.FormattedDate</div>
+                                            <div class="text-muted small"><i class="bi bi-clock me-1"></i> @item.FormattedTime</div>
+                                        </td>
+                                        <td>
+                                            @switch (item.Status)
+                                            {
+                                                case MediCare.Data.Enums.AppointmentStatus.Completed:
+                                                    <span class="status-pill status-completed">
+                                                        <span class="status-dot"></span> Completed
+                                                    </span>
+                                                    break;
+                                                case MediCare.Data.Enums.AppointmentStatus.Cancelled:
+                                                    <span class="status-pill status-cancelled">
+                                                        <span class="status-dot"></span> Cancelled
+                                                    </span>
+                                                    break;
+                                                case MediCare.Data.Enums.AppointmentStatus.Rejected:
+                                                    <span class="status-pill status-rejected">
+                                                        <span class="status-dot"></span> Declined
+                                                    </span>
+                                                    break;
+                                                case MediCare.Data.Enums.AppointmentStatus.NoShow:
+                                                    <span class="status-pill status-noshow">
+                                                        <span class="status-dot"></span> No-Show
+                                                    </span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-light text-dark">@item.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">@item.ConsultationFee.ToString("N0") EGP</div>
+                                            @if (item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Paid)
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-check-circle-fill"></i> <span data-i18n="paymentConfirmed">Payment confirmed</span>
+                                                </span>
+                                            }
+                                            else if (item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Refunded)
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size: 0.7rem;">
+                                                    <i class="bi bi-arrow-counterclockwise"></i> <span>Refunded (demo)</span>
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                @if (item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Paid || item.PaymentStatus == MediCare.Data.Enums.PaymentStatus.Refunded)
+                                                {
+                                                    <a asp-controller="Payment" asp-action="Receipt" asp-route-appointmentId="@item.Id" class="btn btn-sm btn-outline-secondary" title="View demo checkout record">
+                                                        <i class="bi bi-receipt"></i> Receipt
+                                                    </a>
+                                                }
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">
+                                                    Summary
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-5 text-center text-muted">
+                        <p class="mb-0">No past appointment history recorded.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

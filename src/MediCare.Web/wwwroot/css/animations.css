@@ -1,0 +1,497 @@
+/* ==========================================================================
+   MEDICARE — Animation System
+   Calm, clean, trustworthy motion for a medical product.
+   All shared keyframes, reveal utilities, and component animations live here.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. ANIMATION TOKENS (tweak here, applies everywhere)
+   -------------------------------------------------------------------------- */
+:root {
+  --anim-easing:        cubic-bezier(0.4, 0, 0.2, 1);
+  --anim-spring:        cubic-bezier(0.16, 1, 0.3, 1);
+  --anim-fast:          150ms;
+  --anim-normal:        250ms;
+  --anim-reveal:        500ms;
+  --anim-stagger:       70ms;
+}
+
+/* --------------------------------------------------------------------------
+   2. ACCESSIBILITY — disable all motion for users who prefer it
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal,
+  .reveal-scale,
+  [class*="reveal-delay-"],
+  html.js-reveal .reveal,
+  html.js-reveal .reveal-scale,
+  html.js-reveal [class*="reveal-delay-"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. PAGE LOAD FADE-IN
+   -------------------------------------------------------------------------- */
+@keyframes anim-page-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+body {
+  animation: anim-page-in 0.4s var(--anim-easing) both;
+}
+
+/* --------------------------------------------------------------------------
+   4. SCROLL REVEAL SYSTEM (Progressive Enhancement)
+   Visible by default. Hidden and animated ONLY when <html> has .js-reveal.
+   -------------------------------------------------------------------------- */
+.reveal,
+.reveal-scale {
+  opacity: 1;
+  transform: none;
+}
+
+html.js-reveal .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity var(--anim-reveal) var(--anim-spring),
+    transform var(--anim-reveal) var(--anim-spring);
+  will-change: opacity, transform;
+}
+
+html.js-reveal .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delays for sibling cards */
+html.js-reveal .reveal-delay-1 { transition-delay: calc(var(--anim-stagger) * 1); }
+html.js-reveal .reveal-delay-2 { transition-delay: calc(var(--anim-stagger) * 2); }
+html.js-reveal .reveal-delay-3 { transition-delay: calc(var(--anim-stagger) * 3); }
+html.js-reveal .reveal-delay-4 { transition-delay: calc(var(--anim-stagger) * 4); }
+html.js-reveal .reveal-delay-5 { transition-delay: calc(var(--anim-stagger) * 5); }
+html.js-reveal .reveal-delay-6 { transition-delay: calc(var(--anim-stagger) * 6); }
+
+/* Apply stagger delays when already visible (e.g. hero on page load) */
+html.js-reveal .reveal-delay-1.is-visible { transition-delay: calc(var(--anim-stagger) * 1); }
+html.js-reveal .reveal-delay-2.is-visible { transition-delay: calc(var(--anim-stagger) * 2); }
+html.js-reveal .reveal-delay-3.is-visible { transition-delay: calc(var(--anim-stagger) * 3); }
+html.js-reveal .reveal-delay-4.is-visible { transition-delay: calc(var(--anim-stagger) * 4); }
+html.js-reveal .reveal-delay-5.is-visible { transition-delay: calc(var(--anim-stagger) * 5); }
+html.js-reveal .reveal-delay-6.is-visible { transition-delay: calc(var(--anim-stagger) * 6); }
+
+/* Scale-in variant for cards/modals */
+html.js-reveal .reveal-scale {
+  opacity: 0;
+  transform: scale(0.97) translateY(12px);
+  transition:
+    opacity var(--anim-reveal) var(--anim-spring),
+    transform var(--anim-reveal) var(--anim-spring);
+  will-change: opacity, transform;
+}
+
+html.js-reveal .reveal-scale.is-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   5. NAVBAR
+   -------------------------------------------------------------------------- */
+.mc-navbar {
+  transition: box-shadow var(--anim-normal) var(--anim-easing),
+              background-color var(--anim-normal) var(--anim-easing);
+}
+
+.mc-navbar.scrolled {
+  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.09) !important;
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-bs-theme="dark"] .mc-navbar.scrolled {
+  background-color: rgba(15, 23, 42, 0.97) !important;
+}
+
+/* Animated underline on nav links */
+.nav-link {
+  position: relative;
+}
+
+.mc-navbar .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  right: 50%;
+  height: 2px;
+  background: var(--mc-primary);
+  border-radius: 2px;
+  transition: left var(--anim-normal) var(--anim-easing),
+              right var(--anim-normal) var(--anim-easing);
+}
+
+.mc-navbar .nav-link:hover::after,
+.mc-navbar .nav-link.active::after {
+  left: 0;
+  right: 0;
+}
+
+/* Mobile menu smooth open/close */
+.navbar-collapse {
+  transition: height var(--anim-normal) var(--anim-easing);
+}
+
+/* --------------------------------------------------------------------------
+   6. BUTTONS
+   -------------------------------------------------------------------------- */
+/* Hover lift (complements existing press scale in site.css) */
+.btn-primary,
+.btn-outline-primary {
+  transition:
+    transform var(--anim-fast) var(--anim-easing),
+    box-shadow var(--anim-normal) var(--anim-easing),
+    background-color var(--anim-normal) var(--anim-easing),
+    border-color var(--anim-normal) var(--anim-easing) !important;
+}
+
+.btn-primary:hover,
+.btn-outline-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.28);
+}
+
+/* Loading spinner state — add `.btn-loading` via JS on submit */
+.btn-loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  inset: 50% 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: anim-spin 0.65s linear infinite;
+}
+
+@keyframes anim-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   7. CARDS — hover elevation (extends card-hover-lift in site.css)
+   -------------------------------------------------------------------------- */
+.card {
+  transition:
+    box-shadow var(--anim-normal) var(--anim-easing),
+    transform var(--anim-normal) var(--anim-easing),
+    border-color var(--anim-normal) var(--anim-easing);
+}
+
+/* --------------------------------------------------------------------------
+   8. FORMS
+   -------------------------------------------------------------------------- */
+/* Animated focus ring */
+.form-control,
+.form-select {
+  transition:
+    border-color var(--anim-fast) var(--anim-easing),
+    box-shadow var(--anim-fast) var(--anim-easing);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--mc-primary);
+  box-shadow: 0 0 0 3px var(--mc-primary-glow);
+  outline: none;
+}
+
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 3px solid var(--mc-focus-ring, #005fcc);
+  outline-offset: 2px;
+}
+
+/* Shake animation for invalid submission */
+@keyframes anim-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+.shake {
+  animation: anim-shake 0.4s var(--anim-easing) both;
+}
+
+/* Smooth show/hide of validation messages */
+.field-validation-error,
+.text-danger {
+  transition: opacity var(--anim-fast) var(--anim-easing);
+}
+
+/* --------------------------------------------------------------------------
+   9. MODALS & DROPDOWNS
+   -------------------------------------------------------------------------- */
+.modal.fade .modal-dialog {
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.3s var(--anim-spring), opacity 0.3s var(--anim-easing);
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1) translateY(0);
+}
+
+.modal-backdrop.fade {
+  transition: opacity 0.25s var(--anim-easing);
+}
+
+.dropdown-menu {
+  animation: anim-dropdown-in 0.2s var(--anim-spring) both;
+  transform-origin: top center;
+}
+
+@keyframes anim-dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10. TIME SLOT SELECTION — Book Appointment page
+   -------------------------------------------------------------------------- */
+.time-slot-btn {
+  transition:
+    background-color var(--anim-fast) var(--anim-easing),
+    border-color var(--anim-fast) var(--anim-easing),
+    transform var(--anim-fast) var(--anim-easing),
+    box-shadow var(--anim-fast) var(--anim-easing);
+}
+
+.time-slot-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+}
+
+.time-slot-btn.selected {
+  animation: anim-slot-select 0.3s var(--anim-spring) both;
+}
+
+@keyframes anim-slot-select {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   11. SUCCESS CHECKMARK — Booking confirmation
+   -------------------------------------------------------------------------- */
+@keyframes anim-check-draw {
+  from {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes anim-check-circle {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.success-checkmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: anim-check-circle 0.5s var(--anim-spring) both;
+}
+
+.success-checkmark svg .check-path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: anim-check-draw 0.5s var(--anim-spring) 0.3s both;
+}
+
+/* --------------------------------------------------------------------------
+   12. SKELETON LOADERS
+   -------------------------------------------------------------------------- */
+@keyframes anim-skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--mc-slate-200) 25%,
+    var(--mc-slate-100) 50%,
+    var(--mc-slate-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: anim-skeleton-shimmer 1.4s var(--anim-easing) infinite;
+  border-radius: var(--mc-radius-sm);
+}
+
+[data-bs-theme="dark"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    #1E293B 25%,
+    #334155 50%,
+    #1E293B 75%
+  );
+  background-size: 200% 100%;
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.skeleton-text.wide  { width: 80%; }
+.skeleton-text.short { width: 45%; }
+.skeleton-text.full  { width: 100%; }
+
+.skeleton-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-card {
+  background: var(--mc-card-bg);
+  border: 1px solid var(--mc-card-border);
+  border-radius: var(--mc-radius-lg);
+  padding: 1.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   13. BACK-TO-TOP BUTTON
+   -------------------------------------------------------------------------- */
+#mc-back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--mc-primary);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  box-shadow: var(--mc-shadow-md);
+  cursor: pointer;
+  z-index: 900;
+  opacity: 0;
+  transform: translateY(12px) scale(0.9);
+  pointer-events: none;
+  transition:
+    opacity var(--anim-normal) var(--anim-easing),
+    transform var(--anim-normal) var(--anim-easing),
+    box-shadow var(--anim-normal) var(--anim-easing);
+}
+
+#mc-back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+#mc-back-to-top:hover {
+  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
+  transform: translateY(-2px) scale(1.05);
+}
+
+[dir="rtl"] #mc-back-to-top {
+  left: auto;
+  right: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   15. COUNT-UP NUMBERS (Dashboard)
+   -------------------------------------------------------------------------- */
+.count-up {
+  display: inline-block;
+  transition: opacity var(--anim-fast);
+}
+
+/* --------------------------------------------------------------------------
+   16. STAT CARDS — Dashboard entry animation
+   -------------------------------------------------------------------------- */
+.stat-card-animated {
+  animation: anim-stat-card-in 0.5s var(--anim-spring) both;
+}
+
+@keyframes anim-stat-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   17. MOBILE OVERRIDES — smaller distances, shorter durations on small screens
+   -------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+  :root {
+    --anim-reveal:  380ms;
+    --anim-stagger: 50ms;
+  }
+
+  html.js-reveal .reveal {
+    transform: translateY(10px);
+  }
+
+  #mc-back-to-top {
+    bottom: 5rem;
+    left: 1rem;
+  }
+
+  [dir="rtl"] #mc-back-to-top {
+    left: auto;
+    right: 1rem;
+  }
+}

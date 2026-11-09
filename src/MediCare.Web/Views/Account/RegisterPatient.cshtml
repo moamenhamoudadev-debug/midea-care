@@ -1,0 +1,353 @@
+@model MediCare.Web.ViewModels.PatientRegisterViewModel
+@{
+    ViewData["Title"] = "Patient Registration";
+}
+
+<div class="row justify-content-center py-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0 rounded-4 reveal reveal-scale is-visible">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="brand-icon mx-auto mb-3" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                        <i class="bi bi-person-fill-add"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1" data-i18n="regPatientTitle">Create Patient Account</h3>
+                    <p class="text-muted small" data-i18n="regPatientSubtitle">Register to book doctors listed in the demo directory and access your records.</p>
+                </div>
+
+                <form asp-action="RegisterPatient" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label small fw-semibold" data-i18n="formFullName">Full Legal Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                            <input asp-for="FullName" class="form-control" placeholder="e.g. John Doe" data-i18n-ph="phFullName" />
+                        </div>
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label small fw-semibold" data-i18n="formEmail">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" class="form-control" placeholder="name@example.com" data-i18n-ph="phEmail" />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <label for="regPassword" class="form-label small fw-semibold" data-i18n="formPassword">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                                <input asp-for="Password" id="regPassword" class="form-control" type="password" placeholder="••••••••" data-i18n-ph="phPassword" />
+                                <button type="button" class="btn btn-outline-secondary btn-toggle-pwd" data-target="regPassword" aria-controls="regPassword" aria-pressed="false" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="regConfirmPassword" class="form-label small fw-semibold" data-i18n="formConfirmPassword">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-shield-lock"></i></span>
+                                <input asp-for="ConfirmPassword" id="regConfirmPassword" class="form-control" type="password" placeholder="••••••••" data-i18n-ph="phConfirmPassword" />
+                                <button type="button" class="btn btn-outline-secondary btn-toggle-pwd" data-target="regConfirmPassword" aria-controls="regConfirmPassword" aria-pressed="false" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            <div id="pwdMatchStatus" class="small mt-1 d-none"></div>
+                        </div>
+                    </div>
+
+                    <!-- Password Live Rules & Strength Meter -->
+                    <div class="p-3 bg-light rounded-3 border mb-3 pwd-strength-container">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-semibold text-dark" data-i18n="pwdSecurityLevel">Password Security Level:</span>
+                            <span class="small fw-bold" id="pwdStrengthLabel" data-i18n="pwdNotStarted" style="color: #64748B;">Not started</span>
+                        </div>
+                        <div class="pwd-strength-bar">
+                            <div class="pwd-strength-fill" id="pwdStrengthFill"></div>
+                        </div>
+                        
+                        <div class="row g-1 mt-2">
+                            <div class="col-sm-6">
+                                <div class="pwd-rule-item" id="ruleLength">
+                                    <i class="bi bi-circle"></i> <span data-i18n="pwdRuleMinLength">At least 8 characters</span>
+                                </div>
+                                <div class="pwd-rule-item" id="ruleUpper">
+                                    <i class="bi bi-circle"></i> <span data-i18n="pwdRuleUpper">At least one uppercase letter (A-Z)</span>
+                                </div>
+                                <div class="pwd-rule-item" id="ruleLower">
+                                    <i class="bi bi-circle"></i> <span data-i18n="pwdRuleLower">At least one lowercase letter (a-z)</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="pwd-rule-item" id="ruleNumber">
+                                    <i class="bi bi-circle"></i> <span data-i18n="pwdRuleNumber">At least one number (0-9)</span>
+                                </div>
+                                <div class="pwd-rule-item" id="ruleSpecial">
+                                    <i class="bi bi-circle"></i> <span data-i18n="pwdRuleSpecial">At least one special symbol (!@@#$%^&*)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label small fw-semibold" data-i18n="formPhone">Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone"></i></span>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="+2010..." data-i18n-ph="phPhone" />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label small fw-semibold" data-i18n="formDob">Date of Birth</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-calendar-event"></i></span>
+                                <input asp-for="DateOfBirth" class="form-control" type="date" />
+                            </div>
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label small fw-semibold" data-i18n="formGender">Gender</label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="Male" data-i18n="optMale">Male</option>
+                                <option value="Female" data-i18n="optFemale">Female</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="BloodGroup" class="form-label small fw-semibold" data-i18n="formBloodGroup">Blood Group</label>
+                            <select asp-for="BloodGroup" class="form-select">
+                                <option value="" data-i18n="optSelectBloodGroup">Unknown / Select</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                            <span asp-validation-for="BloodGroup" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EmergencyContact" class="form-label small fw-semibold" data-i18n="formEmergencyContact">Emergency Contact</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-heart-pulse"></i></span>
+                            <input asp-for="EmergencyContact" class="form-control" placeholder="Contact number of kin/guardian" data-i18n-ph="phEmergencyContact" />
+                        </div>
+                        <span asp-validation-for="EmergencyContact" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Allergies" class="form-label small fw-semibold" data-i18n="formAllergies">Known Allergies</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-exclamation-triangle"></i></span>
+                            <input asp-for="Allergies" class="form-control" placeholder="e.g. Penicillin, Peanuts, Latex, Aspirin (optional)" data-i18n-ph="phAllergies" />
+                        </div>
+                        <span asp-validation-for="Allergies" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="MedicalHistory" class="form-label small fw-semibold" data-i18n="formMedicalHistory">Medical History & Chronic Conditions</label>
+                        <textarea asp-for="MedicalHistory" class="form-control" rows="2" placeholder="e.g. Hypertension diagnosed 2020, Asthma (optional)" data-i18n-ph="phMedicalHistory"></textarea>
+                        <span asp-validation-for="MedicalHistory" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg py-2 fw-semibold">
+                            <i class="bi bi-person-check"></i> <span data-i18n="btnCompleteReg">Complete Registration</span>
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <span class="text-muted small" data-i18n="alreadyRegistered">Already registered?</span>
+                        <a asp-action="Login" class="text-primary fw-semibold small text-decoration-none ms-1" data-i18n="signInHere">Sign in here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function() {
+            const pwdInput = document.getElementById('regPassword');
+            const confirmInput = document.getElementById('regConfirmPassword');
+            const strengthBar = document.getElementById('pwdStrengthFill');
+            const strengthLabel = document.getElementById('pwdStrengthLabel');
+            const matchStatus = document.getElementById('pwdMatchStatus');
+
+            const ruleLength = document.getElementById('ruleLength');
+            const ruleUpper = document.getElementById('ruleUpper');
+            const ruleLower = document.getElementById('ruleLower');
+            const ruleNumber = document.getElementById('ruleNumber');
+            const ruleSpecial = document.getElementById('ruleSpecial');
+
+            // Show / Hide password toggles
+            document.querySelectorAll('.btn-toggle-pwd').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    if (!input) return;
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    this.setAttribute('aria-pressed', String(isPassword));
+                    const lang = getLang();
+                    this.setAttribute('aria-label', isPassword
+                        ? (lang === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password')
+                        : (lang === 'ar' ? 'إظهار كلمة المرور' : 'Show password'));
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+                    }
+                });
+            });
+
+            function updatePasswordToggleLabels(lang) {
+                document.querySelectorAll('.btn-toggle-pwd').forEach(btn => {
+                    const isVisible = btn.getAttribute('aria-pressed') === 'true';
+                    btn.setAttribute('aria-label', isVisible
+                        ? (lang === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password')
+                        : (lang === 'ar' ? 'إظهار كلمة المرور' : 'Show password'));
+                });
+            }
+            updatePasswordToggleLabels(getLang());
+            window.addEventListener('medicare:langChange', event => updatePasswordToggleLabels(event.detail?.lang || getLang()));
+
+            function getLang() {
+                return (window.getMedicareLang && window.getMedicareLang()) || document.documentElement.getAttribute('lang') || 'en';
+            }
+
+            const pwdI18n = {
+                en: {
+                    notStarted: 'Not started',
+                    weak: 'Weak',
+                    fair: 'Fair',
+                    strong: 'Strong',
+                    veryStrong: 'Very Strong',
+                    match: 'Passwords match',
+                    mismatch: 'Passwords do not match'
+                },
+                ar: {
+                    notStarted: 'لم تبدأ الكتابة بعد',
+                    weak: 'ضعيفة',
+                    fair: 'متوسطة',
+                    strong: 'قوية',
+                    veryStrong: 'ممتازة وقوية جداً',
+                    match: 'كلمتا المرور متطابقتان',
+                    mismatch: 'كلمتا المرور غير متطابقتين'
+                }
+            };
+
+            function updateRules() {
+                const val = pwdInput.value;
+                const hasLength = val.length >= 8;
+                const hasUpper = /[A-Z]/.test(val);
+                const hasLower = /[a-z]/.test(val);
+                const hasNumber = /[0-9]/.test(val);
+                const hasSpecial = /[^A-Za-z0-9]/.test(val);
+
+                function setRule(el, valid) {
+                    if (!el) return;
+                    if (valid) {
+                        el.className = 'pwd-rule-item valid';
+                        el.querySelector('i').className = 'bi bi-check-circle-fill text-success';
+                    } else {
+                        el.className = 'pwd-rule-item';
+                        el.querySelector('i').className = 'bi bi-circle';
+                    }
+                }
+
+                setRule(ruleLength, hasLength);
+                setRule(ruleUpper, hasUpper);
+                setRule(ruleLower, hasLower);
+                setRule(ruleNumber, hasNumber);
+                setRule(ruleSpecial, hasSpecial);
+
+                let score = 0;
+                if (hasLength) score++;
+                if (hasUpper) score++;
+                if (hasLower) score++;
+                if (hasNumber) score++;
+                if (hasSpecial) score++;
+
+                const lang = getLang();
+                const texts = pwdI18n[lang] || pwdI18n.en;
+
+                if (val.length === 0) {
+                    strengthBar.style.width = '0%';
+                    strengthLabel.textContent = texts.notStarted;
+                    strengthLabel.style.color = '#64748B';
+                } else if (score <= 2) {
+                    strengthBar.style.width = '25%';
+                    strengthBar.style.backgroundColor = '#EF4444';
+                    strengthLabel.textContent = texts.weak;
+                    strengthLabel.style.color = '#EF4444';
+                } else if (score === 3) {
+                    strengthBar.style.width = '50%';
+                    strengthBar.style.backgroundColor = '#F59E0B';
+                    strengthLabel.textContent = texts.fair;
+                    strengthLabel.style.color = '#F59E0B';
+                } else if (score === 4) {
+                    strengthBar.style.width = '75%';
+                    strengthBar.style.backgroundColor = '#10B981';
+                    strengthLabel.textContent = texts.strong;
+                    strengthLabel.style.color = '#10B981';
+                } else {
+                    strengthBar.style.width = '100%';
+                    strengthBar.style.backgroundColor = '#0066F5';
+                    strengthLabel.textContent = texts.veryStrong;
+                    strengthLabel.style.color = '#0066F5';
+                }
+
+                checkMatch();
+            }
+
+            function checkMatch() {
+                if (!confirmInput || !matchStatus) return;
+                const pwd = pwdInput.value;
+                const confirm = confirmInput.value;
+                if (!confirm) {
+                    matchStatus.classList.add('d-none');
+                    return;
+                }
+                matchStatus.classList.remove('d-none');
+                const lang = getLang();
+                const texts = pwdI18n[lang] || pwdI18n.en;
+                if (pwd === confirm) {
+                    matchStatus.className = 'small mt-1 text-success fw-semibold';
+                    matchStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + texts.match;
+                } else {
+                    matchStatus.className = 'small mt-1 text-danger fw-semibold';
+                    matchStatus.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> ' + texts.mismatch;
+                }
+            }
+
+            if (pwdInput) pwdInput.addEventListener('input', updateRules);
+            if (confirmInput) confirmInput.addEventListener('input', checkMatch);
+            window.addEventListener('medicare:langChange', function () {
+                updateRules();
+                checkMatch();
+            });
+
+            // Initialize labels according to current language
+            updateRules();
+            checkMatch();
+        })();
+    </script>
+}

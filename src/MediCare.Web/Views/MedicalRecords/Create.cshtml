@@ -1,0 +1,293 @@
+@model CreateEncounterViewModel
+@{
+    ViewData["Title"] = "Document Clinical Consultation";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Doctor" asp-action="Appointments">Appointments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Clinical Encounter</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Patient Summary Ribbon -->
+<div class="card shadow-sm border-0 mb-4 bg-white reveal">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-1">
+                    <i class="bi bi-calendar2-check me-1"></i> Appointment #@Model.Appointment.Id
+                </span>
+                <h3 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-person-fill text-primary"></i> Patient: @Model.Appointment.PatientName
+                </h3>
+                <p class="text-secondary mb-0 small">
+                    <span><i class="bi bi-calendar-event me-1 text-muted"></i> <strong>Date:</strong> @Model.Appointment.FormattedDate</span>
+                    <span class="ms-3"><i class="bi bi-clock me-1 text-muted"></i> <strong>Time:</strong> @Model.Appointment.FormattedTime</span>
+                    @if (!string.IsNullOrEmpty(Model.Appointment.PatientPhoneNumber))
+                    {
+                        <span class="ms-3"><i class="bi bi-telephone me-1 text-muted"></i> <strong>Phone:</strong> @Model.Appointment.PatientPhoneNumber</span>
+                    }
+                </p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6">
+                    <i class="bi bi-check2-circle me-1"></i> Status: @Model.Appointment.Status
+                </span>
+                <div class="text-muted small mt-1">Fee: @Model.Appointment.ConsultationFee.ToString("N0") EGP</div>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Appointment.Notes))
+        {
+            <div class="mt-3 p-2 bg-light rounded-3 border">
+                <strong class="text-secondary small">Patient Booking Note:</strong>
+                <span class="text-dark small ms-1">@Model.Appointment.Notes</span>
+            </div>
+        }
+    </div>
+</div>
+
+<form action="/MedicalRecords/Create" method="post" enctype="multipart/form-data" id="encounterForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Encounter.AppointmentId" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
+
+    <div class="row g-4">
+        <!-- Left Column: Clinical Diagnosis & Documentation -->
+        <div class="col-lg-6 reveal reveal-delay-1">
+            <div class="card shadow-sm border-0 h-100 bg-white">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-medical text-primary"></i> Clinical Consultation Notes
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label asp-for="Encounter.Diagnosis" class="form-label fw-bold text-dark">
+                            Clinical Diagnosis <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Encounter.Diagnosis" class="form-control form-control-lg" placeholder="e.g. Acute Pharyngitis, Essential Hypertension" required />
+                        <span asp-validation-for="Encounter.Diagnosis" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Clinical Vitals Section -->
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-1">
+                            <i class="bi bi-activity text-danger"></i> العلامات والمؤشرات الحيوية (Clinical Vitals)
+                        </h6>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small text-muted mb-1">ضغط الدم (BP)</label>
+                                <input asp-for="Encounter.BloodPressure" class="form-control form-control-sm" placeholder="120/80" />
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small text-muted mb-1">النبض (HR bpm)</label>
+                                <input asp-for="Encounter.HeartRate" type="number" class="form-control form-control-sm" placeholder="72" />
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label small text-muted mb-1">الحرارة (°C)</label>
+                                <input asp-for="Encounter.Temperature" type="number" step="0.1" class="form-control form-control-sm" placeholder="37.0" />
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <label class="form-label small text-muted mb-1">سكر الدم (mg/dL)</label>
+                                <input asp-for="Encounter.BloodGlucose" type="number" step="0.1" class="form-control form-control-sm" placeholder="95" />
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <label class="form-label small text-muted mb-1">الوزن (kg)</label>
+                                <input asp-for="Encounter.WeightKg" type="number" step="0.1" class="form-control form-control-sm" placeholder="75" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Encounter.Symptoms" class="form-label fw-semibold text-secondary">
+                            Symptoms & Observations
+                        </label>
+                        <textarea asp-for="Encounter.Symptoms" class="form-control" rows="3" placeholder="Patient reported fever, sore throat for 3 days..."></textarea>
+                        <span asp-validation-for="Encounter.Symptoms" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Encounter.VisitNotes" class="form-label fw-semibold text-secondary">
+                            Consultation & Follow-up Notes
+                        </label>
+                        <textarea asp-for="Encounter.VisitNotes" class="form-control" rows="4" placeholder="Advised bed rest, hydration. Review in 10 days if symptoms persist..."></textarea>
+                        <span asp-validation-for="Encounter.VisitNotes" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Diagnostic File Upload -->
+                    <div class="mb-3">
+                        <label asp-for="Attachment" class="form-label fw-semibold text-secondary">
+                            <i class="bi bi-paperclip"></i> Diagnostic Attachment (Lab Report / Radiology / Scan)
+                        </label>
+                        <input asp-for="Attachment" type="file" class="form-control" accept=".jpg,.jpeg,.png,.pdf" />
+                        <div class="form-text text-muted small">
+                            Accepted file formats: <strong>JPG, PNG, PDF</strong> (Maximum size: <strong>5 MB</strong>).
+                        </div>
+                        <span asp-validation-for="Attachment" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Digital Prescription Items -->
+        <div class="col-lg-6 reveal reveal-delay-2">
+            <div class="card shadow-sm border-0 h-100 bg-white">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-capsule text-primary"></i> Digital Prescription (Rx)
+                    </h5>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddMedication">
+                        <i class="bi bi-plus-lg"></i> Add Medication
+                    </button>
+                </div>
+                <div class="card-body p-4">
+                    <div id="prescriptionItemsContainer">
+                        @if (Model.Encounter.PrescriptionItems != null && Model.Encounter.PrescriptionItems.Any())
+                        {
+                            for (int i = 0; i < Model.Encounter.PrescriptionItems.Count; i++)
+                            {
+                                <div class="prescription-row border rounded-3 p-3 mb-3 bg-light position-relative">
+                                    <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2 btn-remove-row" title="Remove medication" aria-label="Remove medication">&times;</button>
+                                    <div class="row g-2">
+                                        <div class="col-md-7">
+                                            <label class="form-label small fw-bold">Medication Name *</label>
+                                            <input name="Encounter.PrescriptionItems[@i].MedicationName" value="@Model.Encounter.PrescriptionItems[i].MedicationName" class="form-control form-control-sm" placeholder="e.g. Amoxicillin 500mg" required />
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label small fw-bold">Dosage *</label>
+                                            <input name="Encounter.PrescriptionItems[@i].Dosage" value="@Model.Encounter.PrescriptionItems[i].Dosage" class="form-control form-control-sm" placeholder="e.g. 1 capsule" required />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Frequency *</label>
+                                            <input name="Encounter.PrescriptionItems[@i].Frequency" value="@Model.Encounter.PrescriptionItems[i].Frequency" class="form-control form-control-sm" placeholder="e.g. 3 times daily" required />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Duration (Days) *</label>
+                                            <input type="number" min="1" max="365" name="Encounter.PrescriptionItems[@i].DurationDays" value="@(Model.Encounter.PrescriptionItems[i].DurationDays > 0 ? Model.Encounter.PrescriptionItems[i].DurationDays : 7)" class="form-control form-control-sm" required />
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small text-secondary">Instructions / Advice</label>
+                                            <input name="Encounter.PrescriptionItems[@i].Instructions" value="@Model.Encounter.PrescriptionItems[i].Instructions" class="form-control form-control-sm" placeholder="e.g. After meals with plenty of water" />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div id="noMedicationsPlaceholder" class="@(Model.Encounter.PrescriptionItems != null && Model.Encounter.PrescriptionItems.Any() ? "d-none" : "") p-4 text-center text-muted border rounded-3 border-dashed mb-3">
+                        <i class="bi bi-capsule text-secondary opacity-50 fs-2 d-block mb-1"></i>
+                        <p class="mb-2">No medications added yet.</p>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddMedicationEmpty" aria-label="Add medication">
+                            <i class="bi bi-plus-lg"></i> Add First Medication
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Encounter.Notes" class="form-label fw-semibold text-secondary">
+                            Pharmacist / General Dispensing Notes
+                        </label>
+                        <textarea asp-for="Encounter.Notes" class="form-control" rows="2" placeholder="e.g. Generic substitutions allowed..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Bottom Bar -->
+    <div class="card shadow-sm border-0 mt-4 bg-white">
+        <div class="card-body p-3 d-flex justify-content-between align-items-center">
+            <a asp-controller="Doctor" asp-action="Appointments" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Appointments
+            </a>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success btn-lg px-4 fw-bold shadow-sm">
+                    <i class="bi bi-check-circle-fill"></i> Complete Consultation & Finalize Visit
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const container = document.getElementById("prescriptionItemsContainer");
+            const placeholder = document.getElementById("noMedicationsPlaceholder");
+            const btnAdd = document.getElementById("btnAddMedication");
+            const btnAddEmpty = document.getElementById("btnAddMedicationEmpty");
+
+            function updateRowIndices() {
+                const rows = container.querySelectorAll(".prescription-row");
+                rows.forEach((row, index) => {
+                    row.querySelectorAll("input, select, textarea").forEach(input => {
+                        const name = input.getAttribute("name");
+                        if (name && name.startsWith("Encounter.PrescriptionItems[")) {
+                            input.setAttribute("name", name.replace(/Encounter\.PrescriptionItems\[\d+\]/, `Encounter.PrescriptionItems[${index}]`));
+                        }
+                    });
+                });
+
+                if (rows.length === 0) {
+                    placeholder.classList.remove("d-none");
+                } else {
+                    placeholder.classList.add("d-none");
+                }
+            }
+
+            function addMedicationRow() {
+                const count = container.querySelectorAll(".prescription-row").length;
+                const rowHtml = `
+                    <div class="prescription-row border rounded-3 p-3 mb-3 bg-light position-relative">
+                        <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2 btn-remove-row" title="Remove medication" aria-label="Remove medication">&times;</button>
+                        <div class="row g-2">
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold">Medication Name *</label>
+                                <input name="Encounter.PrescriptionItems[${count}].MedicationName" class="form-control form-control-sm" placeholder="e.g. Amoxicillin 500mg" required />
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold">Dosage *</label>
+                                <input name="Encounter.PrescriptionItems[${count}].Dosage" class="form-control form-control-sm" placeholder="e.g. 1 capsule" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Frequency *</label>
+                                <input name="Encounter.PrescriptionItems[${count}].Frequency" class="form-control form-control-sm" placeholder="e.g. 3 times daily" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Duration (Days) *</label>
+                                <input type="number" min="1" max="365" name="Encounter.PrescriptionItems[${count}].DurationDays" value="7" class="form-control form-control-sm" required />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-secondary">Instructions / Advice</label>
+                                <input name="Encounter.PrescriptionItems[${count}].Instructions" class="form-control form-control-sm" placeholder="e.g. After meals with water" />
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML("beforeend", rowHtml);
+                updateRowIndices();
+            }
+
+            btnAdd?.addEventListener("click", addMedicationRow);
+            btnAddEmpty?.addEventListener("click", addMedicationRow);
+
+            container.addEventListener("click", function (e) {
+                if (e.target && (e.target.classList.contains("btn-remove-row") || e.target.closest(".btn-remove-row"))) {
+                    const row = e.target.closest(".prescription-row");
+                    if (row) {
+                        row.remove();
+                        updateRowIndices();
+                    }
+                }
+            });
+        });
+    </script>
+}

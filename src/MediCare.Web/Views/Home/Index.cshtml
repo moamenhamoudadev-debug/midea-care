@@ -1,0 +1,391 @@
+@{
+    ViewData["Title"] = "Modern Healthcare Management & Appointments";
+}
+
+<!-- =====================================================================
+     HERO SECTION WITH 2-COLUMN LAYOUT & CLINICAL GRAPHIC
+     ===================================================================== -->
+<div class="hero-section mb-5 animate-fade-in-up">
+    <div class="row align-items-center g-5 py-3">
+        <div class="col-lg-7 text-start">
+            <div class="hero-pill-badge mb-3 reveal reveal-delay-1 is-visible">
+                <span class="status-dot" style="background:#2563EB;"></span>
+                <span data-i18n="heroBadge">MediCare &bull; Graduation Project</span>
+            </div>
+
+            <h1 class="hero-title mb-3 reveal reveal-delay-2 is-visible">
+                <span data-i18n="heroTitlePart1">Modern Healthcare,</span><br />
+                <span class="hero-highlight" data-i18n="heroTitlePart2">Seamlessly Scheduled.</span>
+            </h1>
+
+            <p class="fs-5 text-secondary mb-4 reveal reveal-delay-3 is-visible" style="line-height: 1.6;" data-i18n="heroSubtitle">
+                Browse the doctor directory, check available appointment slots, and manage clinic visits in one place.
+            </p>
+
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <div class="p-2 px-3 rounded-3 mb-3 d-flex align-items-center justify-content-between gap-2 small flex-wrap reveal reveal-delay-4 is-visible" style="background-color: #f0fdfa; border: 1px solid rgba(13, 148, 136, 0.25); color: #0f766e;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-lock-fill text-teal-custom fs-6"></i>
+                        <div>
+                            <strong data-i18n="authNoticeTitle">Privacy Notice:</strong> <span data-i18n="authNoticeDesc">Sign in or register to browse the demo doctor directory and book appointments.</span>
+                        </div>
+                    </div>
+                    <a href="/Doctors" class="btn btn-sm btn-outline-primary py-1 px-2 fw-semibold rounded-pill require-auth-guest" style="font-size: 0.75rem;">
+                        <span data-i18n="authNoticeAction">Sign In to Continue</span> &rarr;
+                    </a>
+                </div>
+            }
+
+            <!-- Hero Search Form -->
+            <form method="get" asp-controller="Doctors" asp-action="Index" class="hero-search-card text-start mb-3 shadow-sm card-hover-lift reveal reveal-delay-4 is-visible">
+                <div class="row g-2 align-items-center p-1">
+                    <div class="col-md-8 col-sm-12">
+                        <div class="input-icon-group">
+                            <i class="bi bi-search"></i>
+                            <input type="text" name="SearchTerm" id="heroSearchInput" class="form-control border-0 shadow-none ps-5" placeholder="Search doctor name, specialty, condition..." data-i18n-ph="heroSearchPlaceholder" />
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-12">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                            <i class="bi bi-search-heart"></i> <span data-i18n="heroSearchBtn">Find Doctors</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Specialty Quick Selector Pills -->
+            <div class="d-flex flex-wrap align-items-center gap-2 pt-1 reveal reveal-delay-5 is-visible">
+                <span class="small text-muted me-1 fw-semibold" data-i18n="popularSpecialties">Popular:</span>
+                <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Cardiology" class="specialty-quick-pill">
+                    <i class="bi bi-heart-pulse text-danger"></i> <span data-i18n="specCardiology">Cardiology</span>
+                </a>
+                <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Dermatology" class="specialty-quick-pill">
+                    <i class="bi bi-bandaid text-warning"></i> <span data-i18n="specDermatology">Dermatology</span>
+                </a>
+                <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Pediatrics" class="specialty-quick-pill">
+                    <i class="bi bi-balloon text-info"></i> <span data-i18n="specPediatrics">Pediatrics</span>
+                </a>
+                <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Orthopedics" class="specialty-quick-pill">
+                    <i class="bi bi-person-walking text-primary"></i> <span data-i18n="specOrthopedics">Orthopedics</span>
+                </a>
+                <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Internal Medicine" class="specialty-quick-pill">
+                    <i class="bi bi-capsule text-success"></i> <span data-i18n="specInternal">Internal Medicine</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Column Hero Illustration -->
+        <div class="col-lg-5 text-center d-none d-lg-block">
+            <div class="position-relative hero-illustration-wrapper">
+                <img src="~/images/home/hero-medical.jpg" asp-append-version="true" alt="MediCare Medical Team" class="img-fluid rounded-4 shadow-lg border hero-graphic-img" style="height: 410px; width: 100%; object-fit: cover; object-position: center 15%;" />
+                <div class="position-absolute top-0 end-0 m-3 trust-badge-floating animate-float d-flex align-items-center gap-2">
+                    <span class="status-dot" style="background:#2563EB;"></span>
+                    <div class="text-start">
+                        <div class="fw-bold small text-dark" style="font-size: 0.78rem;" data-i18n="heroBadgeDoctors">Browse demo doctors</div>
+                        <div class="text-muted" style="font-size: 0.68rem;" data-i18n="heroBadgeGovs">Locations in demo data</div>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 start-0 m-3 trust-badge-floating card-hover-lift d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-success fs-5"></i>
+                    <div class="text-start">
+                        <div class="fw-bold small text-dark" style="font-size: 0.78rem;" data-i18n="badgeAcidSafe">ACID Protected</div>
+                        <div class="text-muted" style="font-size: 0.68rem;" data-i18n="badgeSqlEngine">SQL Server Filtered Index</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================================
+     TRUST STATISTICS RIBBON
+     ===================================================================== -->
+<div class="trust-stats-ribbon mb-5 card-hover-lift reveal">
+    <div class="row g-4 align-items-center text-center">
+        <div class="col-6 col-md-3">
+            <div class="trust-stat-item">
+                    <div class="trust-stat-number text-teal-custom"><i class="bi bi-database-check" aria-hidden="true"></i></div>
+                <div class="trust-stat-label" data-i18n="statDoubleBooking">Double Bookings (SQL Concurrency)</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="trust-stat-item">
+                    <div class="trust-stat-number text-success"><i class="bi bi-person-check" aria-hidden="true"></i></div>
+                <div class="trust-stat-label" data-i18n="statVerified">Doctor applications reviewed</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="trust-stat-item">
+                    <div class="trust-stat-number text-teal-custom"><i class="bi bi-calendar-check" aria-hidden="true"></i></div>
+                <div class="trust-stat-label" data-i18n="statFastBooking">Instant Slot Reservation</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="trust-stat-item">
+                    <div class="trust-stat-number text-warning"><i class="bi bi-bell" aria-hidden="true"></i></div>
+                <div class="trust-stat-label" data-i18n="statSignalR">SignalR Live Synchronization</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================================
+     MEDICAL DEPARTMENTS VISUAL SHOWCASE
+     ===================================================================== -->
+<div class="mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+        <div>
+            <span class="badge bg-teal-subtle text-teal-custom px-3 py-1 rounded-pill fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;" data-i18n="deptBadge">Specialized Medical Departments</span>
+            <h3 class="fw-bold mt-2 mb-0" data-i18n="deptTitle">Comprehensive Clinical Specialties with Highest Care Standards</h3>
+        </div>
+        <a asp-controller="Doctors" asp-action="Index" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            <span data-i18n="deptAllLink">Explore all specialties</span> <i class="bi bi-arrow-right me-1"></i>
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-sm-6 col-lg-3 reveal reveal-delay-1">
+            <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Cardiology" class="medical-dept-card card-hover-lift">
+                <img src="~/images/home/dept-cardio.jpg" asp-append-version="true" alt="Cardiology" class="medical-dept-img" />
+                <div class="medical-dept-overlay">
+                    <span class="medical-dept-badge"><i class="bi bi-heart-pulse-fill"></i> <span data-i18n="deptCardioBadge">Cardiac Care & Cath Lab</span></span>
+                    <h5 class="medical-dept-title" data-i18n="deptCardioTitle">Cardiovascular Medicine</h5>
+                </div>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-3 reveal reveal-delay-2">
+            <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Pediatrics" class="medical-dept-card card-hover-lift">
+                <img src="~/images/home/dept-pediatric.jpg" asp-append-version="true" alt="Pediatrics" class="medical-dept-img" />
+                <div class="medical-dept-overlay">
+                    <span class="medical-dept-badge"><i class="bi bi-balloon-fill"></i> <span data-i18n="deptPediatricBadge">Neonatology & Immunization</span></span>
+                    <h5 class="medical-dept-title" data-i18n="deptPediatricTitle">Pediatric Care & Health</h5>
+                </div>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-3 reveal reveal-delay-3">
+            <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Dentistry" class="medical-dept-card card-hover-lift">
+                <img src="~/images/home/dept-dental.jpg" asp-append-version="true" alt="Dentistry" class="medical-dept-img" />
+                <div class="medical-dept-overlay">
+                    <span class="medical-dept-badge"><i class="bi bi-stars"></i> <span data-i18n="deptDentalBadge">Implantology & Cosmetic Dentistry</span></span>
+                    <h5 class="medical-dept-title" data-i18n="deptDentalTitle">Dental Medicine & Surgery</h5>
+                </div>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-3 reveal reveal-delay-4">
+            <a asp-controller="Doctors" asp-action="Index" asp-route-SearchTerm="Orthopedics" class="medical-dept-card card-hover-lift">
+                <img src="~/images/home/dept-ortho.jpg" asp-append-version="true" alt="Orthopedics" class="medical-dept-img" />
+                <div class="medical-dept-overlay">
+                    <span class="medical-dept-badge"><i class="bi bi-person-walking"></i> <span data-i18n="deptOrthoBadge">Arthroscopy & Sports Joints</span></span>
+                    <h5 class="medical-dept-title" data-i18n="deptOrthoTitle">Orthopedic Surgery</h5>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================================
+     ENGINEERING EXCELLENCE SECTION
+     ===================================================================== -->
+<div class="mb-5">
+    <div class="text-center mb-4">
+        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;" data-i18n="engBadge">Engineering Excellence</span>
+        <h2 class="fw-bold mt-2" data-i18n="whyChooseTitle">Why Healthcare Providers Choose MediCare</h2>
+        <p class="text-muted col-md-6 mx-auto" data-i18n="whyChooseSubtitle">Engineered from the ground up for medical data reliability, precision scheduling, and seamless doctor-patient interactions.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4 reveal reveal-delay-1">
+            <div class="card h-100 p-4 border-0 card-hover-elevate card-hover-lift shadow-sm">
+                <div class="feature-icon-box bg-primary-subtle text-primary">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h4 class="fw-bold mb-2" data-i18n="feat1Title">Booking Conflict Protection</h4>
+                <p class="text-secondary small mb-3" data-i18n="feat1Desc">
+                    Enforced at the database engine level via SQL Server filtered concurrency indexes. Overlapping bookings are mathematically prevented even under high concurrency.
+                </p>
+                <div class="mt-auto pt-2">
+                    <span class="badge bg-light text-dark border">
+                        <i class="bi bi-database-check me-1 text-primary"></i> <span data-i18n="feat1Tag">ACID Atomic Transactions</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 reveal reveal-delay-2">
+            <div class="card h-100 p-4 border-0 card-hover-elevate card-hover-lift shadow-sm">
+                <div class="feature-icon-box bg-success-subtle text-success">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <h4 class="fw-bold mb-2" data-i18n="feat2Title">Doctor application review</h4>
+                <p class="text-secondary small mb-3" data-i18n="feat2Desc">
+                    Administrators can review doctor registration requests before approval. This demo does not independently verify medical credentials.
+                </p>
+                <div class="mt-auto pt-2">
+                    <a asp-controller="Doctors" asp-action="Index" class="fw-bold text-success text-decoration-none small">
+                        <span data-i18n="feat2Link">Explore Directory</span> <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 reveal reveal-delay-3">
+            <div class="card h-100 p-4 border-0 card-hover-elevate card-hover-lift shadow-sm">
+                <div class="feature-icon-box bg-info-subtle text-info">
+                    <i class="bi bi-file-earmark-medical"></i>
+                </div>
+                <h4 class="fw-bold mb-2" data-i18n="feat3Title">Digital Health Passport</h4>
+                <p class="text-secondary small mb-3" data-i18n="feat3Desc">
+                    Automated clinical documentation upon encounter completion: diagnoses, physical symptoms, doctor notes, and printable digital prescriptions with dosage guidelines.
+                </p>
+                <div class="mt-auto pt-2">
+                    <span class="badge bg-light text-dark border">
+                        <i class="bi bi-printer me-1 text-info"></i> <span data-i18n="feat3Tag">Printable Rx Ready</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================================
+     HOW IT WORKS SECTION
+     ===================================================================== -->
+<div class="card bg-white p-4 p-md-5 border-0 shadow-sm mb-5 reveal">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-4 text-center text-lg-start">
+            <span class="badge bg-secondary-subtle text-secondary px-3 py-1 rounded-pill fw-semibold small" data-i18n="howBadge">Quick Walkthrough</span>
+            <h3 class="fw-bold mt-2" data-i18n="howTitle">Effortless Care in 3 Simple Steps</h3>
+            <p class="text-muted small" data-i18n="howSubtitle">Designed to remove friction for both patients and clinicians, ensuring rapid consultations and continuous care.</p>
+        </div>
+        <div class="col-lg-8">
+            <div class="row g-4">
+                <div class="col-md-4 reveal reveal-delay-1">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 38px; height: 38px;">1</div>
+                        <div>
+                            <h6 class="fw-bold mb-1" data-i18n="step1Title">Find Specialist</h6>
+                            <p class="text-muted small mb-0" data-i18n="step1Desc">Search by department, fee range, or weekly availability day.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 reveal reveal-delay-2">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 38px; height: 38px;">2</div>
+                        <div>
+                            <h6 class="fw-bold mb-1" data-i18n="step2Title">Reserve Slot</h6>
+                            <p class="text-muted small mb-0" data-i18n="step2Desc">Select an open 30-minute interval on the interactive clinic calendar.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 reveal reveal-delay-3">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 38px; height: 38px;">3</div>
+                        <div>
+                            <h6 class="fw-bold mb-1" data-i18n="step3Title">Consult & Rx</h6>
+                            <p class="text-muted small mb-0" data-i18n="step3Desc">Attend visit, receive medical diagnosis and digital prescription.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================================
+     NATIONWIDE NETWORK & HEALTH INSURANCE BANNER
+     ===================================================================== -->
+<div class="consultation-showcase-card p-4 p-md-5 mb-5 reveal">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+            <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 px-3 py-1 rounded-pill mb-3">
+                <i class="bi bi-shield-check text-warning"></i>
+                <span class="small fw-semibold text-white">شبكة طبية معتمدة على مستوى جمهورية مصر العربية</span>
+            </div>
+            <h2 class="fw-bold mb-3 text-white">رعاية صحية متكاملة تغطي كافة المحافظات وتدعم التأمين الطبي</h2>
+            <p class="text-white-50 mb-4" style="line-height: 1.7;">
+                توفر شبكة ميدي كير نخبة من الاستشاريين والأخصائيين المعتمدين في 27 محافظة، مع خصومات حصرية لحاملي بطاقات التأمين الطبي وكارنيهات النقابات المهنية تصل إلى 35%، مع حفظ السجلات الطبية والروشتات الرقمية المشفرة.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                <a asp-controller="Doctors" asp-action="Index" class="btn btn-primary px-4 py-2">
+                    <i class="bi bi-geo-alt-fill me-1"></i> <span>استكشف أطباء محافظتك</span>
+                </a>
+                <a asp-controller="Doctors" asp-action="Index" class="btn btn-outline-light px-4 py-2">
+                    <i class="bi bi-shield-check me-1"></i> <span>الأطباء المعتمدون للتأمين</span>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="row g-3">
+                <div class="col-6">
+                    <img src="~/images/home/consultation.jpg" asp-append-version="true" alt="Doctor consultation" class="consultation-showcase-img" />
+                </div>
+                <div class="col-6">
+                    <img src="~/images/home/clinic-team.jpg" asp-append-version="true" alt="Clinic Team" class="consultation-showcase-img" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================================
+     DUAL CALL-TO-ACTION SECTION
+     ===================================================================== -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 reveal reveal-delay-1">
+        <div class="card p-4 border-0 h-100 shadow-sm" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded-circle bg-primary text-white p-3 fs-4 d-inline-flex shadow-sm">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark" data-i18n="ctaPatientTitle">Need Medical Care?</h4>
+                    <span class="text-secondary small" data-i18n="ctaPatientSub">Access over 20+ specialized clinic doctors</span>
+                </div>
+            </div>
+            <p class="text-secondary small mb-4" data-i18n="ctaPatientDesc">
+                Explore the doctor directory, view listed fees, and check appointment availability.
+            </p>
+            <div class="mt-auto">
+                <a asp-controller="Doctors" asp-action="Index" class="btn btn-primary">
+                    <i class="bi bi-calendar2-plus"></i> <span data-i18n="ctaPatientBtn">Book Consultation Now</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 reveal reveal-delay-2">
+        <div class="card p-4 border-0 h-100 shadow-sm" style="background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="rounded-circle bg-success text-white p-3 fs-4 d-inline-flex shadow-sm">
+                    <i class="bi bi-hospital-fill"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark" data-i18n="ctaDoctorTitle">Are You a Physician?</h4>
+                    <span class="text-secondary small" data-i18n="ctaDoctorSub">Expand your clinical reach with MediCare</span>
+                </div>
+            </div>
+            <p class="text-secondary small mb-4" data-i18n="ctaDoctorDesc">
+                Configure your weekly shifts, review patient appointments, manage attendance, and issue structured e-prescriptions.
+            </p>
+            <div class="mt-auto">
+                @if (User.Identity?.IsAuthenticated != true)
+                {
+                    <a asp-controller="Account" asp-action="RegisterDoctor" class="btn btn-outline-success bg-white">
+                        <i class="bi bi-clipboard2-plus"></i> <span data-i18n="ctaDoctorRegister">Register Doctor Practice</span>
+                    </a>
+                }
+                else if (User.IsInRole("Doctor"))
+                {
+                    <a asp-controller="Doctor" asp-action="Appointments" class="btn btn-success text-white">
+                        <i class="bi bi-clipboard-pulse"></i> <span data-i18n="ctaDoctorPortal">Open Doctor Portal</span>
+                    </a>
+                }
+                else
+                {
+                    <span class="badge bg-light text-success border p-2" data-i18n="ctaLoggedPatient">Logged in as Patient</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
