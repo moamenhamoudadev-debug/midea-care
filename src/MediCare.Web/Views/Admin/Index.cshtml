@@ -1,0 +1,498 @@
+﻿@model AdminDashboardMetricsDto
+@{
+    ViewData["Title"] = "Admin Management Dashboard";
+    var completionRate = Model.TotalAppointments > 0 ? (Model.CompletedVisitsCount * 100.0 / Model.TotalAppointments) : 0.0;
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Admin Dashboard</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-speedometer2 text-primary"></i> Clinic Operations Dashboard
+        </h2>
+        <p class="text-secondary mb-0">Operational performance, revenue intelligence, and clinical activity overview.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Patients" class="btn btn-outline-primary fw-semibold">
+            <i class="bi bi-people"></i> Patients
+        </a>
+        <a asp-action="Pharmacists" class="btn btn-outline-secondary fw-semibold">
+            <i class="bi bi-capsule"></i> Pharmacists
+        </a>
+        <a asp-action="Specializations" class="btn btn-outline-info fw-semibold">
+            <i class="bi bi-diagram-3"></i> Specializations
+        </a>
+        <a asp-action="Payments" class="btn btn-outline-success fw-semibold">
+            <i class="bi bi-wallet2 me-1"></i> Financial Dashboard
+        </a>
+        <a asp-action="Approvals" class="btn btn-warning position-relative fw-semibold text-dark">
+            <i class="bi bi-person-check"></i> Doctor Approvals
+            @if (Model.PendingDoctorsCount > 0)
+            {
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    @Model.PendingDoctorsCount
+                </span>
+            }
+        </a>
+        <div class="dropdown">
+            <button class="btn btn-outline-success dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Export Data
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><a class="dropdown-item" asp-action="ExportAppointmentsCsv"><i class="bi bi-filetype-csv text-success me-2"></i>Export CSV</a></li>
+                <li><a class="dropdown-item" asp-action="ExportAppointmentsExcel"><i class="bi bi-file-earmark-excel text-success me-2"></i>Export Excel (.xlsx)</a></li>
+                <li><a class="dropdown-item" asp-action="ExportAppointmentsPdf"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Download PDF Report</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Top Metrics Ribbon -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3 reveal reveal-delay-1">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-primary-subtle text-primary p-3 me-3 fs-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-calendar2-range-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">TOTAL VISITS</div>
+                        <h3 class="fw-bold mb-0 text-dark"><span class="count-up" data-target="@Model.TotalAppointments">@Model.TotalAppointments.ToString("N0")</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3 reveal reveal-delay-2">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-success-subtle text-success p-3 me-3 fs-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">ACTIVE DOCTORS</div>
+                        <h3 class="fw-bold mb-0 text-dark"><span class="count-up" data-target="@Model.ActiveDoctorsCount">@Model.ActiveDoctorsCount</span></h3>
+                        @if (Model.PendingDoctorsCount > 0)
+                        {
+                            <span class="badge bg-warning-subtle text-warning-emphasis border mt-1">
+                                @Model.PendingDoctorsCount Pending Review
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3 reveal reveal-delay-3">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-info-subtle text-info p-3 me-3 fs-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">COMPLETED VISITS</div>
+                        <h3 class="fw-bold mb-0 text-dark"><span class="count-up" data-target="@Model.CompletedVisitsCount">@Model.CompletedVisitsCount.ToString("N0")</span></h3>
+                        <span class="text-muted small">@completionRate.ToString("F1")% Completion</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3 reveal reveal-delay-4">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-warning-subtle text-warning p-3 me-3 fs-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">PAID REVENUE</div>
+                        <h3 class="fw-bold mb-0 text-dark"><span class="count-up" data-target="@Model.TotalRevenueCollected">@Model.TotalRevenueCollected.ToString("N0")</span> <span class="fs-6 fw-normal text-muted">EGP</span></h3>
+                        <span class="text-muted small">Pending: @Model.TotalPendingRevenue.ToString("N0") EGP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Platform Monetization & Commission Engine Ribbon -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4 reveal reveal-delay-1">
+        <div class="card shadow-sm border-0 h-100 bg-white" style="border-left: 4px solid #10B981 !important;">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-success-subtle text-success p-3 me-3 fs-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">GROSS BOOKINGS (GMV)</div>
+                        <h4 class="fw-bold mb-0 text-dark"><span class="count-up" data-target="@Model.TotalRevenueCollected">@Model.TotalRevenueCollected.ToString("N0")</span> <span class="fs-6 fw-normal text-muted">EGP</span></h4>
+                        <span class="text-success small fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>100% Processed Transactions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 reveal reveal-delay-2">
+        <div class="card shadow-sm border-0 h-100 bg-white" style="border-left: 4px solid #0066F5 !important;">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-primary-subtle text-primary p-3 me-3 fs-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-piggy-bank-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">PLATFORM COMMISSION (10%)</div>
+                        <h4 class="fw-bold mb-0 text-primary"><span class="count-up" data-target="@Model.PlatformCommissionEarned">@Model.PlatformCommissionEarned.ToString("N0")</span> <span class="fs-6 fw-normal text-muted">EGP</span></h4>
+                        <span class="text-primary small fw-semibold"><i class="bi bi-graph-up-arrow me-1"></i>Net Platform Revenue Retained</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 reveal reveal-delay-3">
+        <div class="card shadow-sm border-0 h-100 bg-white" style="border-left: 4px solid #0D9488 !important;">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-3 bg-info-subtle text-info-emphasis p-3 me-3 fs-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-hospital-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">DOCTOR PAYOUTS DUE (90%)</div>
+                        <h4 class="fw-bold mb-0 text-dark"><span class="count-up" data-target="@Model.NetDoctorPayouts">@Model.NetDoctorPayouts.ToString("N0")</span> <span class="fs-6 fw-normal text-muted">EGP</span></h4>
+                        <span class="text-muted small"><i class="bi bi-clock-history me-1"></i>Eligible for clinic settlement</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4 reveal">
+    <!-- Chart 1: Monthly Appointment Trends -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-bar-chart-line-fill text-primary"></i> Monthly Appointment Volumes by Status
+                </h5>
+                <span class="badge bg-light text-muted border">Past 12 Months</span>
+            </div>
+            <div class="card-body p-3">
+                <canvas id="monthlyStatusChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Specializations Breakdown -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-pie-chart-fill text-primary"></i> Visits by Specialization
+                </h5>
+            </div>
+            <div class="card-body p-3 d-flex align-items-center justify-content-center">
+                @if (Model.SpecializationBreakdown.Any(s => s.AppointmentCount > 0))
+                {
+                    <canvas id="specializationChart" height="260"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted p-4">
+                        <i class="bi bi-pie-chart text-secondary opacity-50 fs-1 d-block mb-2"></i>
+                        <p class="mb-0">No specialization visit data recorded yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart 3: Monthly Financial Revenue Breakdown -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-white">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-graph-up-arrow text-primary"></i> Monthly Consultation Revenue (Collected vs. Pending)
+                </h5>
+                <a asp-action="Reports" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-table"></i> Detailed Reports
+                </a>
+            </div>
+            <div class="card-body p-3">
+                <canvas id="revenueChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 4: Top Doctors & Patient Demographics -->
+<div class="row g-4 mb-4">
+    <!-- Top Doctors -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-award-fill text-warning"></i> Top Performing Clinicians
+                </h5>
+                <span class="badge bg-light text-muted border">Top 5 by Consultations</span>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.TopDoctors.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <caption class="visually-hidden">Top doctors by consultation and revenue</caption>
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Doctor</th>
+                                    <th scope="col">Specialization</th>
+                                    <th scope="col" class="text-center">Consultations</th>
+                                    <th scope="col" class="text-end pe-3">Revenue (Paid)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doc in Model.TopDoctors)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold text-dark">@doc.DoctorName</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary-subtle text-primary border">@doc.SpecializationName</span>
+                                        </td>
+                                        <td class="text-center fw-semibold">
+                                            @doc.TotalAppointments
+                                        </td>
+                                        <td class="text-end pe-3 fw-bold text-success">
+                                            @doc.TotalRevenue.ToString("N0") EGP
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted p-4">
+                        <i class="bi bi-person-x text-secondary opacity-50 fs-1 d-block mb-2"></i>
+                        <p class="mb-0">No doctor consultation activity recorded yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Demographics -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-people-fill text-info"></i> Patient Demographics & Cohorts
+                </h5>
+            </div>
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-around mb-3 text-center">
+                    <div class="border rounded p-2 px-3">
+                        <div class="text-muted small fw-semibold">Total Patients</div>
+                        <h4 class="fw-bold mb-0 text-dark">@Model.Demographics.TotalPatients</h4>
+                    </div>
+                    <div class="border rounded p-2 px-3">
+                        <div class="text-muted small fw-semibold"><i class="bi bi-gender-male text-primary"></i> Male</div>
+                        <h4 class="fw-bold mb-0 text-primary">@Model.Demographics.MaleCount</h4>
+                    </div>
+                    <div class="border rounded p-2 px-3">
+                        <div class="text-muted small fw-semibold"><i class="bi bi-gender-female text-danger"></i> Female</div>
+                        <h4 class="fw-bold mb-0 text-danger">@Model.Demographics.FemaleCount</h4>
+                    </div>
+                </div>
+
+                <h6 class="fw-semibold text-secondary small text-uppercase mb-2">Age Cohort Distribution</h6>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Under 18 yrs</span>
+                        <span>@Model.Demographics.AgeUnder18Count (@(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.AgeUnder18Count * 100 / Model.Demographics.TotalPatients) : 0)%)</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: @(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.AgeUnder18Count * 100 / Model.Demographics.TotalPatients) : 0)%"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>18 - 35 yrs</span>
+                        <span>@Model.Demographics.Age18To35Count (@(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.Age18To35Count * 100 / Model.Demographics.TotalPatients) : 0)%)</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-primary" style="width: @(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.Age18To35Count * 100 / Model.Demographics.TotalPatients) : 0)%"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>36 - 50 yrs</span>
+                        <span>@Model.Demographics.Age36To50Count (@(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.Age36To50Count * 100 / Model.Demographics.TotalPatients) : 0)%)</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-warning" style="width: @(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.Age36To50Count * 100 / Model.Demographics.TotalPatients) : 0)%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Over 50 yrs</span>
+                        <span>@Model.Demographics.AgeOver50Count (@(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.AgeOver50Count * 100 / Model.Demographics.TotalPatients) : 0)%)</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-secondary" style="width: @(Model.Demographics.TotalPatients > 0 ? (Model.Demographics.AgeOver50Count * 100 / Model.Demographics.TotalPatients) : 0)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Data from model
+            const monthlyLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrends.Select(m => m.MonthLabel)));
+            const completedData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrends.Select(m => m.CompletedCount)));
+            const cancelledData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrends.Select(m => m.CancelledCount)));
+            const noShowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrends.Select(m => m.NoShowCount)));
+
+            const paidRevenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrends.Select(m => m.PaidRevenue)));
+            const unpaidRevenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyTrends.Select(m => m.UnpaidRevenue)));
+
+            const specLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SpecializationBreakdown.Select(s => s.SpecializationName)));
+            const specData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SpecializationBreakdown.Select(s => s.AppointmentCount)));
+
+            // 1. Monthly Status Chart (Grouped Bar)
+            const ctxStatus = document.getElementById("monthlyStatusChart");
+            if (ctxStatus) {
+                new Chart(ctxStatus, {
+                    type: "bar",
+                    data: {
+                        labels: monthlyLabels,
+                        datasets: [
+                            {
+                                label: "Completed",
+                                data: completedData,
+                                backgroundColor: "rgba(16, 185, 129, 0.8)",
+                                borderColor: "#10B981",
+                                borderWidth: 1,
+                                borderRadius: 6
+                            },
+                            {
+                                label: "Cancelled",
+                                data: cancelledData,
+                                backgroundColor: "rgba(100, 116, 139, 0.6)",
+                                borderColor: "#64748B",
+                                borderWidth: 1,
+                                borderRadius: 6
+                            },
+                            {
+                                label: "No-Show",
+                                data: noShowData,
+                                backgroundColor: "rgba(239, 68, 68, 0.8)",
+                                borderColor: "#EF4444",
+                                borderWidth: 1,
+                                borderRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Specializations Doughnut Chart
+            const ctxSpec = document.getElementById("specializationChart");
+            if (ctxSpec && specData.some(v => v > 0)) {
+                new Chart(ctxSpec, {
+                    type: "doughnut",
+                    data: {
+                        labels: specLabels,
+                        datasets: [{
+                            data: specData,
+                            backgroundColor: [
+                                "#0066F5", "#10B981", "#F59E0B", "#F97316",
+                                "#8B5CF6", "#EC4899", "#06B6D4", "#64748B"
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: "bottom"
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 3. Revenue Chart (Bar)
+            const ctxRev = document.getElementById("revenueChart");
+            if (ctxRev) {
+                new Chart(ctxRev, {
+                    type: "bar",
+                    data: {
+                        labels: monthlyLabels,
+                        datasets: [
+                            {
+                                label: "Paid Revenue (EGP)",
+                                data: paidRevenueData,
+                                backgroundColor: "rgba(0, 102, 245, 0.8)",
+                                borderColor: "#0066F5",
+                                borderWidth: 1,
+                                borderRadius: 6
+                            },
+                            {
+                                label: "Pending Revenue (EGP)",
+                                data: unpaidRevenueData,
+                                backgroundColor: "rgba(245, 158, 11, 0.8)",
+                                borderColor: "#F59E0B",
+                                borderWidth: 1,
+                                borderRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

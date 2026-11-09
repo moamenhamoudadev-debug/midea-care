@@ -1,0 +1,318 @@
+@model MediCare.Services.DTOs.AppointmentSummaryDto
+@{
+    ViewData["Title"] = $"Telehealth Video Consultation - #{Model.Id}";
+}
+
+<div class="row mb-3 d-print-none">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                @if (User.IsInRole("Doctor"))
+                {
+                    <li class="breadcrumb-item"><a asp-controller="Doctor" asp-action="Appointments">Appointments Queue</a></li>
+                }
+                else
+                {
+                    <li class="breadcrumb-item"><a asp-action="MyAppointments">My Appointments</a></li>
+                }
+                <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">Appointment #@Model.Id</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Telehealth Room</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- =====================================================================
+     🏥 VIRTUAL TELEHEALTH CONSULTATION ROOM
+     ===================================================================== -->
+<div class="card bg-dark text-white border-0 shadow-xl overflow-hidden rounded-4 mb-4 reveal reveal-scale is-visible">
+    <!-- Top Telehealth Status Bar -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3 bg-black bg-opacity-50 border-bottom border-secondary border-opacity-25 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-danger d-inline-block" style="width: 10px; height: 10px; box-shadow: 0 0 10px #EF4444; animation: pulse-ring 2s infinite;"></div>
+            <div>
+                <span class="fw-bold fs-6" data-i18n="telehealthLiveTitle">Consultation room demo</span>
+                <span class="text-white-50 small ms-2">#@Model.Id &bull; @Model.SpecializationName</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill font-monospace small">
+                <i class="bi bi-camera-video me-1"></i> <span data-i18n="telehealthEncrypted">Local camera preview only</span>
+            </div>
+            <div class="font-monospace fs-6 fw-bold text-warning" id="sessionTimer" aria-label="Demo room timer">
+                00:00:00
+            </div>
+        </div>
+    </div>
+
+    <!-- Telehealth Provider Notice -->
+    <div class="px-3 pt-3">
+        <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 text-warning small mb-0 d-flex align-items-center gap-2 py-2">
+            <i class="bi bi-shield-exclamation fs-5 flex-shrink-0"></i>
+            <div>
+                @if (ViewBag.PublicJitsiDemoEnabled == true)
+                {
+                    <strong>Educational Demonstration Environment:</strong>
+                    <span>This telehealth session connects to public WebRTC / Jitsi Meet infrastructure for academic evaluation. It does not enforce third-party closed-network participant authentication. Use synthetic data only.</span>
+                }
+                else
+                {
+                    <strong>Local Preview Only:</strong>
+                    <span>Public Jitsi rooms are disabled outside Development. This page does not provide a remote video consultation.</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Video Stage + Clinical Sidebar -->
+    <div class="row g-0">
+        <!-- Video Conference Stage -->
+        <div class="col-lg-8 position-relative bg-black d-flex flex-column justify-content-between p-3" style="min-height: 520px;">
+            <!-- Remote Participant Main Display / Jitsi Video Stage -->
+            <div class="position-relative w-100 h-100 flex-grow-1 rounded-3 overflow-hidden bg-dark d-flex align-items-center justify-content-center" style="min-height: 440px;" id="remoteVideoContainer">
+                <div class="text-center p-4" id="remoteParticipantPlaceholder">
+                    <div class="doctor-avatar-circle mx-auto mb-3 shadow-lg" style="width: 100px; height: 100px; font-size: 2.5rem; background: linear-gradient(135deg, #0066F5 0%, #1D4ED8 100%); color: white; border: 3px solid rgba(255, 255, 255, 0.2);">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-white mb-1">
+                        @(User.IsInRole("Doctor") ? Model.PatientName : $"Dr. {Model.DoctorName}")
+                    </h4>
+                    <p class="text-white-50 small mb-3">
+                        @(ViewBag.PublicJitsiDemoEnabled == true ? "Connect to the educational two-device video demo or enable local camera preview." : "Enable the local camera preview. Remote video is disabled in this environment.")
+                    </p>
+                    @if (ViewBag.PublicJitsiDemoEnabled == true)
+                    {
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <button type="button" class="btn btn-success rounded-pill px-3 py-2 fw-semibold" id="joinLiveCallBtn">
+                            <i class="bi bi-camera-video me-1"></i> <span>Join Live Video Room</span>
+                        </button>
+                        <a href="https://meet.jit.si/@Model.TeleconsultationRoomName" target="_blank" rel="noopener noreferrer" class="btn btn-outline-info rounded-pill px-3 py-2 fw-semibold">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> <span>Open in Tab/App</span>
+                        </a>
+                    </div>
+                    }
+                </div>
+
+                <!-- Jitsi Embedded Conference Frame -->
+                @if (ViewBag.PublicJitsiDemoEnabled == true)
+                {
+                <div id="jitsiContainer" class="w-100 h-100 position-absolute top-0 start-0 d-none" style="z-index: 10;">
+                    <iframe id="jitsiFrame" src="" class="w-100 h-100 border-0" allow="camera; microphone; display-capture; autoplay; clipboard-write" allowfullscreen></iframe>
+                </div>
+                }
+
+                <!-- Simulated Remote Video Element (if stream available) -->
+                <video id="remoteVideo" class="w-100 h-100 position-absolute top-0 start-0 d-none" style="object-fit: cover;" autoplay playsinline></video>
+
+                <!-- Local Self-View PiP (Picture in Picture) -->
+                <div class="position-absolute bottom-0 end-0 m-3 rounded-3 overflow-hidden shadow-lg border border-secondary border-opacity-50 bg-black" style="width: 170px; height: 120px; z-index: 20;">
+                    <video id="localVideo" class="w-100 h-100" style="object-fit: cover; transform: scaleX(-1);" autoplay playsinline muted></video>
+                    <div class="position-absolute bottom-0 start-0 bg-dark bg-opacity-75 text-white px-2 py-0 small" style="font-size: 0.65rem;">
+                        <span data-i18n="telehealthYou">You</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In-Call Floating Control Bar -->
+            <div class="d-flex justify-content-center align-items-center gap-2 pt-3 flex-wrap">
+                <button type="button" class="btn btn-outline-light rounded-pill px-3 py-2" id="startLocalPreviewBtn" data-i18n="telehealthStartPreview">Local camera preview</button>
+                <button type="button" class="btn btn-outline-light rounded-circle p-3 call-control-btn" id="toggleCamBtn" title="Toggle Camera" data-i18n-title="telehealthCamToggle" aria-label="Toggle camera" aria-pressed="true">
+                    <i class="bi bi-camera-video-fill fs-5" id="camIcon"></i>
+                </button>
+                <button type="button" class="btn btn-outline-light rounded-circle p-3 call-control-btn" id="toggleScreenBtn" title="Preview screen share locally" data-i18n-title="telehealthScreenToggle" aria-label="Preview screen share locally">
+                    <i class="bi bi-display fs-5"></i>
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-danger rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 shadow" id="endCallBtn">
+                    <i class="bi bi-arrow-left fs-5"></i> <span data-i18n="telehealthReturnDetails">Back to appointment</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Clinical Encounter Side Panel -->
+        <div class="col-lg-4 bg-dark bg-opacity-75 p-4 border-start border-secondary border-opacity-25 d-flex flex-column justify-content-between">
+            <div>
+                <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2 border-bottom border-secondary border-opacity-25 pb-2">
+                    <i class="bi bi-clipboard2-pulse-fill text-primary"></i> <span data-i18n="telehealthEncounterCard">Clinical Encounter</span>
+                </h5>
+
+                <!-- Patient & Doctor Card -->
+                <div class="p-3 bg-black bg-opacity-40 rounded-3 border border-secondary border-opacity-25 mb-3">
+                    <div class="mb-2">
+                        <span class="text-white-50 small d-block" data-i18n="telehealthPhysicianLabel">Attending Physician:</span>
+                        <strong class="text-white">Dr. @Model.DoctorName</strong>
+                        <span class="badge badge-specialty ms-1">@Model.SpecializationName</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-white-50 small d-block" data-i18n="telehealthPatientLabel">Patient:</span>
+                        <strong class="text-white">@Model.PatientName</strong>
+                        @if (!string.IsNullOrEmpty(Model.PatientPhoneNumber))
+                        {
+                            <span class="text-white-50 small d-block"><i class="bi bi-telephone me-1"></i> @Model.PatientPhoneNumber</span>
+                        }
+                    </div>
+                    <div>
+                        <span class="text-white-50 small d-block" data-i18n="telehealthScheduleLabel">Consultation Time:</span>
+                        <span class="text-info font-monospace small">@Model.FormattedDate &bull; @Model.FormattedTime</span>
+                    </div>
+                </div>
+
+                <!-- Patient Symptoms Note -->
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="p-3 bg-black bg-opacity-40 rounded-3 border border-secondary border-opacity-25 mb-3">
+                        <span class="text-white-50 small d-block mb-1" data-i18n="telehealthSymptomsLabel"><i class="bi bi-chat-text text-warning me-1"></i> Reported Symptoms:</span>
+                        <p class="text-white small mb-0">@Model.Notes</p>
+                    </div>
+                }
+
+                <!-- Real-time Clinical Observations Scratchpad (In-Memory Only) -->
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-semibold" data-i18n="telehealthNotesLabel">
+                        <i class="bi bi-journal-medical text-primary me-1"></i> Session Clinical Notes (In-Memory Only):
+                    </label>
+                    <textarea class="form-control form-control-sm bg-black text-white border-secondary border-opacity-50" id="sessionNotesInput" rows="5" placeholder="Temporary scratchpad during active call session..." data-i18n-ph="telehealthNotesPlaceholder"></textarea>
+                    <div class="form-text text-white-50 small" style="font-size: 0.7rem;" data-i18n="telehealthAutoSave">Temporary in-memory notes only. Not stored in browser storage or medical record. Formal clinical notes must be documented via the Encounter Form.</div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 pt-3 border-top border-secondary border-opacity-25">
+                @if (User.IsInRole("Doctor"))
+                {
+                    <a asp-controller="Doctor" asp-action="CompleteAppointment" asp-route-id="@Model.Id" class="btn btn-success btn-sm fw-bold">
+                        <i class="bi bi-check2-circle me-1"></i> <span data-i18n="telehealthFinalizeRx">Finalize & Write Prescription</span>
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> <span data-i18n="telehealthReturnDetails">Return to Details</span>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            // 1. Session Timer
+            const timerEl = document.getElementById('sessionTimer');
+            let seconds = 0;
+            setInterval(() => {
+                seconds++;
+                const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(seconds % 60).padStart(2, '0');
+                if (timerEl) timerEl.textContent = `${hrs}:${mins}:${secs}`;
+            }, 1000);
+
+            // 2. WebRTC Local Media Stream Activation
+            const localVideo = document.getElementById('localVideo');
+            const startPreviewBtn = document.getElementById('startLocalPreviewBtn');
+            const toggleCamBtn = document.getElementById('toggleCamBtn');
+            const camIcon = document.getElementById('camIcon');
+            let localStream = null;
+            let isVideoStopped = false;
+
+            async function initMedia() {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: { ideal: 640 }, height: { ideal: 480 } },
+                        audio: false
+                    });
+                    if (localVideo) {
+                        localVideo.srcObject = localStream;
+                    }
+                } catch (err) {
+                    console.warn("Camera or microphone permission not granted or device not present:", err);
+                    if (localVideo && localVideo.parentElement) {
+                        localVideo.parentElement.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-white-50 small text-center p-1"><i class="bi bi-camera-video-off fs-4"></i></div>';
+                    }
+                }
+            }
+
+            // Jitsi Live Two-Device Conference Activation
+            const joinLiveCallBtn = document.getElementById('joinLiveCallBtn');
+            const jitsiContainer = document.getElementById('jitsiContainer');
+            const jitsiFrame = document.getElementById('jitsiFrame');
+            const placeholder = document.getElementById('remoteParticipantPlaceholder');
+
+            if (joinLiveCallBtn && jitsiContainer && jitsiFrame) {
+                joinLiveCallBtn.addEventListener('click', () => {
+                    const roomName = encodeURIComponent('@Model.TeleconsultationRoomName');
+                    const displayName = encodeURIComponent('@(User.IsInRole("Doctor") ? "Doctor" : "Patient")');
+                    const jitsiUrl = `https://meet.jit.si/${roomName}#userInfo.displayName="${displayName}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+
+                    jitsiFrame.src = jitsiUrl;
+                    jitsiContainer.classList.remove('d-none');
+                    if (placeholder) placeholder.classList.add('d-none');
+                    joinLiveCallBtn.classList.replace('btn-success', 'btn-secondary');
+                    joinLiveCallBtn.innerHTML = '<i class="bi bi-broadcast me-1"></i> <span>Connected to Call</span>';
+                    joinLiveCallBtn.disabled = true;
+                });
+            }
+
+            if (startPreviewBtn) {
+                startPreviewBtn.addEventListener('click', async () => {
+                    await initMedia();
+                    if (localStream) {
+                        startPreviewBtn.disabled = true;
+                        startPreviewBtn.textContent = 'Local preview enabled';
+                    }
+                });
+            }
+
+            // 4. Video Pause Toggle
+            if (toggleCamBtn) {
+                toggleCamBtn.addEventListener('click', () => {
+                    isVideoStopped = !isVideoStopped;
+                    toggleCamBtn.setAttribute('aria-pressed', String(!isVideoStopped));
+                    if (localStream) {
+                        localStream.getVideoTracks().forEach(track => track.enabled = !isVideoStopped);
+                    }
+                    if (isVideoStopped) {
+                        camIcon.className = 'bi bi-camera-video-off-fill text-danger fs-5';
+                        toggleCamBtn.classList.replace('btn-outline-light', 'btn-danger');
+                    } else {
+                        camIcon.className = 'bi bi-camera-video-fill fs-5';
+                        toggleCamBtn.classList.replace('btn-danger', 'btn-outline-light');
+                    }
+                });
+            }
+
+            // 5. Screen Share
+            const toggleScreenBtn = document.getElementById('toggleScreenBtn');
+            if (toggleScreenBtn) {
+                toggleScreenBtn.addEventListener('click', async () => {
+                    try {
+                        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                        if (localVideo) localVideo.srcObject = screenStream;
+                        screenStream.getVideoTracks()[0].onended = () => {
+                            if (localVideo && localStream) localVideo.srcObject = localStream;
+                        };
+                    } catch (err) {
+                        console.log("Screen share cancelled or not supported");
+                    }
+                });
+            }
+
+            // 6. Clinical Scratchpad (In-Memory DOM Session Only - No LocalStorage Persistence)
+            const notesInput = document.getElementById('sessionNotesInput');
+            if (notesInput) {
+                // Purge all legacy drafts from the old per-appointment localStorage scheme.
+                try {
+                    const legacyPrefix = 'telehealth_notes_';
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith(legacyPrefix)) localStorage.removeItem(key);
+                    }
+                } catch (e) {
+                    /* ignore storage errors */
+                }
+                notesInput.value = '';
+            }
+        })();
+    </script>
+}

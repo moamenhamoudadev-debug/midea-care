@@ -1,0 +1,231 @@
+@model PrescriptionDetailsDto
+@inject MediCare.Web.Services.IQrCodeService QrCodeService
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = $"Prescription #{Model.Id} - Dr. {Model.DoctorName}";
+    var configuredBaseUrl = Configuration["PublicBaseUrl"] ?? Configuration["AppUrl"] ?? Environment.GetEnvironmentVariable("PUBLIC_BASE_URL");
+    var baseUrl = !string.IsNullOrWhiteSpace(configuredBaseUrl)
+        ? configuredBaseUrl.TrimEnd('/')
+        : $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var verificationUrl = $"{baseUrl}/Prescriptions/Verify?token={Model.VerificationToken}";
+    var qrDataUri = QrCodeService.GeneratePngDataUri(verificationUrl, pixelsPerModule: 3);
+}
+
+@section Scripts {
+    <style>
+        @@media print {
+            header, nav, footer, .no-print, .btn, .breadcrumb, #notificationDropdownBtn, .mc-footer, .mc-header {
+                display: none !important;
+            }
+            body {
+                background: #fff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .prescription-card {
+                border: 2px solid #000 !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 100% !important;
+                page-break-inside: avoid;
+            }
+        }
+
+        .prescription-card {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+        }
+
+        .rx-symbol {
+            font-family: Georgia, serif;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #0066F5;
+            line-height: 1;
+        }
+
+        .stamp-box {
+            border: 2px dashed #94A3B8;
+            height: 90px;
+            width: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748B;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+    </style>
+}
+
+<div class="container py-3">
+    <!-- Non-printable Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary fw-bold" onclick="window.print()">
+                <i class="bi bi-printer-fill"></i> Print Prescription
+            </button>
+        </div>
+    </div>
+
+    <!-- Demonstration prescription record -->
+    <div class="prescription-card shadow-sm p-4 p-md-5">
+        <!-- Project demonstration header -->
+        <div class="border-bottom pb-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="brand-icon" style="width: 32px; height: 32px; font-size: 1rem;">
+                            <i class="bi bi-heart-pulse-fill"></i>
+                        </div>
+                        <h2 class="fw-bold text-primary mb-0">MediCare</h2>
+                    </div>
+                    <h6 class="text-uppercase fw-semibold text-secondary tracking-wide mb-2" style="letter-spacing: 0.05em; font-size: 0.8rem;">Graduation Project Demonstration</h6>
+                    <p class="text-muted small mb-0">
+                        <span class="badge bg-secondary-subtle text-secondary border">Academic Project Simulation</span><br />
+                        <span class="text-muted" style="font-size: 0.75rem;">Educational Demonstration &bull; Non-Clinical Mock Facility</span>
+                    </p>
+                </div>
+                <div class="text-end d-flex flex-column align-items-end">
+                    <span class="badge bg-light text-dark border px-3 py-2 fs-6 mb-2">Demo prescription #@Model.Id</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="text-end text-muted small">
+                            <strong>Date:</strong> @Model.PrescriptionDate.ToString("yyyy-MM-dd")<br />
+                            <strong>Valid Until:</strong> @Model.ValidUntil.ToString("yyyy-MM-dd")<br />
+                            <strong>Time:</strong> @Model.PrescriptionDate.ToString("hh:mm tt")
+                            @if (Model.IsExpired)
+                            {
+                                <br /><span class="badge bg-danger text-white mt-1">Expired</span>
+                            }
+                        </div>
+                        <a href="@Url.Action("Verify", "Prescriptions", new { token = Model.VerificationToken })" target="_blank" title="Scan or click to verify Rx">
+                            <img src="@qrDataUri" 
+                                 alt="Rx Verification QR" 
+                                 class="rounded border bg-white p-1 shadow-sm" 
+                                 style="width: 70px; height: 70px;" />
+                        </a>
+                    </div>
+                    <span class="text-muted text-uppercase fw-semibold mt-1" style="font-size: 0.65rem; letter-spacing: 0.05em;">Digital Rx QR Verification</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor & Patient Metadata Row -->
+        <div class="bg-light p-3 rounded-3 mb-4 border">
+            <div class="row g-3">
+                <div class="col-sm-6 border-end-sm">
+                    <h6 class="text-secondary small fw-bold text-uppercase mb-2 d-flex align-items-center gap-1">
+                        <i class="bi bi-hospital text-primary"></i> Attending Physician
+                    </h6>
+                    <div class="fw-bold text-dark fs-5">Dr. @Model.DoctorName</div>
+                    <div class="text-primary small fw-semibold">@Model.Specialization</div>
+                    @if (!string.IsNullOrEmpty(Model.DoctorLicense))
+                    {
+                        <div class="text-muted small">License: #@Model.DoctorLicense</div>
+                    }
+                </div>
+                <div class="col-sm-6 ps-sm-4">
+                    <h6 class="text-secondary small fw-bold text-uppercase mb-2 d-flex align-items-center gap-1">
+                        <i class="bi bi-person text-primary"></i> Patient Details
+                    </h6>
+                    <div class="fw-bold text-dark fs-5">@Model.PatientName</div>
+                    <div class="text-muted small">
+                        <span><strong>Age:</strong> @(Model.PatientAge.HasValue ? $"{Model.PatientAge.Value} yrs" : "N/A")</span>
+                        <span class="ms-3"><strong>Gender:</strong> @(Model.PatientGender ?? "N/A")</span>
+                    </div>
+                    <div class="text-muted small">
+                        <strong>Appointment:</strong> #@Model.AppointmentId
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classical Rx Header -->
+        <div class="d-flex align-items-center mb-3">
+            <span class="rx-symbol me-3">&#8478;</span>
+            <span class="fw-bold text-dark fs-5 border-bottom flex-grow-1 pb-1">Prescribed Medical Treatment</span>
+        </div>
+
+        <!-- Medications Table -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle mb-0">
+                <caption class="visually-hidden">Prescribed medications</caption>
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" style="width: 5%;">#</th>
+                        <th scope="col" style="width: 35%;">Medication & Strength</th>
+                        <th scope="col" style="width: 20%;">Dosage</th>
+                        <th scope="col" style="width: 20%;">Frequency</th>
+                        <th scope="col" style="width: 20%;">Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items != null && Model.Items.Any())
+                    {
+                        for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            var item = Model.Items[i];
+                            <tr>
+                                <td class="fw-bold text-muted">@(i + 1)</td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.MedicationName</div>
+                                    @if (!string.IsNullOrEmpty(item.Instructions))
+                                    {
+                                        <div class="text-muted small fst-italic">&#8627; @item.Instructions</div>
+                                    }
+                                </td>
+                                <td>@item.Dosage</td>
+                                <td>@item.Frequency</td>
+                                <td>@item.DurationDays days</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No medications recorded.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="p-3 bg-light rounded-3 border mb-4">
+                <strong class="text-secondary small d-block mb-1">Prescription Notes (Demo Record):</strong>
+                <span class="text-dark small">@Model.Notes</span>
+            </div>
+        }
+
+        <!-- Footer / Signature & Stamp Block -->
+        <div class="pt-4 mt-5 border-top">
+            <div class="row align-items-end g-4">
+                <div class="col-4 text-center">
+                    <div class="stamp-box mx-auto">
+                        Demo output — no clinic stamp
+                    </div>
+                </div>
+                <div class="col-4 text-center">
+                    <p class="text-danger small fw-bold mb-1 fst-italic">NOT VALID FOR CLINICAL DISPENSING</p>
+                    <p class="text-muted small mb-0">Academic graduation project demo only; not a genuine medical prescription.</p>
+                </div>
+                <div class="col-4 text-center">
+                    <div class="border-bottom border-dark pb-4 mx-auto" style="max-width: 180px;"></div>
+                    <span class="small fw-bold text-dark d-block mt-2">Dr. @Model.DoctorName</span>
+                    <span class="small text-muted">Physician's Signature</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

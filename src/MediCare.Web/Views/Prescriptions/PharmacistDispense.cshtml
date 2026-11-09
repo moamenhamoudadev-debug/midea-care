@@ -1,0 +1,181 @@
+@model MediCare.Services.DTOs.PharmacistPrescriptionReviewDto
+@{
+    ViewData["Title"] = "مسار صرف تجريبي للصيدلي";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 border-bottom pb-3">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-capsule-pill text-primary"></i> بوابة صرف الروشتات للصيادلة
+                    </h4>
+                    <p class="text-muted small mb-0">مسار تجريبي لتسجيل صرف وصفة داخل المشروع، وليس اعتماداً صيدلياً فعلياً.</p>
+                </div>
+                <div>
+                    <a asp-action="Verify" asp-route-token="@Model.VerificationToken" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        <i class="bi bi-eye"></i> معاينة صفحة التحقق العامة
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <!-- Status Banner -->
+                <div class="p-4 @(Model.IsExpired ? "bg-danger bg-opacity-10 border-bottom border-danger" : (Model.IsDispensed ? "bg-info bg-opacity-10 border-bottom border-info" : "bg-success bg-opacity-10 border-bottom border-success"))">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            @if (Model.IsExpired)
+                            {
+                                <span class="badge bg-danger px-3 py-2 fs-6 mb-1">
+                                    <i class="bi bi-x-circle-fill me-1"></i> روشتة منتهية الصلاحية (Expired Prescription)
+                                </span>
+                                <div class="small text-danger fw-semibold">انتهت صلاحية هذه الروشتة بتاريخ @Model.ValidUntil?.ToString("yyyy-MM-dd") ولا يمكن صرفها.</div>
+                            }
+                            else if (Model.IsDispensed)
+                            {
+                                <span class="badge bg-info text-dark px-3 py-2 fs-6 mb-1">
+                                    <i class="bi bi-bag-check-fill me-1"></i> تم صرف هذه الروشتة مسبقاً (Already Dispensed)
+                                </span>
+                                @if (Model.DispensedAt.HasValue)
+                                {
+                                    <div class="small text-muted">صُرفت بتاريخ: @Model.DispensedAt.Value.ToString("yyyy-MM-dd hh:mm tt") @(!string.IsNullOrEmpty(Model.DispensedByName) ? $"بواسطة: {Model.DispensedByName}" : "")</div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.PharmacyNotes))
+                                {
+                                    <div class="small text-dark mt-1">ملاحظات الصيدلية: @Model.PharmacyNotes</div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-success px-3 py-2 fs-6 mb-1">
+                                    <i class="bi bi-patch-check-fill me-1"></i> روشتة صالحة وغير مصروفة بعد
+                                </span>
+                                <div class="small text-success fw-semibold">جاهزة للصرف والتوثيق (صالحة حتى @Model.ValidUntil?.ToString("yyyy-MM-dd"))</div>
+                            }
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-dark px-3 py-2 font-monospace">Rx #@Model.PrescriptionId</span>
+                            <div class="small text-muted mt-1">@Model.PrescriptionDate.ToString("yyyy-MM-dd")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <!-- Physician & Patient Metadata -->
+                    <div class="row g-3 mb-4 pb-3 border-bottom">
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">الطبيب المعالج:</span>
+                            <strong class="text-dark">د. @Model.DoctorName</strong>
+                            <div class="text-primary small">@Model.Specialization</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">اسم المريض (مموه):</span>
+                            <strong class="text-dark font-monospace">@Model.MaskedPatientName</strong>
+                        </div>
+                    </div>
+
+                    <!-- Medication List (Essential Dispensing Information Only) -->
+                    <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-card-checklist text-primary"></i> قائمة الأدوية الموصوفة والجرعات:
+                    </h6>
+
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle mb-0">
+                            <caption class="visually-hidden">Prescription items for dispensing</caption>
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" style="width: 5%;">#</th>
+                                    <th scope="col">الدواء والمادة الفعالة</th>
+                                    <th scope="col">الجرعة (Dosage)</th>
+                                    <th scope="col">التكرار (Frequency)</th>
+                                    <th scope="col">المدة (Duration)</th>
+                                    <th scope="col">تعليمات الاستخدام</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Items != null && Model.Items.Any())
+                                {
+                                    int idx = 1;
+                                    foreach (var item in Model.Items)
+                                    {
+                                        <tr>
+                                            <td class="text-center font-monospace">@(idx++)</td>
+                                            <td class="fw-bold text-primary">@item.MedicationName</td>
+                                            <td>@item.Dosage</td>
+                                            <td>@item.Frequency</td>
+                                            <td>@item.DurationDays يوم</td>
+                                            <td class="small text-muted">@(item.Instructions ?? "حسب إرشادات الطبيب")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-3">لا توجد بنود أدوية مسجلة في هذه الروشتة.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Dispensing Action Form -->
+                    @if (Model.IsExpired)
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-0" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                            <div>انتهت صلاحية صرف هذه الروشتة نظامياً في @Model.ValidUntil?.ToString("yyyy-MM-dd") ولا يسمح النظام بصرفها. يرجى توجيه المريض لمراجعة الطبيب المعالج لإعادة التقييم.</div>
+                        </div>
+                    }
+                    else if (!Model.IsDispensed)
+                    {
+                        <div class="p-4 rounded-3 bg-light border">
+                            <h6 class="fw-bold text-dark mb-2">توثيق صرف الروشتة في الصيدلية</h6>
+                            <p class="text-muted small mb-3">سيتم تسجيل هويتك ووقت وتاريخ الصرف بدقة، ولن يتمكن أي شخص من صرف هذه الروشتة مرة أخرى.</p>
+                            
+                            <form asp-action="Dispense" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="token" value="@Model.VerificationToken" />
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">اسم الصيدلية أو ملاحظات الصرف (اختياري):</label>
+                                    <input type="text" name="pharmacyNotes" class="form-control" placeholder="مثال: صيدلية المركز الرئيسي - تم صرف كافة البدائل" maxlength="200" />
+                                </div>
+
+                                <button type="submit" class="btn btn-success px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                                    <i class="bi bi-check2-circle me-1"></i> تأكيد صرف الروشتة رسمياً
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary d-flex align-items-center gap-2 mb-0" role="alert">
+                            <i class="bi bi-info-circle-fill text-secondary fs-4"></i>
+                            <div>هذه الروشتة تم صرفها وتوثيقها بالفعل في النظام، ولا يمكن إعادة صرفها.</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

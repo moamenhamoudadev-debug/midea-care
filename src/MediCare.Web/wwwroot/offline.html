@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>غير متصل بالإنترنت - MediCare</title>
+    <style>
+        :root {
+            --primary: #0066F5;
+            --primary-dark: #004dc7;
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0F172A;
+                --card-bg: #1E293B;
+                --text-main: #F1F5F9;
+                --text-muted: #94A3B8;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', system-ui, -apple-system, sans-serif; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .offline-card {
+            background: var(--card-bg);
+            border-radius: 1.25rem;
+            padding: 2.5rem 2rem;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 102, 245, 0.1);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            font-size: 2.5rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .emergency-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 0.75rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1.75rem;
+            font-size: 0.88rem;
+            color: #DC2626;
+            font-weight: 600;
+        }
+        .btn-retry {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-block;
+            text-decoration: none;
+            width: 100%;
+        }
+        .btn-retry:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-card">
+        <div class="icon-circle">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+        </div>
+        <h1>أنت غير متصل بالإنترنت حالياً</h1>
+        <p>
+            يبدو أن هناك انقطاعاً في اتصال الشبكة. البيانات المخزنة مؤقتاً في MediCare متاحة للتصفح، وسيتم استئناف المزامنة والخدمات فور عودة الاتصال.
+        </p>
+
+        <div class="emergency-box">
+            🚨 في الحالات الطارئة والحرجة، اتصل فوراً بالإسعاف المصرية على الرقم <strong>123</strong>
+        </div>
+
+        <button class="btn-retry" onclick="window.location.reload()">
+            إعادة المحاولة / Retry Connection
+        </button>
+    </div>
+</body>
+</html>

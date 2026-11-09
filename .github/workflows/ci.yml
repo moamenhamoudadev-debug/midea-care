@@ -1,0 +1,52 @@
+name: CI Build & Test
+
+on:
+  push:
+    branches: [ develop, main, 'feature/**', 'feature/*', 'maintenance/**', 'maintenance/*' ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  build-and-test:
+    name: Build & Run Automated Tests (.NET 8)
+    runs-on: ubuntu-24.04
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'YourStrong@Passw0rd!'
+        ports:
+          - 1433:1433
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore NuGet Packages
+        run: dotnet restore MediCare.sln
+
+      - name: Build Solution
+        run: dotnet build MediCare.sln --no-restore --configuration Release
+
+      - name: Run Unit Tests
+        run: dotnet test MediCare.sln --no-build --configuration Release --filter "Category!=Integration" --verbosity normal
+
+      - name: Wait for SQL Server Service Container
+        run: |
+          echo "Waiting for SQL Server service container to accept connections..."
+          for i in {1..30}; do
+            nc -z 127.0.0.1 1433 && echo "SQL Server is listening!" && break
+            echo "Sleeping 2s..."
+            sleep 2
+          done
+
+      - name: Run SQL Server Integration Tests
+        env:
+          MEDICARE_TEST_CONNECTION_STRING: "Server=127.0.0.1,1433;Database=MediCare_IntegrationTests_CI_${{ github.run_id }}_${{ github.run_attempt }};User Id=sa;Password=YourStrong@Passw0rd!;TrustServerCertificate=True;Connect Timeout=30;"
+        run: dotnet test MediCare.sln --no-build --configuration Release --filter "Category=Integration" --verbosity normal

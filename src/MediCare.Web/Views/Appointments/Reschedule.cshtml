@@ -1,0 +1,121 @@
+@model MediCare.Web.ViewModels.RescheduleAppointmentViewModel
+@{
+    ViewData["Title"] = "Reschedule Appointment";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Appointments" asp-action="MyAppointments">My Appointments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Reschedule #@Model.AppointmentId</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row justify-content-center py-2">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card shadow-sm border-0 rounded-4 reveal reveal-scale is-visible">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="brand-icon" style="width: 48px; height: 48px; font-size: 1.4rem;">
+                        <i class="bi bi-calendar-range"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold text-dark">Reschedule Appointment</h4>
+                        <p class="text-muted small mb-0">Select a new date and time slot for your consultation with Dr. @Model.DoctorName.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                        <div>@TempData["ErrorMessage"]</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <!-- Current Appointment Summary Banner -->
+                <div class="alert alert-info border-info-subtle bg-info-subtle text-dark mb-4 rounded-3">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                        <span class="fw-bold">Current Booking Details</span>
+                    </div>
+                    <div class="row g-2 small">
+                        <div class="col-sm-6">
+                            <strong>Physician:</strong> Dr. @Model.DoctorName (@Model.SpecializationName)
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Current Slot:</strong> @Model.CurrentDate.ToString("dddd, MMMM dd, yyyy") at @Model.FormattedCurrentTime
+                        </div>
+                    </div>
+                </div>
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
+
+                <form asp-action="RescheduleAppointment" method="post" id="rescheduleForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="AppointmentId" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="NewAppointmentDate" class="form-label small fw-semibold">New Appointment Date <span class="text-danger">*</span></label>
+                            <input asp-for="NewAppointmentDate" type="date" class="form-control"
+                                   min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                                   max="@DateTime.Today.AddDays(30).ToString("yyyy-MM-dd")" required />
+                            <span asp-validation-for="NewAppointmentDate" class="text-danger small"></span>
+                            <small class="text-muted d-block">Booking window: up to 30 days in advance.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NewStartTime" class="form-label small fw-semibold">New Start Time <span class="text-danger">*</span></label>
+                            <input asp-for="NewStartTime" type="time" class="form-control" step="1800" required />
+                            <span asp-validation-for="NewStartTime" class="text-danger small"></span>
+                            <small class="text-muted d-block">Standard consultation slot duration is 30 minutes.</small>
+                        </div>
+                    </div>
+
+                    @if (Model.DoctorDetails?.WorkingHours != null && Model.DoctorDetails.WorkingHours.Any())
+                    {
+                        <div class="card bg-light border-0 mb-3 p-3">
+                            <h6 class="fw-bold small text-muted text-uppercase mb-2">
+                                <i class="bi bi-clock-history me-1"></i> Doctor Clinic Schedule
+                            </h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var wh in Model.DoctorDetails.WorkingHours)
+                                {
+                                    <span class="badge bg-white text-dark border px-2 py-1 small">
+                                        <strong>@wh.DayName:</strong> @wh.FormattedTime
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-4">
+                        <label asp-for="Reason" class="form-label small fw-semibold">Reason for Rescheduling (Optional)</label>
+                        <textarea asp-for="Reason" class="form-control" rows="2" maxlength="250" placeholder="e.g. Work schedule conflict, travel, urgent personal matter..."></textarea>
+                        <span asp-validation-for="Reason" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="MyAppointments" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-warning px-4 fw-semibold text-dark">
+                            <i class="bi bi-calendar-check me-1"></i> Confirm Rescheduling
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

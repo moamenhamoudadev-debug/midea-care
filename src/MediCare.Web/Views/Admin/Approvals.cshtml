@@ -1,0 +1,136 @@
+@model List<DoctorApprovalSummaryDto>
+@{
+    ViewData["Title"] = "Doctor Registration Approvals";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index">Admin Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Doctor Approvals</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 reveal">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-person-check-fill text-primary"></i> Doctor Registration Approvals
+        </h2>
+        <p class="text-secondary mb-0">Verify physician licenses and approve doctor accounts before they appear in public listings.</p>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card bg-white shadow-sm border-0 reveal">
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Doctors pending approval</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Doctor</th>
+                            <th scope="col">Specialization</th>
+                            <th scope="col">License #</th>
+                            <th scope="col">Contact</th>
+                            <th scope="col">Fee</th>
+                            <th scope="col">Registered</th>
+                            <th scope="col" class="text-end">Verification Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var doc in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">Dr. @doc.FullName</div>
+                                    <span class="text-muted small">ID #@doc.Id</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-specialty">@doc.SpecializationName</span>
+                                </td>
+                                <td>
+                                    <code class="text-dark bg-light px-2 py-1 rounded border">@doc.LicenseNumber</code>
+                                </td>
+                                <td>
+                                    <div><a href="mailto:@doc.Email" class="text-decoration-none small text-dark"><i class="bi bi-envelope me-1 text-muted"></i>@doc.Email</a></div>
+                                    @if (!string.IsNullOrEmpty(doc.PhoneNumber))
+                                    {
+                                        <div class="text-muted small"><i class="bi bi-telephone me-1"></i>@doc.PhoneNumber</div>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark">@doc.ConsultationFee.ToString("N0") EGP</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small"><i class="bi bi-clock me-1"></i>@doc.FormattedRegisteredAt</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <!-- Approve Action -->
+                                        <form asp-action="ApproveDoctor" asp-route-id="@doc.Id" method="post" class="d-inline" onsubmit="return confirm('Approve Dr. @doc.FullName? They will be granted full access to patient bookings.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success px-3">
+                                                <i class="bi bi-check-lg"></i> Approve
+                                            </button>
+                                        </form>
+
+                                        <!-- Reject Trigger Modal / Inline -->
+                                        <button type="button" class="btn btn-sm btn-outline-danger px-3" data-bs-toggle="modal" data-bs-target="#rejectModal-@doc.Id">
+                                            <i class="bi bi-x-lg"></i> Decline
+                                        </button>
+                                    </div>
+
+                                    <!-- Reject Reason Modal -->
+                                    <div class="modal fade" id="rejectModal-@doc.Id" tabindex="-1" aria-labelledby="rejectModalLabel-@doc.Id" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content text-start border-0 shadow-lg rounded-4">
+                                                <form asp-action="RejectDoctor" asp-route-id="@doc.Id" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <div class="modal-header border-bottom p-4">
+                                                        <h5 class="modal-title fw-bold text-dark" id="rejectModalLabel-@doc.Id">Decline Registration: Dr. @doc.FullName</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body p-4">
+                                                        <p class="text-muted small">Please specify the reason for declining this application. An explanatory email will be dispatched to the applicant.</p>
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-semibold">Reason for Decline</label>
+                                                            <textarea name="reason" class="form-control" rows="3" placeholder="e.g. Invalid medical syndicate registration number..."></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-top p-3">
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-danger">Confirm Decline</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="p-5 text-center text-muted">
+                <div class="mb-3" style="font-size: 3rem;">
+                    <i class="bi bi-check2-all text-success"></i>
+                </div>
+                <h5 class="fw-bold text-dark">No Pending Doctor Registrations</h5>
+                <p class="mb-0 text-secondary">All submitted physician applications have been reviewed and approved.</p>
+            </div>
+        }
+    </div>
+</div>

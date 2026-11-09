@@ -1,0 +1,56 @@
+@model MediCare.Web.ViewModels.TelehealthUnavailableViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="row mb-3 d-print-none">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                @if (User.IsInRole("Doctor"))
+                {
+                    <li class="breadcrumb-item"><a asp-controller="Doctor" asp-action="Appointments">Appointments Queue</a></li>
+                }
+                else
+                {
+                    <li class="breadcrumb-item"><a asp-action="MyAppointments">My Appointments</a></li>
+                }
+                <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.AppointmentId">Appointment #@Model.AppointmentId</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Telehealth Session</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row justify-content-center my-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden text-center p-4 p-md-5">
+            <div class="mb-3">
+                <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center p-3 shadow-xs" style="width: 72px; height: 72px; font-size: 2rem;">
+                    <i class="bi bi-camera-video-off"></i>
+                </div>
+            </div>
+
+            <h3 class="fw-bold text-dark mb-2">@Model.Title</h3>
+            <p class="text-secondary fs-6 mb-4">
+                @Model.Message
+            </p>
+
+            @if (Model.WindowOpensAt.HasValue)
+            {
+                <div class="p-3 bg-light rounded-3 border mb-4 text-center">
+                    <span class="text-muted small d-block mb-1"><i class="bi bi-clock-history me-1"></i> Session Availability Window</span>
+                    <strong class="text-primary font-monospace fs-5">Opens at @Model.WindowOpensAt.Value.ToString("hh:mm tt")</strong>
+                    <div class="text-muted small mt-1">Available 15 minutes before scheduled start through 30 minutes after scheduled end.</div>
+                </div>
+            }
+
+            <div class="d-flex justify-content-center gap-2">
+                <a asp-action="Details" asp-route-id="@Model.AppointmentId" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-xs">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Appointment Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

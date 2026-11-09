@@ -1,0 +1,9 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=MediCareDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+  },
+  "Seed": {
+    "AdminPassword": "YourStrongAdminPasswordHere!",
+    "DefaultPassword": "YourStrongDefaultPasswordHere!"
+  }
+}

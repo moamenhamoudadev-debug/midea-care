@@ -1,0 +1,596 @@
+@model MediCare.Web.ViewModels.DoctorListViewModel
+@{
+    ViewData["Title"] = "Find a Doctor";
+}
+
+<!-- Page Header with Calm Medical Styling -->
+<div class="row mb-4 align-items-center reveal">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+            <i class="bi bi-person-heart text-teal-custom"></i> <span data-i18n="docHeaderTitle">أطباؤنا المعتمدون في جميع محافظات مصر</span>
+        </h2>
+        <p class="text-secondary mb-0" data-i18n="docHeaderSubtitle">ابحث واحجز مع نخبة من أفضل الأطباء والاستشاريين في 27 محافظة، مع إمكانية استخدام التأمين الطبي وكارنيهات النقابات للخصم المباشر.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill shadow-xs">
+            <i class="bi bi-patch-check-fill text-teal-custom me-1"></i> <strong>@Model.Doctors.TotalCount</strong> <span data-i18n="docDoctorsAvailable">طبيب معتمد ومتاح</span>
+        </span>
+    </div>
+</div>
+
+<!-- Modern, Eye-Friendly Search & Filter Card -->
+<div class="card mb-4 p-4 bg-white shadow-sm border-0 rounded-4 reveal">
+    <form method="get" asp-action="Index">
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small fw-semibold text-muted" data-i18n="docSearchLabel">اسم الطبيب أو كلمة البحث</label>
+                <div class="search-field-wrap">
+                    <i class="bi bi-search field-icon"></i>
+                    <input type="text" name="SearchTerm" value="@Model.Filter.SearchTerm" class="form-control" placeholder="مثال: أحمد، قلب، المعادي..." data-i18n-ph="docSearchPlaceholder" />
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small fw-semibold text-muted">المحافظة (27 محافظة)</label>
+                <div class="search-field-wrap">
+                    <i class="bi bi-geo-alt-fill field-icon text-danger"></i>
+                    <select name="Governorate" class="form-select">
+                        <option value="">جميع المحافظات (كل مصر)</option>
+                        <optgroup label="القاهرة الكبرى">
+                            <option value="القاهرة" selected="@(Model.Filter.Governorate == "القاهرة" ? "selected" : null)">القاهرة (Cairo)</option>
+                            <option value="الجيزة" selected="@(Model.Filter.Governorate == "الجيزة" ? "selected" : null)">الجيزة (Giza)</option>
+                            <option value="بنها" selected="@(Model.Filter.Governorate == "بنها" || Model.Filter.Governorate == "القليوبية" ? "selected" : null)">القليوبية - بنها (Banha)</option>
+                        </optgroup>
+                        <optgroup label="الإسكندرية والساحل">
+                            <option value="الإسكندرية" selected="@(Model.Filter.Governorate == "الإسكندرية" ? "selected" : null)">الإسكندرية (Alexandria)</option>
+                            <option value="مطروح" selected="@(Model.Filter.Governorate == "مطروح" ? "selected" : null)">مطروح والساحل الشمالي (Matrouh)</option>
+                        </optgroup>
+                        <optgroup label="الدلتا والوجه البحري">
+                            <option value="المنصورة" selected="@(Model.Filter.Governorate == "المنصورة" || Model.Filter.Governorate == "الدقهلية" ? "selected" : null)">الدقهلية - المنصورة (Mansoura)</option>
+                            <option value="طنطا" selected="@(Model.Filter.Governorate == "طنطا" || Model.Filter.Governorate == "الغربية" ? "selected" : null)">الغربية - طنطا (Tanta)</option>
+                            <option value="الزقازيق" selected="@(Model.Filter.Governorate == "الزقازيق" || Model.Filter.Governorate == "الشرقية" ? "selected" : null)">الشرقية - الزقازيق (Zagazig)</option>
+                            <option value="شبين الكوم" selected="@(Model.Filter.Governorate == "شبين الكوم" || Model.Filter.Governorate == "المنوفية" ? "selected" : null)">المنوفية - شبين الكوم (Menofia)</option>
+                            <option value="دمنهور" selected="@(Model.Filter.Governorate == "دمنهور" || Model.Filter.Governorate == "البحيرة" ? "selected" : null)">البحيرة - دمنهور (Damanhour)</option>
+                            <option value="كفر الشيخ" selected="@(Model.Filter.Governorate == "كفر الشيخ" ? "selected" : null)">كفر الشيخ (Kafr El-Sheikh)</option>
+                            <option value="دمياط" selected="@(Model.Filter.Governorate == "دمياط" ? "selected" : null)">دمياط (Damietta)</option>
+                        </optgroup>
+                        <optgroup label="مدن القناة وسيناء">
+                            <option value="بورسعيد" selected="@(Model.Filter.Governorate == "بورسعيد" ? "selected" : null)">بورسعيد (Port Said)</option>
+                            <option value="الإسماعيلية" selected="@(Model.Filter.Governorate == "الإسماعيلية" ? "selected" : null)">الإسماعيلية (Ismailia)</option>
+                            <option value="السويس" selected="@(Model.Filter.Governorate == "السويس" ? "selected" : null)">السويس (Suez)</option>
+                            <option value="شرم الشيخ" selected="@(Model.Filter.Governorate == "شرم الشيخ" || Model.Filter.Governorate == "جنوب سيناء" ? "selected" : null)">جنوب سيناء - شرم الشيخ (Sharm)</option>
+                            <option value="العريش" selected="@(Model.Filter.Governorate == "العريش" || Model.Filter.Governorate == "شمال سيناء" ? "selected" : null)">شمال سيناء - العريش (Arish)</option>
+                        </optgroup>
+                        <optgroup label="شمال ووسط الصعيد">
+                            <option value="الفيوم" selected="@(Model.Filter.Governorate == "الفيوم" ? "selected" : null)">الفيوم (Fayoum)</option>
+                            <option value="بني سويف" selected="@(Model.Filter.Governorate == "بني سويف" ? "selected" : null)">بني سويف (Beni Suef)</option>
+                            <option value="المنيا" selected="@(Model.Filter.Governorate == "المنيا" ? "selected" : null)">المنيا (Minya)</option>
+                            <option value="أسيوط" selected="@(Model.Filter.Governorate == "أسيوط" ? "selected" : null)">أسيوط (Assiut)</option>
+                        </optgroup>
+                        <optgroup label="جنوب الصعيد والمحافظات الحدودية">
+                            <option value="سوهاج" selected="@(Model.Filter.Governorate == "سوهاج" ? "selected" : null)">سوهاج (Sohag)</option>
+                            <option value="قنا" selected="@(Model.Filter.Governorate == "قنا" ? "selected" : null)">قنا (Qena)</option>
+                            <option value="الأقصر" selected="@(Model.Filter.Governorate == "الأقصر" ? "selected" : null)">الأقصر (Luxor)</option>
+                            <option value="أسوان" selected="@(Model.Filter.Governorate == "أسوان" ? "selected" : null)">أسوان (Aswan)</option>
+                            <option value="الغردقة" selected="@(Model.Filter.Governorate == "الغردقة" || Model.Filter.Governorate == "البحر الأحمر" ? "selected" : null)">البحر الأحمر - الغردقة (Hurghada)</option>
+                            <option value="الخارجة" selected="@(Model.Filter.Governorate == "الخارجة" || Model.Filter.Governorate == "الوادي الجديد" ? "selected" : null)">الوادي الجديد - الخارجة (New Valley)</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label small fw-semibold text-muted" data-i18n="docSpecLabel">التخصص الطبي</label>
+                <div class="search-field-wrap">
+                    <i class="bi bi-hospital field-icon"></i>
+                    <select name="SpecializationId" class="form-select">
+                        <option value="" data-i18n="docAllSpecs">جميع التخصصات</option>
+                        @foreach (var spec in Model.Specializations)
+                        {
+                            if (Model.Filter.SpecializationId == spec.Id)
+                            {
+                                <option value="@spec.Id" selected="selected">@spec.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@spec.Id">@spec.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <label class="form-label small fw-semibold text-muted" data-i18n="docFeeLabel">الحد الأقصى للكشف</label>
+                <div class="search-field-wrap">
+                    <i class="bi bi-cash field-icon text-success"></i>
+                    <input type="number" name="MaxFee" value="@Model.Filter.MaxFee" step="10" class="form-control" placeholder="أي سعر" data-i18n-ph="docFeePlaceholder" />
+                </div>
+            </div>
+
+            <div class="col-lg-1 col-md-4">
+                <label class="form-label small fw-semibold text-muted" data-i18n="docDayLabel">اليوم المتاح</label>
+                <div class="search-field-wrap">
+                    <select name="AvailableDay" class="form-select">
+                        <option value="" data-i18n="docAnyDay">أي يوم</option>
+                        @foreach (DayOfWeek day in Enum.GetValues(typeof(DayOfWeek)))
+                        {
+                            if (Model.Filter.AvailableDay == day)
+                            {
+                                <option value="@day" selected="selected">@day</option>
+                            }
+                            else
+                            {
+                                <option value="@day">@day</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-lg-1 col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm" title="Filter" data-i18n-title="docFilterBtn">
+                    <i class="bi bi-funnel-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Active Filter Reset -->
+        @if (Model.Filter.SpecializationId.HasValue || Model.Filter.MaxFee.HasValue || Model.Filter.AvailableDay.HasValue || !string.IsNullOrWhiteSpace(Model.Filter.SearchTerm) || !string.IsNullOrWhiteSpace(Model.Filter.Governorate))
+        {
+            <div class="mt-3 pt-3 border-top d-flex flex-wrap justify-content-end align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted" data-i18n="docFilterApplied">تم تطبيق معايير التصفية</span>
+                    <a asp-action="Index" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1">
+                        <i class="bi bi-x-circle me-1"></i> <span data-i18n="docResetFilters">إلغاء التصفية</span>
+                    </a>
+                </div>
+            </div>
+        }
+    </form>
+</div>
+
+<!-- Interactive Clinics Map Toggle & Nearby Geolocation Bar -->
+<div class="card mb-4 p-3 bg-white shadow-sm border-0 rounded-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold" id="toggleMapBtn">
+                <i class="bi bi-map-fill me-1"></i> <span id="mapBtnLabel">🗺️ استعراض خريطة العيادات (Map View)</span>
+            </button>
+            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs fw-semibold" id="locateMeBtn">
+                <i class="bi bi-crosshair me-1"></i> <span>📍 أقرب عيادة لموقعي (Find Near Me)</span>
+            </button>
+        </div>
+        <span class="small text-muted" id="mapStatusText">خريطة تفاعلية لعيادات الأطباء المعتمدة في مصر عبر OpenStreetMap</span>
+    </div>
+
+    <div id="clinicsMapContainer" class="mt-3" style="display: none;">
+        <div id="clinicsMap" data-doctors="@System.Text.Json.JsonSerializer.Serialize(Model.Doctors.Items.Select(d => new { id = d.Id, name = d.FullName, specialization = d.SpecializationName, governorate = d.Governorate, fee = d.ConsultationFee }))" style="height: 420px; width: 100%; border-radius: 1rem; border: 1px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06); z-index: 1;"></div>
+    </div>
+</div>
+
+<!-- Eye-Friendly Horizontal Governorate Quick Filter Bar -->
+<div class="d-flex flex-wrap align-items-center gap-2 mb-4 p-3 bg-light rounded-4 border reveal">
+    <span class="small fw-bold text-dark px-1 d-flex align-items-center gap-1">
+        <i class="bi bi-compass-fill text-teal-custom"></i> <span>وجهات شائعة:</span>
+    </span>
+    <a asp-action="Index" class="btn btn-sm gov-pill rounded-pill @(string.IsNullOrEmpty(Model.Filter.Governorate) && string.IsNullOrEmpty(Model.Filter.SearchTerm) ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">الكل (27 محافظة)</a>
+    <a asp-action="Index" asp-route-Governorate="القاهرة" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "القاهرة" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">القاهرة</a>
+    <a asp-action="Index" asp-route-Governorate="الجيزة" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "الجيزة" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">الجيزة</a>
+    <a asp-action="Index" asp-route-Governorate="الإسكندرية" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "الإسكندرية" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">الإسكندرية</a>
+    <a asp-action="Index" asp-route-Governorate="الفيوم" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "الفيوم" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">الفيوم (Fayoum)</a>
+    <a asp-action="Index" asp-route-Governorate="المنصورة" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "المنصورة" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">المنصورة</a>
+    <a asp-action="Index" asp-route-Governorate="طنطا" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "طنطا" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">طنطا</a>
+    <a asp-action="Index" asp-route-Governorate="أسيوط" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "أسيوط" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">أسيوط</a>
+    <a asp-action="Index" asp-route-Governorate="بورسعيد" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "بورسعيد" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">بورسعيد</a>
+    <a asp-action="Index" asp-route-Governorate="السويس" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "السويس" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">السويس</a>
+    <a asp-action="Index" asp-route-Governorate="سوهاج" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "سوهاج" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">سوهاج</a>
+    <a asp-action="Index" asp-route-Governorate="المنيا" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "المنيا" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">المنيا</a>
+    <a asp-action="Index" asp-route-Governorate="بني سويف" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "بني سويف" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">بني سويف</a>
+    <a asp-action="Index" asp-route-Governorate="قنا" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "قنا" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">قنا</a>
+    <a asp-action="Index" asp-route-Governorate="الأقصر" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "الأقصر" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">الأقصر</a>
+    <a asp-action="Index" asp-route-Governorate="أسوان" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "أسوان" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">أسوان</a>
+    <a asp-action="Index" asp-route-Governorate="الغردقة" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "الغردقة" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">الغردقة</a>
+    <a asp-action="Index" asp-route-Governorate="شرم الشيخ" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "شرم الشيخ" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">شرم الشيخ</a>
+    <a asp-action="Index" asp-route-Governorate="مطروح" class="btn btn-sm gov-pill rounded-pill @(Model.Filter.Governorate == "مطروح" ? "btn-primary text-white shadow-xs" : "btn-outline-secondary bg-white")">مطروح</a>
+</div>
+
+<!-- Doctors Grid -->
+@if (!Model.Doctors.Items.Any())
+{
+    <div class="card p-5 text-center bg-white shadow-sm border-0 rounded-4 reveal">
+        <div class="mb-3 text-muted" style="font-size: 3rem;">
+            <i class="bi bi-search text-secondary opacity-50"></i>
+        </div>
+        <h4 class="fw-bold text-dark" data-i18n="docNoDoctors">لم يتم العثور على أطباء</h4>
+        <p class="text-secondary col-md-6 mx-auto mb-4" data-i18n="docNoDoctorsDesc">لم نجد أطباء متطابقين مع معايير البحث الحالية. يمكنك تعديل خيارات التصفية أو اختيار محافظة أخرى.</p>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-primary rounded-pill px-4">
+                <i class="bi bi-arrow-clockwise me-1"></i> <span data-i18n="docClearFilters">إعادة ضبط التصفية وعرض الجميع</span>
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var doctor in Model.Doctors.Items)
+        {
+            <div class="col-md-6 col-lg-4 reveal">
+                <div class="card h-100 bg-white p-3 border-0 shadow-sm card-hover-tilt card-hover-lift position-relative rounded-4">
+                    <div class="card-body d-flex flex-column p-2">
+                        <!-- Top Row: Doctor Avatar + Specialty & Rating -->
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="position-relative flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(doctor.ProfileImageUrl))
+                                {
+                                    <img src="@doctor.ProfileImageUrl" alt="@doctor.FullName" class="rounded-circle shadow-sm doctor-avatar-img" style="width: 66px; height: 66px; object-fit: cover; border: 2.5px solid #0d9488;" onerror="this.onerror=null; this.src='/images/doctors/doctor-default.svg';" />
+                                }
+                                else
+                                {
+                                    <div class="doctor-avatar-circle" style="width: 66px; height: 66px; font-size: 1.35rem; background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);">
+                                        @(string.IsNullOrEmpty(doctor.FullName) ? "Dr" : doctor.FullName.Substring(0, 1).ToUpper())
+                                    </div>
+                                }
+                                <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle pulse-indicator" style="width: 14px; height: 14px;" title="Doctor account approved in demo" data-i18n-title="docVerifiedBadge"></span>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <h5 class="fw-bold text-dark mb-1 text-truncate" title="@doctor.FullName">
+                                    <a asp-action="Details" asp-route-id="@doctor.Id" class="text-decoration-none text-dark hover-primary" data-doc-name-en="@doctor.FullName">
+                                        @doctor.FullName
+                                    </a>
+                                </h5>
+                                <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
+                                    <span class="badge badge-specialty">
+                                        <i class="bi bi-heart-pulse-fill text-teal-custom"></i> <span data-i18n-spec="@doctor.SpecializationName">@doctor.SpecializationName</span>
+                                    </span>
+                                    @if (!string.IsNullOrWhiteSpace(doctor.Title)) { <span class="badge bg-light text-secondary border">@doctor.Title</span> }
+                                </div>
+                                <small class="text-muted">التخصص والبيانات مسجلة بالحساب وغير متحقق منها مستقلًا.</small>
+                                <div class="d-flex align-items-center gap-1 small">
+                                    @if (doctor.ReviewCount > 0) { <span class="text-muted">@doctor.ReviewCount مراجعة</span> } else { <span class="text-muted">لا توجد مراجعات بعد</span> }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Healthcare Insurance & Syndicate Badge -->
+                        @if (doctor.AcceptsInsurance)
+                        {
+                            <div class="mb-2">
+                                <span class="badge bg-emerald-subtle text-success border border-success-subtle rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.76rem;">
+                                    <i class="bi bi-shield-check"></i> @doctor.InsuranceBadge
+                                </span>
+                            </div>
+                        }
+
+                        <!-- Location & Experience Row -->
+                        <div class="d-flex align-items-center justify-content-between small text-muted mb-2 px-1">
+                            <span class="text-truncate" title="@doctor.ClinicAddress">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i> @doctor.Governorate <span>(مسجلة وغير متحقق منها)</span>
+                            </span>
+                            @if (doctor.ExperienceYears > 0) { <span class="badge bg-teal-subtle text-teal-custom border border-teal-subtle rounded-pill"><i class="bi bi-award-fill me-1"></i> @doctor.ExperienceYears <span data-i18n="docYearsExp">سنة خبرة</span></span> }
+                        </div>
+
+                        <!-- Bio Excerpt -->
+                        <p class="text-secondary small flex-grow-1 mb-2" style="min-height: 38px; line-height: 1.5;">
+                            @(string.IsNullOrWhiteSpace(doctor.Bio) ? "لا توجد نبذة متاحة." : (doctor.Bio.Length > 115 ? doctor.Bio.Substring(0, 112) + "..." : doctor.Bio))
+                        </p>
+
+                        <!-- Realistic Patient Review Snippet For Specialty -->
+                        @if (!string.IsNullOrEmpty(doctor.TopReviewComment))
+                        {
+                            <div class="p-2 mb-3 rounded-3 border border-light-subtle d-flex align-items-start gap-2" style="font-size: 0.77rem; background-color: #F8FAFC;">
+                                <i class="bi bi-chat-quote-fill text-teal-custom fs-6 flex-shrink-0 mt-1"></i>
+                                <div class="text-truncate" title="@doctor.TopReviewComment" style="line-height: 1.4;">
+                                    <strong class="text-dark">@doctor.TopReviewPatient:</strong> "@doctor.TopReviewComment"
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Pricing & Schedule Info Box -->
+                        <div class="p-3 bg-light rounded-3 mb-3 border border-light-subtle">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted fw-semibold" data-i18n="docConsultationFee">السعر المُدخل في الملف</span>
+                                <div class="text-end">
+                                    @if (doctor.AcceptsInsurance)
+                                    {
+                                        <span class="fw-bold text-success fs-6">@doctor.DiscountedFee.ToString("N0") ج.م</span>
+                                        <span class="text-muted text-decoration-line-through small ms-1" style="font-size: 0.8rem;">@doctor.ConsultationFee.ToString("N0") ج.م</span>
+                                    }
+                                    else if (doctor.ConsultationFee > 0)
+                                    {
+                                        <span class="fw-bold text-primary fs-6">@doctor.ConsultationFee.ToString("N0") ج.م <small class="text-muted">(غير متحقق)</small></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="small text-muted">السعر غير متاح</span>
+                                    }
+                                </div>
+                            </div>
+                            @if (doctor.AcceptsInsurance)
+                            {
+                                <div class="small text-success d-flex align-items-center gap-1 mb-2" style="font-size: 0.76rem;">
+                                    <i class="bi bi-tag-fill"></i> خصم كارنيه النقابة / التأمين: وفر @((doctor.ConsultationFee - doctor.DiscountedFee).ToString("N0")) ج.م
+                                </div>
+                            }
+                            <div class="border-top pt-2">
+                                <span class="small text-muted d-block mb-1" data-i18n="docAvailableShifts">أيام العمل المتاحة:</span>
+                                @if (doctor.WorkingDays.Any())
+                                {
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var day in doctor.WorkingDays)
+                                        {
+                                            <span class="day-pill">@day.ToString().Substring(0, 3)</span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="small text-muted fst-italic" data-i18n="docScheduleReq">المواعيد بالتنسيق المسبق</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2 mt-auto">
+                            <a asp-action="Details" asp-route-id="@doctor.Id" class="btn btn-outline-secondary btn-sm flex-grow-1 d-flex align-items-center justify-content-center gap-1 rounded-3">
+                                <i class="bi bi-person-lines-fill"></i> <span data-i18n="docProfile">الملف والتأمين</span>
+                            </a>
+                            @if (User.Identity?.IsAuthenticated != true || User.IsInRole("Patient"))
+                            {
+                                <a asp-controller="Appointments" asp-action="Book" asp-route-id="@doctor.Id" class="btn btn-primary btn-sm flex-grow-1 d-flex align-items-center justify-content-center gap-1 shadow-sm rounded-3">
+                                    <i class="bi bi-calendar-plus"></i> <span data-i18n="docBookSlot">حجز كشف</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.Doctors.TotalPages > 1)
+    {
+        <nav class="mt-5 d-flex justify-content-center" aria-label="Doctor directory pagination">
+            <ul class="pagination shadow-sm rounded-pill overflow-hidden">
+                <li class="page-item @(Model.Doctors.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-Page="@(Model.Doctors.PageNumber - 1)"
+                       asp-route-SearchTerm="@Model.Filter.SearchTerm"
+                       asp-route-Governorate="@Model.Filter.Governorate"
+                       asp-route-SpecializationId="@Model.Filter.SpecializationId"
+                       asp-route-MaxFee="@Model.Filter.MaxFee"
+                       asp-route-AvailableDay="@Model.Filter.AvailableDay">
+                        <i class="bi bi-chevron-left"></i> <span data-i18n="docPrev">السابق</span>
+                    </a>
+                </li>
+                @for (int p = 1; p <= Model.Doctors.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.Doctors.PageNumber ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-Page="@p"
+                           asp-route-SearchTerm="@Model.Filter.SearchTerm"
+                           asp-route-Governorate="@Model.Filter.Governorate"
+                           asp-route-SpecializationId="@Model.Filter.SpecializationId"
+                           asp-route-MaxFee="@Model.Filter.MaxFee"
+                           asp-route-AvailableDay="@Model.Filter.AvailableDay">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.Doctors.HasNextPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-Page="@(Model.Doctors.PageNumber + 1)"
+                       asp-route-SearchTerm="@Model.Filter.SearchTerm"
+                       asp-route-Governorate="@Model.Filter.Governorate"
+                       asp-route-SpecializationId="@Model.Filter.SpecializationId"
+                       asp-route-MaxFee="@Model.Filter.MaxFee"
+                       asp-route-AvailableDay="@Model.Filter.AvailableDay">
+                        <span data-i18n="docNext">التالي</span> <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+}
+
+@section Scripts {
+    <link rel="stylesheet" href="~/lib/leaflet/leaflet.css" asp-append-version="true" />
+    <script src="~/lib/leaflet/leaflet.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            if (window.L && L.Icon && L.Icon.Default) {
+                L.Icon.Default.imagePath = '/lib/leaflet/images/';
+            }
+            const toggleBtn = document.getElementById('toggleMapBtn');
+            const mapContainer = document.getElementById('clinicsMapContainer');
+            const mapBtnLabel = document.getElementById('mapBtnLabel');
+            const locateBtn = document.getElementById('locateMeBtn');
+            const statusText = document.getElementById('mapStatusText');
+
+            let map = null;
+            let userMarker = null;
+
+            const governorates = {
+                "القاهرة": [30.0444, 31.2357],
+                "Cairo": [30.0444, 31.2357],
+                "الجيزة": [30.0131, 31.2089],
+                "Giza": [30.0131, 31.2089],
+                "الإسكندرية": [31.2001, 29.9187],
+                "Alexandria": [31.2001, 29.9187],
+                "المنصورة": [31.0409, 31.3785],
+                "Mansoura": [31.0409, 31.3785],
+                "الدقهلية": [31.0409, 31.3785],
+                "طنطا": [30.7865, 31.0004],
+                "Tanta": [30.7865, 31.0004],
+                "الغربية": [30.7865, 31.0004],
+                "الزقازيق": [30.5877, 31.5020],
+                "Zagazig": [30.5877, 31.5020],
+                "الشرقية": [30.5877, 31.5020],
+                "شبين الكوم": [30.5567, 31.0089],
+                "المنوفية": [30.5567, 31.0089],
+                "بنها": [30.4660, 31.1853],
+                "القليوبية": [30.4660, 31.1853],
+                "دمنهور": [31.0379, 30.4725],
+                "البحيرة": [31.0379, 30.4725],
+                "كفر الشيخ": [31.1107, 30.9388],
+                "دمياط": [31.4175, 31.8144],
+                "بورسعيد": [31.2653, 32.3019],
+                "الإسماعيلية": [30.5965, 32.2715],
+                "السويس": [29.9668, 32.5498],
+                "الفيوم": [29.3084, 30.8428],
+                "بني سويف": [29.0661, 31.0994],
+                "المنيا": [28.1099, 30.7503],
+                "أسيوط": [27.1809, 31.1837],
+                "سوهاج": [26.5569, 31.6948],
+                "قنا": [26.1551, 32.7160],
+                "الأقصر": [25.6872, 32.6396],
+                "أسوان": [24.0889, 32.8998],
+                "الغردقة": [27.2579, 33.8116],
+                "البحر الأحمر": [27.2579, 33.8116],
+                "شرم الشيخ": [27.9158, 34.3299],
+                "جنوب سيناء": [27.9158, 34.3299],
+                "مطروح": [31.3543, 27.2373],
+                "العريش": [31.1321, 33.8034]
+            };
+
+            const mapElement = document.getElementById('clinicsMap');
+            let rawDoctors = [];
+            try {
+                rawDoctors = (mapElement && mapElement.dataset.doctors) ? JSON.parse(mapElement.dataset.doctors) : [];
+            } catch (e) {
+                console.error("Failed to parse clinics map doctors data", e);
+            }
+
+            function initMap() {
+                if (map) {
+                    map.invalidateSize();
+                    return;
+                }
+
+                map = L.map('clinicsMap').setView([30.0444, 31.2357], 7);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors | MediCare Clinic System'
+                }).addTo(map);
+
+                rawDoctors.forEach((doc) => {
+                    const coords = governorates[doc.governorate] || [30.0444, 31.2357];
+                    const jitterLat = (Math.random() - 0.5) * 0.05;
+                    const jitterLng = (Math.random() - 0.5) * 0.05;
+                    const markerLat = coords[0] + jitterLat;
+                    const markerLng = coords[1] + jitterLng;
+
+                    const marker = L.marker([markerLat, markerLng]).addTo(map);
+
+                    const popupDiv = document.createElement('div');
+                    popupDiv.style.minWidth = '190px';
+                    popupDiv.style.textAlign = 'start';
+                    popupDiv.style.fontFamily = 'Cairo, Inter, sans-serif';
+
+                    const titleDiv = document.createElement('div');
+                    titleDiv.style.fontWeight = '700';
+                    titleDiv.style.color = '#0066F5';
+                    titleDiv.style.marginBottom = '2px';
+                    titleDiv.textContent = doc.name;
+                    popupDiv.appendChild(titleDiv);
+
+                    const subDiv = document.createElement('div');
+                    subDiv.style.fontSize = '0.78rem';
+                    subDiv.style.color = '#475569';
+                    subDiv.style.marginBottom = '4px';
+                    subDiv.textContent = `${doc.specialization} • ${doc.governorate}`;
+                    popupDiv.appendChild(subDiv);
+
+                    const feeDiv = document.createElement('div');
+                    feeDiv.style.fontSize = '0.8rem';
+                    feeDiv.style.fontWeight = '600';
+                    feeDiv.style.color = '#10B981';
+                    feeDiv.style.marginBottom = '8px';
+                    feeDiv.textContent = `الكشف: ${doc.fee} ج.م`;
+                    popupDiv.appendChild(feeDiv);
+
+                    @if (User.Identity?.IsAuthenticated != true || User.IsInRole("Patient"))
+                    {
+                        <text>
+                        const bookLink = document.createElement('a');
+                        bookLink.href = `/Appointments/Book/${encodeURIComponent(doc.id)}`;
+                        bookLink.className = 'btn btn-primary btn-sm w-100 text-white';
+                        bookLink.style.fontSize = '0.75rem';
+                        bookLink.style.padding = '4px 8px';
+                        bookLink.style.borderRadius = '6px';
+                        bookLink.style.textDecoration = 'none';
+                        bookLink.style.display = 'block';
+                        bookLink.style.textAlign = 'center';
+                        bookLink.innerHTML = '<i class="bi bi-calendar-check me-1"></i> احجز كشف الآن';
+                        popupDiv.appendChild(bookLink);
+                        </text>
+                    }
+
+                    marker.bindPopup(popupDiv);
+                });
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function () {
+                    if (mapContainer.style.display === 'none') {
+                        mapContainer.style.display = 'block';
+                        mapBtnLabel.textContent = 'إخفاء خريطة العيادات (Hide Map)';
+                        setTimeout(initMap, 200);
+                    } else {
+                        mapContainer.style.display = 'none';
+                        mapBtnLabel.textContent = '🗺️ استعراض خريطة العيادات (Map View)';
+                    }
+                });
+            }
+
+            if (locateBtn) {
+                locateBtn.addEventListener('click', function () {
+                    if (!navigator.geolocation) {
+                        alert('خدمة تحديد الموقع الجغرافي غير مدعومة في متصفحك.');
+                        return;
+                    }
+
+                    if (mapContainer.style.display === 'none') {
+                        mapContainer.style.display = 'block';
+                        mapBtnLabel.textContent = 'إخفاء خريطة العيادات (Hide Map)';
+                        initMap();
+                    }
+
+                    statusText.textContent = 'جاري تحديد موقعك الجغرافي عبر الأقمار الصناعية...';
+
+                    navigator.geolocation.getCurrentPosition(
+                        function (position) {
+                            const userLat = position.coords.latitude;
+                            const userLng = position.coords.longitude;
+
+                            if (map) {
+                                map.setView([userLat, userLng], 12);
+
+                                if (userMarker) {
+                                    userMarker.remove();
+                                }
+
+                                userMarker = L.circleMarker([userLat, userLng], {
+                                    radius: 10,
+                                    fillColor: '#EF4444',
+                                    color: '#FFFFFF',
+                                    weight: 2,
+                                    opacity: 1,
+                                    fillOpacity: 0.9
+                                }).addTo(map);
+
+                                userMarker.bindPopup('<b>موقعك الحالي (Your Location)</b>').openPopup();
+                                statusText.textContent = `تم تحديد موقعك بدقة (خط عرض ${userLat.toFixed(3)}, خط طول ${userLng.toFixed(3)}) وتوسيط أقرب العيادات!`;
+                            }
+                        },
+                        function (error) {
+                            statusText.textContent = 'تعذر الحصول على موقعك الفعلي. يمكنك استعراض العيادات من الخريطة يدوياً.';
+                        },
+                        { timeout: 10000, enableHighAccuracy: true }
+                    );
+                });
+            }
+        })();
+    </script>
+}

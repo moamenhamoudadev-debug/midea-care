@@ -1,0 +1,22 @@
+@model string
+@{
+    ViewData["Title"] = "خطأ في التحقق من الروشتة";
+    Layout = "_Layout";
+}
+
+<div class="container py-5 text-center">
+    <div class="card border-0 shadow-sm rounded-4 p-5 mx-auto reveal reveal-scale is-visible" style="max-width: 550px;">
+        <div class="text-danger mb-3" style="font-size: 3rem;">
+            <i class="bi bi-shield-x"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">تعذر التحقق من الروشتة</h4>
+        <p class="text-muted mb-4">
+            @(Model ?? "الرقم التعريفي للروشتة غير صحيح أو تم إبطالها من قبل النظام الطبي.")
+        </p>
+        <div>
+            <a href="/" class="btn btn-primary">
+                <i class="bi bi-house-door me-1"></i> العودة للرئيسية
+            </a>
+        </div>
+    </div>
+</div>

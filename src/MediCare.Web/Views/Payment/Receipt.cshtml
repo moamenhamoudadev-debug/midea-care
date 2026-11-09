@@ -1,0 +1,305 @@
+@model MediCare.Services.DTOs.PaymentReceiptDto
+@{
+    ViewData["Title"] = $"Receipt #{Model.TransactionReference}";
+    var isSandboxPayment = Model.PaymentMethod.Contains("test mode", StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="row mb-3 d-print-none">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Appointments" asp-action="MyAppointments">My Appointments</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Appointments" asp-action="Details" asp-route-id="@Model.AppointmentId">Appointment #@Model.AppointmentId</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Receipt</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card bg-white shadow-sm border-0 p-4 p-md-5 position-relative overflow-hidden reveal reveal-scale is-visible" id="receiptCard">
+            <!-- Sandbox and historical simulated receipts are labeled with their actual payment method. -->
+            <div class="position-absolute end-0 top-0 mt-4 me-4 d-none d-sm-block" style="opacity: 0.15; transform: rotate(12deg); pointer-events: none;">
+                @if (Model.IsRefunded)
+                {
+                    <div class="border border-danger border-5 rounded-4 p-3 text-center text-danger fw-bolder" style="font-size: 2.2rem; letter-spacing: 0.15em;">
+                        REFUNDED
+                    </div>
+                }
+                else
+                {
+                    <div class="border border-success border-5 rounded-4 p-3 text-center text-success fw-bolder" style="font-size: 2.2rem; letter-spacing: 0.15em;">
+                        @Model.PaymentMethod.ToUpperInvariant()
+                    </div>
+                }
+            </div>
+
+            <!-- Receipt Header -->
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4 flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="brand-icon shadow-sm" style="width: 48px; height: 48px; font-size: 1.5rem;">
+                        <i class="bi bi-heart-pulse-fill text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold text-dark mb-0">Payment Receipt</h3>
+                        <span class="text-muted small">Appointment management graduation project</span>
+                    </div>
+                </div>
+                <div class="text-sm-end">
+                    @if (Model.IsRefunded)
+                    {
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fs-6">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> <span>Refund status recorded</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6">
+                            <i class="bi bi-check-circle-fill me-1"></i> <span>@Model.PaymentMethod</span>
+                        </span>
+                    }
+                    <div class="text-muted small mt-1">Ref: <strong>@Model.TransactionReference</strong></div>
+                </div>
+            </div>
+
+            <!-- Key Info Grid -->
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-3 border h-100">
+                        <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Demo patient</span>
+                        <h5 class="fw-bold text-dark mb-1">@Model.PatientName</h5>
+                        <div class="text-secondary small">Appointment Reference #@Model.AppointmentId</div>
+                        <div class="text-secondary small">Clinic Visit Date: @Model.FormattedDate (@Model.FormattedTime)</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-3 bg-light rounded-3 border h-100">
+                        <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Appointment doctor</span>
+                        <h5 class="fw-bold text-dark mb-1">@Model.DoctorName</h5>
+                        <div class="text-secondary small">Specialty: <strong>@Model.Specialization</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line Items Table -->
+            <div class="table-responsive mb-4">
+                <table class="table align-middle">
+                    <caption class="visually-hidden">Appointment payment line items</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Description</th>
+                            <th scope="col">Schedule Date</th>
+                            <th scope="col">Payment Method</th>
+                            <th scope="col" class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">Clinical Consultation Fee</div>
+                                <div class="text-muted small">Appointment #@Model.AppointmentId &bull; @Model.Specialization</div>
+                            </td>
+                            <td>
+                                <div>@Model.FormattedDate</div>
+                                <div class="text-muted small">@Model.FormattedTime</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-credit-card me-1 text-primary"></i> @Model.PaymentMethod
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-dark">
+                                @Model.AmountPaid.ToString("N2") EGP
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="border-top">
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <tr>
+                                <td colspan="3" class="text-end fw-semibold text-muted">Original Consultation Fee:</td>
+                                <td class="text-end fw-semibold text-dark">@Model.OriginalAmount.ToString("N2") EGP</td>
+                            </tr>
+                            <tr class="text-success">
+                                <td colspan="3" class="text-end fw-semibold">
+                                    <i class="bi bi-tag-fill me-1"></i> Promo Discount Applied (@(Model.AppliedPromoCode ?? "PROMO")):
+                                </td>
+                                <td class="text-end fw-bold">-@Model.DiscountAmount.ToString("N2") EGP</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td colspan="3" class="text-end fw-semibold text-muted">Subtotal:</td>
+                            <td class="text-end fw-semibold text-dark">@Model.AmountPaid.ToString("N2") EGP</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end fw-semibold text-muted">Applicable Taxes (0%):</td>
+                            <td class="text-end fw-semibold text-dark">0.00 EGP</td>
+                        </tr>
+                        @if (Model.RefundedAmount > 0)
+                        {
+                            <tr class="table-danger-subtle">
+                                <td colspan="3" class="text-end fw-semibold text-danger">Total Refunded:</td>
+                                <td class="text-end fw-bold text-danger">-@Model.RefundedAmount.ToString("N2") EGP</td>
+                            </tr>
+                            <tr class="fs-5">
+                                <td colspan="3" class="text-end fw-bold text-dark">Net Paid:</td>
+                                <td class="text-end fw-bold text-dark">@Math.Max(0m, Model.AmountPaid - Model.RefundedAmount).ToString("N2") EGP</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr class="fs-5">
+                                <td colspan="3" class="text-end fw-bold text-dark">Total:</td>
+                                <td class="text-end fw-bold text-success">@Model.AmountPaid.ToString("N2") EGP</td>
+                            </tr>
+                        }
+                    </tfoot>
+                </table>
+            </div>
+
+            @if (Model.Refunds.Any())
+            {
+                <div class="p-3 bg-danger-subtle rounded-3 border border-danger-subtle mb-4">
+                    <h6 class="fw-bold text-danger mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-arrow-counterclockwise"></i> Processed Refund Record
+                    </h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th>Audit Reference</th>
+                                    <th>Status</th>
+                                    <th>Settlement Date</th>
+                                    <th class="text-end">Refunded Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var rf in Model.Refunds)
+                                {
+                                    <tr>
+                                        <td class="font-monospace fw-semibold text-dark">@rf.AuditReference</td>
+                                        <td><span class="badge bg-success">@rf.Status</span></td>
+                                        <td class="text-muted">@(rf.ProcessedAtUtc?.ToString("yyyy-MM-dd HH:mm") ?? "Completed") UTC</td>
+                                        <td class="text-end font-monospace fw-bold text-danger">-@rf.AmountEgp.ToString("N2") EGP</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-muted small mt-2 d-flex align-items-center gap-1 border-top pt-2">
+                        <i class="bi bi-info-circle text-primary"></i>
+                        <span>@(Model.Refunds.FirstOrDefault()?.BankClearanceNotice ?? "Refund clearance: Funds typically reflect within 5 to 14 business days.")</span>
+                    </div>
+                </div>
+            }
+
+            <!-- Transaction Audit Metadata -->
+            <div class="p-3 bg-light rounded-3 border mb-4">
+                <div class="row g-2 text-muted small">
+                    <div class="col-md-6">
+                        <strong>Transaction ID:</strong> @Model.TransactionReference
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Processed At:</strong> @Model.PaidAt.ToString("yyyy-MM-dd HH:mm:ss") UTC
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong> <span class="text-primary fw-semibold">@(isSandboxPayment ? "Paymob sandbox callback verified" : "Historical demo payment")</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Payment mode:</strong> @Model.PaymentMethod
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.TermsVersion))
+                    {
+                        <div class="col-md-6">
+                            <strong>Terms Accepted:</strong> <span class="badge bg-secondary-subtle text-secondary">@Model.TermsVersion</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ProviderOrderId))
+                    {
+                        <div class="col-md-6">
+                            <strong>Paymob Order ID:</strong> @Model.ProviderOrderId
+                        </div>
+                    }
+                    <!-- Statutory Invoice Disclosures (Law 181/2018, Art. 10 & Decree 82/2019) -->
+            </div>
+            <div class="p-3 bg-light rounded-3 border mb-4 small text-muted">
+                <div class="d-flex justify-content-between flex-wrap gap-2 mb-1">
+                    <div><strong>Provider:</strong> MediCare Healthcare S.A.E.</div>
+                    <div><strong>Tax ID:</strong> 698-421-550</div>
+                    <div><strong>MOH Clinical License:</strong> 2024/EG-8842</div>
+                </div>
+                <div class="text-secondary" style="font-size: 0.8rem;">
+                    Issued in accordance with Egyptian Consumer Protection Law No. 181/2018 (Article 10) and Executive Regulations (Prime Minister Decree No. 82/2019).
+                </div>
+            </div>
+
+            <!-- Footer / Disclaimers -->
+            <div class="text-center text-muted small border-top pt-4">
+                @if (isSandboxPayment)
+                {
+                    <p class="mb-1">This Paymob sandbox confirmation is not a real-money charge and is not proof of a live payment or eligible for insurance claims.</p>
+                }
+                else
+                {
+                    <p class="mb-1">This historical demonstration record is not proof of a real payment or eligible for insurance claims.</p>
+                }
+                <p class="mb-0">Use fictional data only. Contact the project owner for questions about this demonstration.</p>
+            </div>
+
+            <!-- Actions (Hidden in Print) -->
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top d-print-none flex-wrap gap-2">
+                <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> <span data-i18n="receiptReturn">Back to Appointments</span>
+                </a>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Appointments" asp-action="Details" asp-route-id="@Model.AppointmentId" class="btn btn-outline-primary">
+                        <i class="bi bi-info-circle me-1"></i> <span data-i18n="apptViewReceipt">View Details</span>
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="window.print();">
+                        <i class="bi bi-printer-fill me-1"></i> <span data-i18n="receiptPrint">Print / Download PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        body {
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .mc-header, .mc-footer, .d-print-none, #aiChatbotContainer, .toast-container {
+            display: none !important;
+        }
+        #receiptCard {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script src="~/lib/canvas-confetti/confetti.browser.min.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (!Model.IsRefunded)
+            {
+                <text>
+                if (window.confetti) {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+                </text>
+            }
+        });
+    </script>
+}

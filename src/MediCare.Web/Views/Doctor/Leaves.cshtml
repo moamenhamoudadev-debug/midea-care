@@ -1,0 +1,227 @@
+@model MediCare.Web.ViewModels.DoctorLeavesViewModel
+@{
+    ViewData["Title"] = "Manage Leaves & Absences";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item"><a asp-action="Schedule">Doctor Schedule</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Leaves & Absences</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 reveal">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-x-fill text-primary"></i> Doctor Leaves & Absence Manager
+        </h2>
+        <p class="text-secondary mb-0">Record vacations and medical leaves. The slot engine dynamically excludes leave dates from booking availability.</p>
+    </div>
+    <div>
+        <a asp-action="Schedule" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Weekly Schedule
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert" style="background-color: #ECFDF5; border-left: 4px solid #10B981 !important; color: #065F46;">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div class="flex-grow-1">
+            <strong>Success:</strong> @TempData["SuccessMessage"]
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert" style="background-color: #FFFBEB; border-left: 4px solid #F59E0B !important; color: #92400E;">
+        <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+        <div class="flex-grow-1">
+            <strong>Scheduling Notice:</strong> @TempData["WarningMessage"]
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert" style="background-color: #FEF2F2; border-left: 4px solid #EF4444 !important; color: #991B1B;">
+        <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+        <div class="flex-grow-1">
+            <strong>Error:</strong> @TempData["ErrorMessage"]
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Model.ConflictWarnings != null && Model.ConflictWarnings.Any())
+{
+    <div class="card border-warning mb-4 shadow-sm border-0">
+        <div class="card-header bg-warning-subtle text-dark py-3 fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-circle-fill text-warning"></i> Appointments Impacted by Recently Registered Leave (@Model.ConflictWarnings.Count)
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Appointments affected by doctor leave</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Appt #</th>
+                            <th scope="col">Date & Time</th>
+                            <th scope="col">Patient Name</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var conflict in Model.ConflictWarnings)
+                        {
+                            <tr>
+                                <td class="fw-bold">#@conflict.AppointmentId</td>
+                                <td>@conflict.FormattedSlot</td>
+                                <td>@conflict.PatientName</td>
+                                <td>
+                                    <span class="badge bg-secondary">@conflict.Status</span>
+                                </td>
+                                <td>
+                                    <span class="text-warning-emphasis small fw-medium">
+                                        Please contact patient or reschedule visit.
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Active Leaves Table -->
+    <div class="col-lg-7 reveal reveal-delay-1">
+        <div class="card bg-white shadow-sm h-100 border-0">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar2-range text-primary"></i> Registered Leaves & Absences
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Leaves.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <caption class="visually-hidden">Recorded doctor leave periods</caption>
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Period</th>
+                                    <th scope="col">Duration</th>
+                                    <th scope="col">Reason</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var leave in Model.Leaves)
+                                {
+                                    var days = (leave.EndDate.Date - leave.StartDate.Date).Days + 1;
+                                    var isUpcomingOrActive = leave.EndDate.Date >= DateTime.Today;
+                                    <tr>
+                                        <td>
+                                            <span class="fw-semibold text-dark">@leave.StartDate.ToString("MMM dd, yyyy")</span>
+                                            <span class="text-muted"> to </span>
+                                            <span class="fw-semibold text-dark">@leave.EndDate.ToString("MMM dd, yyyy")</span>
+                                            @if (isUpcomingOrActive)
+                                            {
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle ms-1">Active/Upcoming</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary-subtle text-secondary ms-1">Past</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">@days @(days == 1 ? "day" : "days")</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted small">@(string.IsNullOrEmpty(leave.Reason) ? "No reason specified" : leave.Reason)</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <form asp-action="DeleteLeave" asp-route-id="@leave.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this leave?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel Leave">
+                                                    <i class="bi bi-trash3"></i> Cancel
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-calendar-check text-secondary opacity-50 fs-1 d-block mb-2"></i>
+                        <p class="mb-0">No leaves recorded. You are active on all scheduled clinic days.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Leave Form -->
+    <div class="col-lg-5 reveal reveal-delay-2">
+        <div class="card bg-white shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-plus text-primary"></i> Schedule New Leave
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="AddLeave" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3 border-0"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="NewLeave.StartDate" class="form-label fw-semibold">Leave Start Date</label>
+                        <input asp-for="NewLeave.StartDate" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="NewLeave.StartDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NewLeave.EndDate" class="form-label fw-semibold">Leave End Date</label>
+                        <input asp-for="NewLeave.EndDate" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="NewLeave.EndDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NewLeave.Reason" class="form-label fw-semibold">Reason / Clinical Notes (Optional)</label>
+                        <textarea asp-for="NewLeave.Reason" class="form-control" rows="3" placeholder="e.g. Annual Medical Conference, Personal vacation..."></textarea>
+                        <span asp-validation-for="NewLeave.Reason" class="text-danger small"></span>
+                    </div>
+
+                    <div class="alert alert-info py-2 small mb-3 border-0" style="background-color: #EFF6FF; color: #1E40AF;">
+                        <i class="bi bi-info-circle me-1"></i> Leaves cannot be scheduled if active appointments are booked in that period. Please reschedule or cancel conflicting bookings first.
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                        <i class="bi bi-calendar2-check"></i> Register Leave Period
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

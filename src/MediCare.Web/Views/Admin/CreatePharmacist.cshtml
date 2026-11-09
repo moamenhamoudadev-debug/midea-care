@@ -1,0 +1,83 @@
+@model MediCare.Web.ViewModels.CreatePharmacistViewModel
+@{
+    ViewData["Title"] = "Create Pharmacist Account";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="bi bi-capsule fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Create Pharmacist Account</h5>
+                            <span class="text-muted small">Create a pharmacist account for the project demo</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CreatePharmacist" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-semibold small text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                                <input asp-for="FullName" class="form-control border-start-0" placeholder="e.g. Dr. Ahmed Farouk" />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold small text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control border-start-0" placeholder="pharmacist@medicare.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold small text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-key"></i></span>
+                                <input asp-for="Password" class="form-control border-start-0" placeholder="Min. 8 chars (letters, digits, symbol)" />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                            <div class="form-text small text-muted">
+                                <i class="bi bi-shield-check text-success"></i> Temporary password will mandate password change upon initial login.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold small text-muted"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-key-fill"></i></span>
+                                <input asp-for="ConfirmPassword" class="form-control border-start-0" placeholder="Re-type temporary password" />
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
+                                <i class="bi bi-plus-circle me-1"></i> Create Pharmacist
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0066F5"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="60" fill="url(#avatarGrad)"/>
+  <!-- Doctor Stethoscope & Body Silhouette -->
+  <circle cx="60" cy="45" r="20" fill="#FFFFFF"/>
+  <path d="M 28 98 C 28 76, 42 70, 60 70 C 78 70, 92 76, 92 98 Z" fill="#F8FAFC"/>
+  <!-- Stethoscope Details -->
+  <path d="M 50 68 C 50 82, 70 82, 70 68" stroke="#0066F5" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <circle cx="60" cy="85" r="5" fill="#10B981"/>
+</svg>

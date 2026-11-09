@@ -1,0 +1,307 @@
+openapi: 3.0.3
+info:
+  title: MediCare Internal AJAX API
+  description: Internal REST/JSON endpoints utilized by MediCare Razor Views, FullCalendar.js, and SignalR synchronization.
+  version: 1.0.0
+servers:
+  - url: https://localhost:7050
+    description: Local HTTPS profile; use the port configured in launchSettings.json
+
+paths:
+  /api/calendar/slots:
+    get:
+      summary: Get available 30-minute doctor slots
+      description: Computes unreserved appointment slots for a specific doctor on a selected date.
+      operationId: getAvailableSlots
+      parameters:
+        - name: doctorId
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 5
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2026-11-15"
+      responses:
+        '200':
+          description: List of calculated 30-minute intervals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotsResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Doctor not found or pending approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/calendar/doctor-events:
+    get:
+      summary: Get scheduled events for doctor calendar
+      description: Returns scheduled appointments formatted for FullCalendar.js for the authenticated doctor.
+      operationId: getDoctorEvents
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Array of calendar events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorEventsResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (Doctor role required)
+
+  /api/appointments/check-conflict:
+    post:
+      summary: Pre-check slot conflict before booking
+      description: Verifies whether a candidate slot is currently free before opening the confirmation modal.
+      operationId: checkSlotConflict
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConflictCheckRequest'
+      responses:
+        '200':
+          description: Slot is available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictCheckResponse'
+        '409':
+          description: Slot is already reserved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/notifications/unread:
+    get:
+      summary: Retrieve unread notifications
+      description: Fetches persisted unread notifications for the currently logged-in user.
+      operationId: getUnreadNotifications
+      responses:
+        '200':
+          description: Unread notifications list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsResponse'
+        '401':
+          description: User not authenticated
+
+  /api/notifications/mark-read/{id}:
+    post:
+      summary: Mark a notification as read
+      description: Updates the IsRead status of an owned notification record.
+      operationId: markNotificationAsRead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarkReadResponse'
+        '403':
+          description: Forbidden (Notification belongs to another user)
+
+components:
+  schemas:
+    SlotDto:
+      type: object
+      properties:
+        startTime:
+          type: string
+          example: "09:00:00"
+        endTime:
+          type: string
+          example: "09:30:00"
+        formattedTime:
+          type: string
+          example: "09:00 AM - 09:30 AM"
+        isAvailable:
+          type: boolean
+          example: true
+
+    SlotsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotDto'
+
+    CalendarEventDto:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "101"
+        title:
+          type: string
+          example: "Consultation: Omar Khaled"
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        status:
+          type: string
+          description: "Appointment lifecycle state"
+          enum:
+            - Pending
+            - Confirmed
+            - Completed
+            - Cancelled
+            - Rejected
+            - NoShow
+          example: "Confirmed"
+        color:
+          type: string
+          example: "#198754"
+        url:
+          type: string
+          example: "/Appointments/Details/101"
+
+    DoctorEventsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarEventDto'
+
+    ConflictCheckRequest:
+      type: object
+      required:
+        - doctorId
+        - appointmentDate
+        - startTime
+      properties:
+        doctorId:
+          type: integer
+          example: 5
+        appointmentDate:
+          type: string
+          format: date
+          example: "2026-11-15"
+        startTime:
+          type: string
+          example: "09:30:00"
+
+    ConflictCheckResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            hasConflict:
+              type: boolean
+              example: false
+            message:
+              type: string
+              example: "Slot is available."
+
+    NotificationDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        title:
+          type: string
+          example: "Appointment Confirmed"
+        message:
+          type: string
+          example: "Dr. Ahmed Mahmoud confirmed your appointment."
+        createdAt:
+          type: string
+          format: date-time
+        isRead:
+          type: boolean
+          example: false
+
+    NotificationsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationDto'
+
+    MarkReadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 42
+            isRead:
+              type: boolean
+              example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Primary error description."
+        errors:
+          type: array
+          items:
+            type: string
+          example: ["Validation error detail."]

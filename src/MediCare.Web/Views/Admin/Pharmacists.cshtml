@@ -1,0 +1,121 @@
+@model List<MediCare.Services.DTOs.PharmacistSummaryDto>
+@{
+    ViewData["Title"] = "Pharmacy Staff Management";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-capsule text-primary me-2"></i>Pharmacy Staff Management
+            </h2>
+            <p class="text-muted small mb-0">Manage licensed pharmacists authorized to verify and dispense digital prescriptions.</p>
+        </div>
+        <div>
+            <a asp-action="CreatePharmacist" class="btn btn-primary d-inline-flex align-items-center gap-2 shadow-sm">
+                <i class="bi bi-plus-circle"></i>
+                <span>Add Pharmacist</span>
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <div>@TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>@TempData["ErrorMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">Active Pharmacists (@Model.Count)</h5>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                Role: Pharmacist
+            </span>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Count == 0)
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-capsule display-4 d-block mb-3 text-secondary opacity-50"></i>
+                    <p class="lead mb-2">No pharmacists registered yet.</p>
+                    <p class="small text-muted mb-3">Create the first pharmacist account to enable digital prescription verification and dispensing.</p>
+                    <a asp-action="CreatePharmacist" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i> Add Pharmacist Now
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <caption class="visually-hidden">Active pharmacist accounts</caption>
+                        <thead class="table-light text-secondary small">
+                            <tr>
+                                <th scope="col" class="ps-4">Pharmacist</th>
+                                <th scope="col">Email Address</th>
+                                <th scope="col">Phone Number</th>
+                                <th scope="col">Account Created</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar-initials bg-info-subtle text-info fw-bold rounded-circle d-flex align-items-center justify-content-center"
+                                                 style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                                @(string.IsNullOrWhiteSpace(p.FullName) ? "P" : p.FullName.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold text-dark">@p.FullName</div>
+                                                <span class="badge bg-secondary-subtle text-secondary small">Licensed</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">@p.Email</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">@(string.IsNullOrWhiteSpace(p.PhoneNumber) ? "—" : p.PhoneNumber)</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">@p.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                    </td>
+                                    <td>
+                                        @if (p.IsLockedOut)
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                                                <i class="bi bi-lock-fill me-1"></i> Locked Out
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Active
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

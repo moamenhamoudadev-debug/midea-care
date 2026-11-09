@@ -1,0 +1,115 @@
+@model List<MedicalRecordTimelineDto>
+@{
+    ViewData["Title"] = "My Medical Records & History";
+}
+
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Medical Records</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 reveal">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-journal-medical text-primary"></i> Clinical Consultation History
+        </h2>
+        <p class="text-secondary mb-0">Review past physician diagnoses, clinical visit records, and active digital prescriptions.</p>
+    </div>
+    <div>
+        <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-outline-secondary">
+            <i class="bi bi-calendar-check"></i> View Appointments
+        </a>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row g-4">
+        @foreach (var record in Model)
+        {
+            <div class="col-12 reveal">
+                <div class="card shadow-sm border-0 card-hover-elevate">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                <i class="bi bi-file-earmark-medical me-1"></i> Visit #@record.AppointmentId
+                            </span>
+                            <span class="text-muted small">
+                                <i class="bi bi-calendar2-event me-1"></i> @record.Date.ToString("yyyy-MM-dd") at @DateTime.Today.Add(record.Time).ToString("hh:mm tt")
+                            </span>
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-person-badge text-primary me-1"></i> Dr. @record.DoctorName (@record.Specialization)
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <h5 class="fw-bold text-dark mb-2">
+                                    <span class="text-muted small fw-normal d-block">Primary Diagnosis:</span>
+                                    @record.Diagnosis
+                                </h5>
+
+                                @if (!string.IsNullOrEmpty(record.Symptoms))
+                                {
+                                    <p class="text-secondary mb-2 small">
+                                        <strong>Symptoms:</strong> @record.Symptoms
+                                    </p>
+                                }
+
+                                @if (!string.IsNullOrEmpty(record.VisitNotes))
+                                {
+                                    <p class="text-secondary mb-0 small">
+                                        <strong>Doctor Notes:</strong> @record.VisitNotes
+                                    </p>
+                                }
+                            </div>
+                            <div class="col-md-4 d-flex flex-column justify-content-center align-items-md-end gap-2">
+                                <a asp-action="Details" asp-route-id="@record.Id" class="btn btn-outline-primary btn-sm w-100" style="max-width: 200px;">
+                                    <i class="bi bi-eye"></i> View Full Details
+                                </a>
+
+                                @if (record.PrescriptionId.HasValue)
+                                {
+                                    <a asp-controller="Prescriptions" asp-action="Print" asp-route-id="@record.PrescriptionId.Value" class="btn btn-outline-success btn-sm w-100" style="max-width: 200px;" target="_blank">
+                                        <i class="bi bi-printer"></i> Print Prescription
+                                    </a>
+                                }
+
+                                @if (!string.IsNullOrEmpty(record.AttachmentPath))
+                                {
+                                    <a asp-action="DownloadAttachment" asp-route-id="@record.Id" class="btn btn-outline-secondary btn-sm w-100" style="max-width: 200px;" target="_blank">
+                                        <i class="bi bi-paperclip"></i> View Attachment
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card bg-white shadow-sm border-0">
+        <div class="card-body p-5 text-center text-muted">
+            <div class="mb-3" style="font-size: 3rem;">
+                <i class="bi bi-journal-x text-secondary opacity-50"></i>
+            </div>
+            <h5 class="fw-bold text-dark">No Medical Records Found</h5>
+            <p class="mb-4 text-secondary">You have no completed consultation records or digital prescriptions yet.</p>
+            <a asp-controller="Doctors" asp-action="Index" class="btn btn-primary">
+                <i class="bi bi-search-heart"></i> Find a Doctor
+            </a>
+        </div>
+    </div>
+}

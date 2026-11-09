@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Privacy & Demo Data";
+}
+
+<main class="container py-5" style="max-width: 900px;">
+    <div class="mb-4">
+        <span class="badge rounded-pill text-bg-primary mb-2" data-i18n="privacyDemoBadge">Graduation project demo</span>
+        <h1 class="fw-bold" data-i18n="privacyTitle">Privacy and Demo Data</h1>
+        <p class="text-secondary" data-i18n="privacyIntro">This page explains how information is handled in this educational demonstration.</p>
+    </div>
+
+    <div class="alert alert-warning d-flex gap-2" role="note">
+        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+        <div data-i18n="privacyWarning">Do not enter real medical, identity, or payment-card information. This project is a graduation demonstration, not a live clinic service.</div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+            <section class="mb-4">
+                <h2 class="h5 fw-bold" data-i18n="privacyCollectedTitle">Information entered</h2>
+                <p class="text-secondary mb-0" data-i18n="privacyCollectedBody">The application may store account details, appointment information, profile fields, and clinical notes entered during the demo. Use fictional sample data only.</p>
+            </section>
+            <section class="mb-4">
+                <h2 class="h5 fw-bold" data-i18n="privacyUseTitle">How it is used</h2>
+                <p class="text-secondary mb-0" data-i18n="privacyUseBody">Information is used to demonstrate sign-in, role-based pages, appointment workflows, records, and reports. Demo checkout does not charge a real card.</p>
+            </section>
+            <section class="mb-4">
+                <h2 class="h5 fw-bold" data-i18n="privacyAccessTitle">Access and storage</h2>
+                <p class="text-secondary mb-0" data-i18n="privacyAccessBody">Access is controlled by the application roles. Data is stored in the configured project database and uploaded files may be stored by the application. The exact retention and hosting settings depend on the environment running the demo.</p>
+            </section>
+            <section class="mb-4">
+                <h2 class="h5 fw-bold" data-i18n="privacyAiTitle">AI clinic guide</h2>
+                <p class="text-secondary mb-0" data-i18n="privacyAiBody">When the optional AI connection is configured, only the chatbot message is sent to OpenAI to generate a reply. Do not include real symptoms, names, contact details, records, or other sensitive information. Without the connection, the local keyword-based demo responds instead.</p>
+            </section>
+            <section>
+                <h2 class="h5 fw-bold" data-i18n="privacyContactTitle">Questions or data removal</h2>
+                <p class="text-secondary mb-0" data-i18n="privacyContactBody">For this demonstration, contact the project owner or evaluator who provided access to request removal of demo data. This page is project information and is not a legal privacy notice for a commercial healthcare service.</p>
+            </section>
+        </div>
+    </div>
+</main>
