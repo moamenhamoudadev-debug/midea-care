@@ -1,0 +1,331 @@
+@model MediCare.Web.ViewModels.AdminReviewsViewModel
+@using MediCare.Data.Enums
+@{
+    ViewData["Title"] = "إدارة ومراجعة تقييمات الأطباء (Reviews Moderation)";
+    var reviews = Model.Reviews.Items;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h2 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-primary"></i>
+                    <span>إدارة ومراجعة التقييمات (Reviews Moderation)</span>
+                </h2>
+                <p class="text-muted mb-0">مراقبة نزاهة التقييمات ومراجعة البلاغات وإدارة محتوى العرض التجريبي وفق المعايير الطبية.</p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#purgeDemoModal">
+                    <i class="bi bi-trash3 me-1"></i> حذف البيانات التجريبية (Purge Demo Reviews)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Overview Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block">إجمالي التقييمات المعروضة</span>
+                    <h3 class="fw-bold text-dark mb-0">@Model.Reviews.TotalCount</h3>
+                </div>
+                <div class="rounded-circle bg-primary-subtle text-primary p-3 fs-4">
+                    <i class="bi bi-chat-square-quote"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block">التقييمات المعتمدة (Approved)</span>
+                    <h3 class="fw-bold text-success mb-0">@Model.TotalApprovedReviews</h3>
+                </div>
+                <div class="rounded-circle bg-success-subtle text-success p-3 fs-4">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block">المحجوبة للمراجعة (Hidden)</span>
+                    <h3 class="fw-bold text-danger mb-0">@Model.TotalHiddenReviews</h3>
+                </div>
+                <div class="rounded-circle bg-danger-subtle text-danger p-3 fs-4">
+                    <i class="bi bi-eye-slash"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="text-muted small d-block">مراجعات تجريبية (Demo)</span>
+                    <h3 class="fw-bold text-warning mb-0">@Model.TotalDemoReviews</h3>
+                </div>
+                <div class="rounded-circle bg-warning-subtle text-warning p-3 fs-4">
+                    <i class="bi bi-stars"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Moderation Integrity Policy Banner -->
+<div class="alert alert-light border rounded-4 p-3 mb-4 d-flex align-items-center gap-3">
+    <i class="bi bi-info-circle-fill text-primary fs-3"></i>
+    <div class="small text-muted">
+        <strong class="text-dark">ميثاق نزاهة المراجعات الطبية (Moderation Integrity):</strong>
+        لا يُسمح بحجب المراجعات السلبية فقط لكونها سلبية. يتم الحجب حصراً إذا تضمنت إساءة صريحة، ألفاظاً غير لائقة، أو معلومات مضللة، ويلزم تسجيل سبب التوثيق الإداري لجميع إجراءات الحجب في سجل المراجعة (Audit Trail).
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <span class="small fw-bold text-muted me-2"><i class="bi bi-funnel me-1"></i>الحالة:</span>
+        <a href="?status=" class="btn btn-sm rounded-pill @(Model.StatusFilter == null ? "btn-primary" : "btn-outline-secondary")">
+            جميع المراجعات
+        </a>
+        <a href="?status=@((int)ReviewModerationStatus.Approved)" class="btn btn-sm rounded-pill @(Model.StatusFilter == ReviewModerationStatus.Approved ? "btn-success" : "btn-outline-secondary")">
+            المعتمدة فقط (Approved)
+        </a>
+        <a href="?status=@((int)ReviewModerationStatus.Hidden)" class="btn btn-sm rounded-pill @(Model.StatusFilter == ReviewModerationStatus.Hidden ? "btn-danger" : "btn-outline-secondary")">
+            المحجوبة فقط (Hidden)
+        </a>
+    </div>
+</div>
+
+<!-- Reviews Queue Table -->
+<div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden mb-4">
+    @if (reviews.Count == 0)
+    {
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-clipboard2-check display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold text-dark">لا توجد مراجعات مسجلة في هذه الفئة</h5>
+            <p class="mb-0">جميع التقييمات مفحوصة ومطابقة لمعايير النشر.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>الطبيب (Doctor)</th>
+                        <th>المريض (Patient)</th>
+                        <th>التقييم (Rating)</th>
+                        <th>نص المراجعة (Review Content)</th>
+                        <th>النوع والحالة</th>
+                        <th>التاريخ</th>
+                        <th class="text-end">الإجراءات (Actions)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in reviews)
+                    {
+                        <tr class="@(r.ModerationStatus == ReviewModerationStatus.Hidden ? "table-danger-subtle" : "")">
+                            <td class="text-muted small">@r.Id</td>
+                            <td>
+                                <strong class="text-dark d-block">Dr. @r.DoctorName</strong>
+                                <small class="text-muted">@r.DoctorSpecialization</small>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-light text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                        @r.PatientInitials
+                                    </div>
+                                    <span class="small fw-semibold text-dark">@r.PatientDisplayName</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-warning small text-nowrap">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        <i class="bi @(s <= r.Rating ? "bi-star-fill" : "bi-star text-black-50")"></i>
+                                    }
+                                </div>
+                                <span class="badge bg-light text-dark border small mt-1">@r.Rating / 5</span>
+                            </td>
+                            <td style="max-width: 320px;">
+                                @if (!string.IsNullOrWhiteSpace(r.Title))
+                                {
+                                    <div class="fw-bold text-dark small text-truncate">@r.Title</div>
+                                }
+                                <div class="text-secondary small text-truncate" title="@r.Comment">@r.Comment</div>
+                                @if (!string.IsNullOrWhiteSpace(r.DoctorResponse))
+                                {
+                                    <div class="mt-1 small text-primary fst-italic text-truncate" title="@r.DoctorResponse">
+                                        <i class="bi bi-reply-fill"></i> رد الطبيب: @r.DoctorResponse
+                                    </div>
+                                }
+                                @if (r.ModerationStatus == ReviewModerationStatus.Hidden && !string.IsNullOrWhiteSpace(r.ModerationReason))
+                                {
+                                    <div class="mt-1 small text-danger fw-semibold">
+                                        <i class="bi bi-shield-x"></i> سبب الحجب: @r.ModerationReason
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column gap-1">
+                                    @if (r.IsVerifiedAppointment)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
+                                            <i class="bi bi-patch-check-fill me-1"></i> كشف موثق
+                                        </span>
+                                    }
+                                    @if (r.IsDemo)
+                                    {
+                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill small">
+                                            <i class="bi bi-stars me-1"></i> تجريبي
+                                        </span>
+                                    }
+                                    @if (r.ModerationStatus == ReviewModerationStatus.Approved)
+                                    {
+                                        <span class="badge bg-success text-white rounded-pill small">معتمد</span>
+                                    }
+                                    else if (r.ModerationStatus == ReviewModerationStatus.Hidden)
+                                    {
+                                        <span class="badge bg-danger text-white rounded-pill small">محجوب</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="text-nowrap small text-muted">
+                                <div>@r.FormattedDate</div>
+                                <div style="font-size: 0.75rem;">@r.TimeAgo</div>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                @if (r.ModerationStatus == ReviewModerationStatus.Approved)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="openHideModal(@r.Id, '@Html.Raw(Html.Encode(r.PatientDisplayName))')">
+                                        <i class="bi bi-eye-slash me-1"></i> حجب (Hide)
+                                    </button>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Admin" asp-action="ModerateReview" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="ReviewId" value="@r.Id" />
+                                        <input type="hidden" name="NewStatus" value="@((int)ReviewModerationStatus.Approved)" />
+                                        <input type="hidden" name="Reason" value="Restored by administrator" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                            <i class="bi bi-check-lg me-1"></i> استعادة (Restore)
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Reviews.TotalPages > 1)
+        {
+            <div class="p-3 border-top d-flex justify-content-center">
+                <nav aria-label="Admin reviews pagination">
+                    <ul class="pagination pagination-sm shadow-xs rounded-pill mb-0">
+                        <li class="page-item @(Model.Reviews.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link" href="?status=@((int?)Model.StatusFilter)&page=@(Model.Reviews.PageNumber - 1)">&laquo; السابق</a>
+                        </li>
+                        @for (int p = 1; p <= Model.Reviews.TotalPages; p++)
+                        {
+                            <li class="page-item @(p == Model.Reviews.PageNumber ? "active" : "")">
+                                <a class="page-link" href="?status=@((int?)Model.StatusFilter)&page=@p">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.Reviews.HasNextPage ? "" : "disabled")">
+                            <a class="page-link" href="?status=@((int?)Model.StatusFilter)&page=@(Model.Reviews.PageNumber + 1)">التالي &raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+</div>
+
+<!-- Modal: Hide Review with Mandatory Reason -->
+<div class="modal fade" id="hideReviewModal" tabindex="-1" aria-labelledby="hideReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger d-flex align-items-center gap-2" id="hideReviewModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>حجب مراجعة طبية (Hide Review)</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Admin" asp-action="ModerateReview" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ReviewId" id="hideReviewId" value="0" />
+                <input type="hidden" name="NewStatus" value="@((int)ReviewModerationStatus.Hidden)" />
+
+                <div class="modal-body pt-3">
+                    <p class="text-secondary small mb-3">
+                        سيتم إخفاء المراجعة من الملف العام للطبيب واستبعادها من حساب متوسط التقييم. يلزم توثيق سبب الحجب لأغراض التدقيق الإداري.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">سبب الحجب الإداري (إلزامي): <span class="text-danger">*</span></label>
+                        <textarea name="Reason" class="form-control rounded-3" rows="3" required minlength="5" maxlength="500" placeholder="مثال: انتهاك معايير النشر، ألفاظ غير لائقة، أو معلومات مضللة..."></textarea>
+                        <div class="small text-muted mt-1">الحد الأدنى 5 أحرف. سيتم تسجيل السبب في سجل التدقيق الإداري.</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">تأكيد الحجب</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Purge Demo Reviews Confirmation -->
+<div class="modal fade" id="purgeDemoModal" tabindex="-1" aria-labelledby="purgeDemoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger d-flex align-items-center gap-2" id="purgeDemoModalLabel">
+                    <i class="bi bi-trash3-fill"></i>
+                    <span>تأكيد حذف البيانات التجريبية</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Admin" asp-action="PurgeDemoReviews" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body pt-3">
+                    <p class="text-secondary small mb-2">
+                        هل أنت متأكد من رغبتك في حذف جميع التقييمات والمراجعات المصنفة كـ <strong>بيانات تجريبية (Demo Reviews)</strong>؟
+                    </p>
+                    <div class="alert alert-warning border rounded-3 p-2 small mb-0">
+                        <i class="bi bi-shield-check me-1"></i>
+                        <strong>أمان البيانات الحقيقية:</strong> هذا الإجراء يحذف المراجعات التجريبية المولدة فقط، ولن يمس أي حجوزات أو تقييمات موثقة تخص مرضى حقيقيين.
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">حذف البيانات التجريبية الآن</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openHideModal(reviewId, patientName) {
+        document.getElementById('hideReviewId').value = reviewId;
+        const modal = new bootstrap.Modal(document.getElementById('hideReviewModal'));
+        modal.show();
+    }
+</script>

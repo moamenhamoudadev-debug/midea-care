@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using FluentAssertions;
 using MediCare.Web.Controllers;
 using Microsoft.AspNetCore.Authorization;
@@ -45,7 +45,10 @@ public class ControllerAuthorizationTests
         "PaymentApiController.PaymobWebhook",
 
         // Paymob browser return is informational and does not confirm payment
-        "PaymentApiController.PaymobReturn"
+        "PaymentApiController.PaymobReturn",
+
+        // Public doctor reviews catalog view
+        "DoctorReviewsController.ListPartial"
     };
 
     private static IEnumerable<Type> GetControllerTypes()

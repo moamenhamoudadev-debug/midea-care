@@ -1,0 +1,542 @@
+@model MediCare.Services.DTOs.DoctorReviewsHubDto
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+
+@{
+    var tokens = Xsrf.GetAndStoreTokens(Context);
+    var summary = Model?.Summary ?? new MediCare.Services.DTOs.DoctorRatingSummaryDto();
+    var reviews = Model?.Reviews?.Items ?? new List<MediCare.Services.DTOs.DoctorReviewDto>();
+    var pageResult = Model?.Reviews ?? new MediCare.Services.Common.PagedResult<MediCare.Services.DTOs.DoctorReviewDto>();
+    var doctorId = summary.DoctorId;
+}
+
+<div id="reviews-section" class="reviews-hub-container mt-4">
+    <!-- Section Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-star-fill text-warning"></i>
+                <span>تقييمات وآراء المرضى (Patient Reviews & Ratings)</span>
+            </h4>
+            <p class="text-muted small mb-0">تقييمات موثقة وتجارب حقيقية لمرضى العيادة</p>
+        </div>
+
+        @if (Model != null && Model.IsAuthenticated && Model.IsPatient)
+        {
+            @if (Model.CanSubmitReview)
+            {
+                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                    <i class="bi bi-pencil-square"></i>
+                    <span>أضف تقييمك (Write a Review)</span>
+                </button>
+            }
+            else
+            {
+                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small" title="يمكن فقط للمرضى الذين أكملوا كشفاً مع هذا الطبيب كتابة تقييم موثق">
+                    <i class="bi bi-info-circle me-1"></i> التقييم متاح بعد إتمام كشفك مع الطبيب
+                </span>
+            }
+        }
+        else if (Model != null && !Model.IsAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-primary rounded-pill px-4 py-2 small fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول لكتابة تقييم
+            </a>
+        }
+    </div>
+
+    <!-- Rating Summary Dashboard Card -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+        <div class="row g-4 align-items-center">
+            <!-- Overall Score & Stars -->
+            <div class="col-md-4 text-center border-md-end">
+                <div class="display-3 fw-bolder text-dark mb-1">
+                    @(summary.AverageRating > 0 ? summary.AverageRating.ToString("0.0") : "0.0")
+                </div>
+                <div class="d-flex justify-content-center gap-1 mb-2 fs-5 text-warning">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (summary.AverageRating >= i)
+                        {
+                            <i class="bi bi-star-fill"></i>
+                        }
+                        else if (summary.AverageRating >= i - 0.5)
+                        {
+                            <i class="bi bi-star-half"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-star text-black-50"></i>
+                        }
+                    }
+                </div>
+                <div class="text-muted fw-semibold">
+                    <span>من 5 نجوم (Based on @summary.TotalReviewsCount reviews)</span>
+                </div>
+                @if (summary.VerifiedReviewsCount > 0)
+                {
+                    <div class="mt-2">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small">
+                            <i class="bi bi-patch-check-fill me-1"></i> @summary.VerifiedReviewsCount كشف مؤكد
+                        </span>
+                    </div>
+                }
+            </div>
+
+            <!-- Rating Breakdown Progress Bars -->
+            <div class="col-md-8">
+                <div class="rating-breakdown-list d-flex flex-column gap-2">
+                    <!-- 5 Stars -->
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rating-bar-label small text-muted text-nowrap" style="min-width: 65px;">
+                            <span>5 نجوم</span> <i class="bi bi-star-fill text-warning ms-1" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px; background-color: #f1f5f9;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.FiveStarPercentage%;" aria-valuenow="@summary.FiveStarPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="rating-bar-count small text-muted text-end" style="min-width: 65px;">
+                            <span class="fw-semibold text-dark">@summary.FiveStarCount</span> (@summary.FiveStarPercentage%)
+                        </div>
+                    </div>
+
+                    <!-- 4 Stars -->
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rating-bar-label small text-muted text-nowrap" style="min-width: 65px;">
+                            <span>4 نجوم</span> <i class="bi bi-star-fill text-warning ms-1" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px; background-color: #f1f5f9;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.FourStarPercentage%;" aria-valuenow="@summary.FourStarPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="rating-bar-count small text-muted text-end" style="min-width: 65px;">
+                            <span class="fw-semibold text-dark">@summary.FourStarCount</span> (@summary.FourStarPercentage%)
+                        </div>
+                    </div>
+
+                    <!-- 3 Stars -->
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rating-bar-label small text-muted text-nowrap" style="min-width: 65px;">
+                            <span>3 نجوم</span> <i class="bi bi-star-fill text-warning ms-1" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px; background-color: #f1f5f9;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.ThreeStarPercentage%;" aria-valuenow="@summary.ThreeStarPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="rating-bar-count small text-muted text-end" style="min-width: 65px;">
+                            <span class="fw-semibold text-dark">@summary.ThreeStarCount</span> (@summary.ThreeStarPercentage%)
+                        </div>
+                    </div>
+
+                    <!-- 2 Stars -->
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rating-bar-label small text-muted text-nowrap" style="min-width: 65px;">
+                            <span>نجمتان</span> <i class="bi bi-star-fill text-warning ms-1" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px; background-color: #f1f5f9;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.TwoStarPercentage%;" aria-valuenow="@summary.TwoStarPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="rating-bar-count small text-muted text-end" style="min-width: 65px;">
+                            <span class="fw-semibold text-dark">@summary.TwoStarCount</span> (@summary.TwoStarPercentage%)
+                        </div>
+                    </div>
+
+                    <!-- 1 Star -->
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rating-bar-label small text-muted text-nowrap" style="min-width: 65px;">
+                            <span>نجمة 1</span> <i class="bi bi-star-fill text-warning ms-1" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px; background-color: #f1f5f9;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.OneStarPercentage%;" aria-valuenow="@summary.OneStarPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="rating-bar-count small text-muted text-end" style="min-width: 65px;">
+                            <span class="fw-semibold text-dark">@summary.OneStarCount</span> (@summary.OneStarPercentage%)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Sort Toolbar -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <!-- Filter Pills -->
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="small fw-bold text-muted me-1"><i class="bi bi-funnel me-1"></i>تصفية:</span>
+                <a href="?rating=&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-sm rounded-pill @(Model?.SelectedRatingFilter == null ? "btn-primary" : "btn-outline-secondary")">
+                    الكل (@summary.TotalReviewsCount)
+                </a>
+                <a href="?rating=5&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-sm rounded-pill @(Model?.SelectedRatingFilter == 5 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">
+                    5 نجوم (@summary.FiveStarCount)
+                </a>
+                <a href="?rating=4&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-sm rounded-pill @(Model?.SelectedRatingFilter == 4 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">
+                    4 نجوم (@summary.FourStarCount)
+                </a>
+                <a href="?rating=3&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-sm rounded-pill @(Model?.SelectedRatingFilter == 3 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">
+                    3 نجوم (@summary.ThreeStarCount)
+                </a>
+                <a href="?rating=2&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-sm rounded-pill @(Model?.SelectedRatingFilter == 2 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">
+                    نجمتان (@summary.TwoStarCount)
+                </a>
+                <a href="?rating=1&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-sm rounded-pill @(Model?.SelectedRatingFilter == 1 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">
+                    نجمة (@summary.OneStarCount)
+                </a>
+            </div>
+
+            <!-- Sorting Select -->
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <label for="reviewSortSelect" class="small fw-semibold text-muted text-nowrap mb-0">ترتيب حسب:</label>
+                <select id="reviewSortSelect" class="form-select form-select-sm rounded-pill" style="min-width: 150px;" onchange="location.href='?rating=@Model?.SelectedRatingFilter&sort=' + this.value + '#reviews-section'">
+                    <option value="recent" selected="@(Model?.CurrentSortBy == "recent")">الأحدث (Most Recent)</option>
+                    <option value="highest" selected="@(Model?.CurrentSortBy == "highest")">الأعلى تقييماً (Highest)</option>
+                    <option value="lowest" selected="@(Model?.CurrentSortBy == "lowest")">الأقل تقييماً (Lowest)</option>
+                    <option value="helpful" selected="@(Model?.CurrentSortBy == "helpful")">الأكثر إفادة (Most Helpful)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews List -->
+    @if (reviews.Count == 0)
+    {
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-5 text-center mb-4">
+            <div class="text-muted display-4 mb-3"><i class="bi bi-chat-square-text"></i></div>
+            <h5 class="fw-bold text-dark">لا توجد مراجعات مطابقة</h5>
+            <p class="text-muted mb-3">لم يتم العثور على تقييمات مطابقة لخيارات التصفية المختارة.</p>
+            @if (Model?.SelectedRatingFilter != null)
+            {
+                <div>
+                    <a href="?rating=&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-outline-primary rounded-pill btn-sm">
+                        عرض جميع التقييمات
+                    </a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3 mb-4">
+            @foreach (var r in reviews)
+            {
+                <div class="card border-0 shadow-sm rounded-4 bg-white p-4 review-card" id="review-@r.Id">
+                    <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                        <!-- Patient Header -->
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-xs" style="width: 46px; height: 46px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); font-size: 1.05rem;">
+                                @r.PatientInitials
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">@r.PatientDisplayName</h6>
+                                <div class="d-flex align-items-center flex-wrap gap-2 mt-1">
+                                    <div class="text-warning small">
+                                        @for (int s = 1; s <= 5; s++)
+                                        {
+                                            <i class="bi @(s <= r.Rating ? "bi-star-fill" : "bi-star text-black-50")"></i>
+                                        }
+                                    </div>
+                                    <span class="text-muted small">&bull; @r.FormattedDate</span>
+                                    <span class="text-muted small" style="font-size: 0.78rem;">(@r.TimeAgo)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Badges -->
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            @if (r.IsVerifiedAppointment)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small">
+                                    <i class="bi bi-patch-check-fill me-1"></i> كشف مؤكد (Verified Visit)
+                                </span>
+                            }
+                            @if (r.IsDemo)
+                            {
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 rounded-pill small" title="تقييم استرشادي ضمن بيئة العرض التجريبية">
+                                    <i class="bi bi-info-circle me-1"></i> تجريبي (Demo Review)
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Review Title & Content -->
+                    <div class="mt-2">
+                        @if (!string.IsNullOrWhiteSpace(r.Title))
+                        {
+                            <h6 class="fw-bold text-dark mb-2">@r.Title</h6>
+                        }
+                        <p class="text-secondary mb-3 lh-base" style="font-size: 0.96rem; white-space: pre-line;">@r.Comment</p>
+                    </div>
+
+                    <!-- Review Actions: Helpful Button -->
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1 helpful-btn @(r.HasUserVotedHelpful ? "btn-primary text-white" : "btn-outline-secondary")" data-review-id="@r.Id" onclick="voteHelpful(@r.Id, this)">
+                            <i class="bi @(r.HasUserVotedHelpful ? "bi-hand-thumbs-up-fill" : "bi-hand-thumbs-up")"></i>
+                            <span class="helpful-label">مفيد</span>
+                            <span class="badge @(r.HasUserVotedHelpful ? "bg-white text-primary" : "bg-light text-dark") rounded-pill ms-1 helpful-count">@r.HelpfulCount</span>
+                        </button>
+
+                        <small class="text-muted" style="font-size: 0.78rem;">
+                            <i class="bi bi-shield-check text-success me-1"></i> مراجعة خاضعة لإرشادات النشر الطبية
+                        </small>
+                    </div>
+
+                    <!-- Doctor Response Box -->
+                    @if (!string.IsNullOrWhiteSpace(r.DoctorResponse))
+                    {
+                        <div class="mt-3 p-3 rounded-4 bg-light border-start border-4 border-primary">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-reply-fill text-primary fs-5"></i>
+                                    <span class="fw-bold text-dark small">رد الطبيب (Dr. @(string.IsNullOrEmpty(r.DoctorName) ? "Doctor" : r.DoctorName))</span>
+                                </div>
+                                @if (r.DoctorResponseDateUtc.HasValue)
+                                {
+                                    <small class="text-muted" style="font-size: 0.78rem;">@r.DoctorResponseDateUtc.Value.ToString("MMM dd, yyyy")</small>
+                                }
+                            </div>
+                            <p class="text-secondary small mb-0 lh-base" style="white-space: pre-line;">@r.DoctorResponse</p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Pagination Controls -->
+        @if (pageResult.TotalPages > 1)
+        {
+            <div class="d-flex justify-content-center mb-4">
+                <nav aria-label="Review pagination">
+                    <ul class="pagination pagination-sm shadow-xs rounded-pill">
+                        <li class="page-item @(pageResult.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link" href="?rating=@Model?.SelectedRatingFilter&sort=@Model?.CurrentSortBy&page=@(pageResult.PageNumber - 1)#reviews-section" aria-label="Previous">
+                                <span aria-hidden="true">&laquo; السابق</span>
+                            </a>
+                        </li>
+                        @for (int p = 1; p <= pageResult.TotalPages; p++)
+                        {
+                            <li class="page-item @(p == pageResult.PageNumber ? "active" : "")">
+                                <a class="page-link" href="?rating=@Model?.SelectedRatingFilter&sort=@Model?.CurrentSortBy&page=@p#reviews-section">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(pageResult.HasNextPage ? "" : "disabled")">
+                            <a class="page-link" href="?rating=@Model?.SelectedRatingFilter&sort=@Model?.CurrentSortBy&page=@(pageResult.PageNumber + 1)#reviews-section" aria-label="Next">
+                                <span aria-hidden="true">التالي &raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+</div>
+
+<!-- ========================================== -->
+<!-- Modal: Write a Verified Patient Review -->
+<!-- ========================================== -->
+@if (Model != null && Model.IsAuthenticated && Model.IsPatient && Model.CanSubmitReview)
+{
+    <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="writeReviewModalLabel">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span>كتابة تقييم موثق للزيارة</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="DoctorReviews" asp-action="Submit" method="post" id="submitReviewForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="DoctorId" value="@doctorId" />
+                    
+                    <div class="modal-body pt-3">
+                        <div class="alert alert-success-subtle border border-success-subtle rounded-3 small p-2 mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check fs-5 text-success"></i>
+                            <div>
+                                <strong>كشف مؤكد عبر MediCare</strong>
+                                <div>يتم توثيق تقييمك وربطه بزيارتك المكتملة لضمان مصداقية التقييمات.</div>
+                            </div>
+                        </div>
+
+                        <!-- Appointment Selector -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">اختر موعد الكشف المكتمل المراد تقييمه: <span class="text-danger">*</span></label>
+                            <select name="AppointmentId" class="form-select rounded-3" required>
+                                @foreach (var appt in Model.EligibleAppointments)
+                                {
+                                    <option value="@appt.AppointmentId">@appt.FormattedAppointmentDate</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Star Rating Selector -->
+                        <div class="mb-3 text-center p-3 bg-light rounded-3">
+                            <label class="form-label fw-bold d-block text-dark mb-2">ما هو تقييمك الإجمالي للتجربة؟ <span class="text-danger">*</span></label>
+                            <div class="rating-stars-input d-flex justify-content-center gap-2 fs-2 text-muted" id="starRatingContainer" style="cursor: pointer;">
+                                <i class="bi bi-star text-warning" data-val="1"></i>
+                                <i class="bi bi-star text-warning" data-val="2"></i>
+                                <i class="bi bi-star text-warning" data-val="3"></i>
+                                <i class="bi bi-star text-warning" data-val="4"></i>
+                                <i class="bi bi-star text-warning" data-val="5"></i>
+                            </div>
+                            <input type="hidden" name="Rating" id="ratingInput" value="5" required />
+                            <div class="small fw-semibold text-warning mt-1" id="ratingLabelDisplay">5 نجوم - تجربة ممتازة</div>
+                        </div>
+
+                        <!-- Optional Review Title -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">عنوان التقييم (اختياري):</label>
+                            <input type="text" name="Title" class="form-control rounded-3" placeholder="مثال: استماع دقيق وتشخيص ممتاز" maxlength="100" />
+                        </div>
+
+                        <!-- Review Comment -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">تفاصيل تجربتك مع الطبيب: <span class="text-danger">*</span></label>
+                            <textarea name="Comment" id="reviewCommentTextarea" class="form-control rounded-3" rows="4" required minlength="5" maxlength="2000" placeholder="شارك تفاصيل زيارتك باحترام وموضوعية (تواصل الطبيب، الشرح الطبي، تنظيم العيادة، أوقات الانتظار)..."></textarea>
+                            <div class="d-flex justify-content-between text-muted small mt-1">
+                                <span>الحد الأدنى 5 أحرف</span>
+                                <span id="charCount">0 / 2000</span>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Display Name -->
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small text-dark">اسم العرض للتقييم (اختياري لحماية الخصوصية):</label>
+                            <input type="text" name="PatientDisplayName" class="form-control rounded-3" placeholder="اتركه فارغاً لعرض اسمك الأول مع أول حرف من اسم العائلة" maxlength="150" />
+                            <small class="text-muted" style="font-size: 0.78rem;">سيتم إخفاء هويتك الكاملة تلقائياً للحفاظ على خصوصيتك الطبية.</small>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" id="submitReviewBtn">
+                            <span class="normal-state"><i class="bi bi-send-fill me-1"></i> إرسال التقييم</span>
+                            <span class="loading-state d-none"><span class="spinner-border spinner-border-sm me-1"></span> جاري الإرسال...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    // Star Rating Click & Hover Interactive Logic
+    document.addEventListener("DOMContentLoaded", function () {
+        const starContainer = document.getElementById("starRatingContainer");
+        const ratingInput = document.getElementById("ratingInput");
+        const ratingLabel = document.getElementById("ratingLabelDisplay");
+
+        const ratingLabels = {
+            1: "1 نجمة - تجربة غير مرضية",
+            2: "نجمتان - تجربة بحاجة لتحسين",
+            3: "3 نجوم - تجربة مقبولة / متوسطة",
+            4: "4 نجوم - تجربة جيدة جداً",
+            5: "5 نجوم - تجربة ممتازة ومثالية"
+        };
+
+        if (starContainer && ratingInput) {
+            const stars = starContainer.querySelectorAll("i");
+
+            function updateStars(val) {
+                stars.forEach(s => {
+                    const sVal = parseInt(s.getAttribute("data-val"));
+                    if (sVal <= val) {
+                        s.classList.remove("bi-star");
+                        s.classList.add("bi-star-fill");
+                    } else {
+                        s.classList.remove("bi-star-fill");
+                        s.classList.add("bi-star");
+                    }
+                });
+                if (ratingLabel && ratingLabels[val]) {
+                    ratingLabel.innerText = ratingLabels[val];
+                }
+            }
+
+            stars.forEach(s => {
+                s.addEventListener("click", function () {
+                    const val = parseInt(this.getAttribute("data-val"));
+                    ratingInput.value = val;
+                    updateStars(val);
+                });
+                s.addEventListener("mouseenter", function () {
+                    const val = parseInt(this.getAttribute("data-val"));
+                    updateStars(val);
+                });
+            });
+
+            starContainer.addEventListener("mouseleave", function () {
+                const curVal = parseInt(ratingInput.value) || 5;
+                updateStars(curVal);
+            });
+
+            // Initialize 5 stars
+            updateStars(5);
+        }
+
+        // Live Character Counter
+        const commentArea = document.getElementById("reviewCommentTextarea");
+        const charCount = document.getElementById("charCount");
+        if (commentArea && charCount) {
+            commentArea.addEventListener("input", function () {
+                charCount.innerText = this.value.length + " / 2000";
+            });
+        }
+    });
+
+    // AJAX Helpful Vote Handler
+    function voteHelpful(reviewId, btnElement) {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '@tokens.RequestToken';
+
+        fetch('/DoctorReviews/Helpful/' + reviewId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            if (data.success) {
+                const countSpan = btnElement.querySelector('.helpful-count');
+                const icon = btnElement.querySelector('i');
+                if (countSpan) countSpan.innerText = data.helpfulCount;
+
+                if (data.hasVoted) {
+                    btnElement.classList.remove('btn-outline-secondary');
+                    btnElement.classList.add('btn-primary', 'text-white');
+                    if (icon) {
+                        icon.classList.remove('bi-hand-thumbs-up');
+                        icon.classList.add('bi-hand-thumbs-up-fill');
+                    }
+                    if (countSpan) {
+                        countSpan.classList.remove('bg-light', 'text-dark');
+                        countSpan.classList.add('bg-white', 'text-primary');
+                    }
+                } else {
+                    btnElement.classList.remove('btn-primary', 'text-white');
+                    btnElement.classList.add('btn-outline-secondary');
+                    if (icon) {
+                        icon.classList.remove('bi-hand-thumbs-up-fill');
+                        icon.classList.add('bi-hand-thumbs-up');
+                    }
+                    if (countSpan) {
+                        countSpan.classList.remove('bg-white', 'text-primary');
+                        countSpan.classList.add('bg-light', 'text-dark');
+                    }
+                }
+            } else {
+                alert(data.message || 'Unable to update vote.');
+            }
+        })
+        .catch(err => {
+            console.error('Error voting helpful:', err);
+        });
+    }
+</script>

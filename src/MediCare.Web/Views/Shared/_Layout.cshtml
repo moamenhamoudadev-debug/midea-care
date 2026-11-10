@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -82,6 +82,11 @@
                                     <i class="bi bi-clipboard2-pulse"></i> <span data-i18n="appointments">Appointments</span>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Doctor" asp-action="Reviews">
+                                    <i class="bi bi-star"></i> <span>Reviews</span>
+                                </a>
+                            </li>
                         }
                         @if (User.IsInRole("Patient"))
                         {
@@ -141,6 +146,11 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Admin" asp-action="Payments">
                                     <i class="bi bi-wallet2"></i> <span data-i18n="adminPaymentsNav">Financials</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Reviews">
+                                    <i class="bi bi-star-half"></i> <span>Reviews</span>
                                 </a>
                             </li>
                         }

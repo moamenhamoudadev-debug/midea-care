@@ -24,6 +24,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationOutbox> NotificationOutbox => Set<NotificationOutbox>();
+    public DbSet<DoctorReview> DoctorReviews => Set<DoctorReview>();
+    public DbSet<DoctorReviewHelpfulVote> DoctorReviewHelpfulVotes => Set<DoctorReviewHelpfulVote>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

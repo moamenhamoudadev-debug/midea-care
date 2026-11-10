@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         // Application Business Services
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IDoctorService, DoctorService>();
+        services.AddScoped<IDoctorReviewService, DoctorReviewService>();
         services.AddScoped<IScheduleService, ScheduleService>();
         services.AddScoped<ISlotEngineService, SlotEngineService>();
         services.AddScoped<INotificationService, NotificationService>();

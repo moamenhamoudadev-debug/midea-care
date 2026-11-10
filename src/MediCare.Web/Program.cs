@@ -262,6 +262,16 @@ var app = builder.Build();
 // Run DbInitializer seed data on startup
 await DbInitializer.InitializeAsync(app.Services);
 
+// Seed demo doctor reviews (idempotent; only in Development/Demo mode)
+using (var scope = app.Services.CreateScope())
+{
+    var reviewService = scope.ServiceProvider.GetService<IDoctorReviewService>();
+    if (reviewService != null)
+    {
+        await reviewService.SeedDemoReviewsAsync();
+    }
+}
+
 // Guarded one-time migration switch for legacy wwwroot attachments
 if (args.Contains("--migrate-attachments"))
 {
@@ -336,4 +346,5 @@ app.MapControllerRoute(
 app.Run();
 
 public partial class Program { }
+
 

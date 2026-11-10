@@ -15,17 +15,20 @@ public class DoctorController : Controller
     private readonly IScheduleService _scheduleService;
     private readonly IDoctorService _doctorService;
     private readonly IAppointmentService _appointmentService;
+    private readonly IDoctorReviewService _doctorReviewService;
     private readonly ILogger<DoctorController> _logger;
 
     public DoctorController(
         IScheduleService scheduleService,
         IDoctorService doctorService,
         IAppointmentService appointmentService,
+        IDoctorReviewService doctorReviewService,
         ILogger<DoctorController> logger)
     {
         _scheduleService = scheduleService;
         _doctorService = doctorService;
         _appointmentService = appointmentService;
+        _doctorReviewService = doctorReviewService;
         _logger = logger;
     }
 
@@ -316,5 +319,65 @@ public class DoctorController : Controller
         }
 
         return RedirectToAction(nameof(Appointments));
+    }
+
+    [HttpGet("/Doctor/Reviews")]
+    public async Task<IActionResult> Reviews(
+        [FromQuery] int? rating,
+        [FromQuery] string? sort,
+        [FromQuery] int page = 1)
+    {
+        var doctor = await GetCurrentDoctorAsync();
+        if (doctor == null)
+        {
+            return Forbid();
+        }
+
+        var summary = await _doctorReviewService.GetDoctorRatingSummaryAsync(doctor.Id);
+        var reviews = await _doctorReviewService.GetDoctorReviewsAsync(new DoctorReviewsQueryDto
+        {
+            DoctorId = doctor.Id,
+            RatingFilter = rating,
+            SortBy = sort ?? "recent",
+            PageNumber = page,
+            PageSize = 10,
+            CurrentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+        });
+
+        var model = new DoctorPortalReviewsViewModel
+        {
+            Doctor = doctor,
+            Summary = summary,
+            Reviews = reviews,
+            RatingFilter = rating,
+            SortBy = sort ?? "recent"
+        };
+
+        return View(model);
+    }
+
+    [HttpPost("/Doctor/ReplyToReview")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReplyToReview(DoctorReplyReviewDto dto)
+    {
+        var doctor = await GetCurrentDoctorAsync();
+        if (doctor == null)
+        {
+            return Forbid();
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var result = await _doctorReviewService.DoctorReplyAsync(dto, userId);
+
+        if (result.IsSuccess)
+        {
+            TempData["SuccessMessage"] = "Your response has been published successfully.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = result.Error ?? "Failed to publish response.";
+        }
+
+        return RedirectToAction(nameof(Reviews));
     }
 }
