@@ -1,4 +1,4 @@
-@model MediCare.Services.DTOs.DoctorReviewsHubDto
+﻿@model MediCare.Services.DTOs.DoctorReviewsHubDto
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
 
 @{
@@ -15,9 +15,9 @@
         <div>
             <h4 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
                 <i class="bi bi-star-fill text-warning"></i>
-                <span>تقييمات وآراء المرضى (Patient Reviews & Ratings)</span>
+                <span data-i18n="reviewsSectionHeader">تقييمات وآراء المرضى</span>
             </h4>
-            <p class="text-muted small mb-0">تقييمات موثقة وتجارب حقيقية لمرضى العيادة</p>
+            <p class="text-muted small mb-0" data-i18n="reviewsSectionSub">تقييمات موثقة وتجارب حقيقية لمرضى العيادة</p>
         </div>
 
         @if (Model != null && Model.IsAuthenticated && Model.IsPatient)
@@ -26,20 +26,20 @@
             {
                 <button type="button" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
                     <i class="bi bi-pencil-square"></i>
-                    <span>أضف تقييمك (Write a Review)</span>
+                    <span data-i18n="reviewsAddBtn">أضف تقييمك</span>
                 </button>
             }
             else
             {
                 <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small" title="يمكن فقط للمرضى الذين أكملوا كشفاً مع هذا الطبيب كتابة تقييم موثق">
-                    <i class="bi bi-info-circle me-1"></i> التقييم متاح بعد إتمام كشفك مع الطبيب
+                    <i class="bi bi-info-circle me-1"></i> <span data-i18n="reviewsEligibilityNotice">التقييم متاح بعد إتمام كشفك مع الطبيب</span>
                 </span>
             }
         }
         else if (Model != null && !Model.IsAuthenticated)
         {
             <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-primary rounded-pill px-4 py-2 small fw-semibold">
-                <i class="bi bi-box-arrow-in-right me-1"></i> تسجيل الدخول لكتابة تقييم
+                <i class="bi bi-box-arrow-in-right me-1"></i> <span data-i18n="reviewsLoginToReview">تسجيل الدخول لكتابة تقييم</span>
             </a>
         }
     </div>
@@ -159,7 +159,7 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <!-- Filter Pills -->
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <span class="small fw-bold text-muted me-1"><i class="bi bi-funnel me-1"></i>تصفية:</span>
+                <span class="small fw-bold text-muted me-1"><i class="bi bi-funnel me-1"></i><span data-i18n="reviewsFilterLabel">تصفية:</span></span>
                 <a href="?rating=&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-sm rounded-pill @(Model?.SelectedRatingFilter == null ? "btn-primary" : "btn-outline-secondary")">
                     الكل (@summary.TotalReviewsCount)
                 </a>
@@ -182,7 +182,7 @@
 
             <!-- Sorting Select -->
             <div class="d-flex align-items-center gap-2 ms-auto">
-                <label for="reviewSortSelect" class="small fw-semibold text-muted text-nowrap mb-0">ترتيب حسب:</label>
+                <label for="reviewSortSelect" class="small fw-semibold text-muted text-nowrap mb-0" data-i18n="reviewsSortLabel">ترتيب حسب:</label>
                 <select id="reviewSortSelect" class="form-select form-select-sm rounded-pill" style="min-width: 150px;" onchange="location.href='?rating=@Model?.SelectedRatingFilter&sort=' + this.value + '#reviews-section'">
                     <option value="recent" selected="@(Model?.CurrentSortBy == "recent")">الأحدث (Most Recent)</option>
                     <option value="highest" selected="@(Model?.CurrentSortBy == "highest")">الأعلى تقييماً (Highest)</option>
@@ -198,13 +198,13 @@
     {
         <div class="card border-0 shadow-sm rounded-4 bg-white p-5 text-center mb-4">
             <div class="text-muted display-4 mb-3"><i class="bi bi-chat-square-text"></i></div>
-            <h5 class="fw-bold text-dark">لا توجد مراجعات مطابقة</h5>
-            <p class="text-muted mb-3">لم يتم العثور على تقييمات مطابقة لخيارات التصفية المختارة.</p>
+            <h5 class="fw-bold text-dark" data-i18n="reviewsNoMatchTitle">لا توجد مراجعات مطابقة</h5>
+            <p class="text-muted mb-3" data-i18n="reviewsNoMatchDesc">لم يتم العثور على تقييمات مطابقة لخيارات التصفية المختارة.</p>
             @if (Model?.SelectedRatingFilter != null)
             {
                 <div>
                     <a href="?rating=&sort=@Model?.CurrentSortBy#reviews-section" class="btn btn-outline-primary rounded-pill btn-sm">
-                        عرض جميع التقييمات
+                        <span data-i18n="reviewsViewAll">عرض جميع التقييمات</span>
                     </a>
                 </div>
             }
@@ -242,13 +242,13 @@
                             @if (r.IsVerifiedAppointment)
                             {
                                 <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small">
-                                    <i class="bi bi-patch-check-fill me-1"></i> كشف مؤكد (Verified Visit)
+                                    <i class="bi bi-patch-check-fill me-1"></i> <span data-i18n="reviewsVerifiedBadge">كشف مؤكد</span>
                                 </span>
                             }
                             @if (r.IsDemo)
                             {
                                 <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 rounded-pill small" title="تقييم استرشادي ضمن بيئة العرض التجريبية">
-                                    <i class="bi bi-info-circle me-1"></i> تجريبي (Demo Review)
+                                    <i class="bi bi-info-circle me-1"></i> <span data-i18n="reviewsDemoBadge">تجريبي</span>
                                 </span>
                             }
                         </div>
@@ -267,12 +267,12 @@
                     <div class="d-flex align-items-center justify-content-between pt-2 border-top">
                         <button type="button" class="btn btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1 helpful-btn @(r.HasUserVotedHelpful ? "btn-primary text-white" : "btn-outline-secondary")" data-review-id="@r.Id" onclick="voteHelpful(@r.Id, this)">
                             <i class="bi @(r.HasUserVotedHelpful ? "bi-hand-thumbs-up-fill" : "bi-hand-thumbs-up")"></i>
-                            <span class="helpful-label">مفيد</span>
+                            <span class="helpful-label" data-i18n="reviewsHelpful">مفيد</span>
                             <span class="badge @(r.HasUserVotedHelpful ? "bg-white text-primary" : "bg-light text-dark") rounded-pill ms-1 helpful-count">@r.HelpfulCount</span>
                         </button>
 
                         <small class="text-muted" style="font-size: 0.78rem;">
-                            <i class="bi bi-shield-check text-success me-1"></i> مراجعة خاضعة لإرشادات النشر الطبية
+                            <i class="bi bi-shield-check text-success me-1"></i> <span data-i18n="reviewsGuidelineNotice">مراجعة خاضعة لإرشادات النشر الطبية</span>
                         </small>
                     </div>
 

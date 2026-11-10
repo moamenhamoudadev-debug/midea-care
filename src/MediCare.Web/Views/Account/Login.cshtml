@@ -34,7 +34,10 @@
                         <label asp-for="Password" class="form-label small fw-semibold" data-i18n="formPassword">Password</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
-                            <input asp-for="Password" class="form-control border-start-0" placeholder="••••••••" data-i18n-ph="phPassword" />
+                            <input asp-for="Password" type="password" id="loginPasswordInput" class="form-control border-start-0 border-end-0" placeholder="••••••••" data-i18n-ph="phPassword" autocomplete="current-password" />
+                            <button type="button" class="btn btn-outline-secondary border-start-0" id="toggleLoginPasswordBtn" tabindex="-1" aria-controls="loginPasswordInput" aria-pressed="false" aria-label="Show password" title="Show/Hide Password">
+                                <i class="bi bi-eye" id="toggleLoginPasswordIcon"></i>
+                            </button>
                         </div>
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
@@ -77,4 +80,38 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const toggleBtn = document.getElementById('toggleLoginPasswordBtn');
+            const toggleIcon = document.getElementById('toggleLoginPasswordIcon');
+            const pwdInput = document.getElementById('loginPasswordInput');
+
+            if (toggleBtn && pwdInput) {
+                function getLang() {
+                    return (window.getMedicareLang && window.getMedicareLang()) || document.documentElement.getAttribute('lang') || 'en';
+                }
+
+                function updateToggleLabel() {
+                    const isVisible = pwdInput.type === 'text';
+                    const lang = getLang();
+                    toggleBtn.setAttribute('aria-pressed', String(isVisible));
+                    toggleBtn.setAttribute('aria-label', isVisible
+                        ? (lang === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password')
+                        : (lang === 'ar' ? 'إظهار كلمة المرور' : 'Show password'));
+                }
+
+                toggleBtn.addEventListener('click', function () {
+                    const isPassword = pwdInput.type === 'password';
+                    pwdInput.type = isPassword ? 'text' : 'password';
+                    if (toggleIcon) {
+                        toggleIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+                    }
+                    updateToggleLabel();
+                });
+
+                window.addEventListener('medicare:langChange', updateToggleLabel);
+                updateToggleLabel();
+            }
+        })();
+    </script>
 }

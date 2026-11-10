@@ -1,3 +1,19 @@
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<MediCare.Data.Entities.ApplicationUser> UserManager
+@{
+    MediCare.Data.Entities.ApplicationUser? layoutCurrentUser = null;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        layoutCurrentUser = await UserManager.GetUserAsync(User);
+    }
+    var layoutDisplayName = !string.IsNullOrWhiteSpace(layoutCurrentUser?.FullName)
+        ? layoutCurrentUser.FullName
+        : (!string.IsNullOrWhiteSpace(User.Identity?.Name)
+            ? (User.Identity.Name.Contains('@') ? User.Identity.Name.Split('@')[0] : User.Identity.Name)
+            : "User");
+    var layoutUserInitial = !string.IsNullOrWhiteSpace(layoutDisplayName)
+        ? layoutDisplayName.Trim().Substring(0, 1).ToUpper()
+        : "U";
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,7 +63,7 @@
                         <i class="bi bi-heart-pulse-fill"></i>
                     </div>
                     <span>MediCare</span>
-                    <span class="brand-badge">Healthcare</span>
+                    <span class="brand-badge" data-i18n="brandBadge">Healthcare</span>
                 </a>
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -84,7 +100,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Doctor" asp-action="Reviews">
-                                    <i class="bi bi-star"></i> <span>Reviews</span>
+                                    <i class="bi bi-star"></i> <span data-i18n="doctorReviewsNav">Reviews</span>
                                 </a>
                             </li>
                         }
@@ -120,17 +136,17 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Admin" asp-action="Patients">
-                                    <i class="bi bi-people"></i> <span>Patients</span>
+                                    <i class="bi bi-people"></i> <span data-i18n="adminPatientsNav">Patients</span>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Admin" asp-action="Pharmacists">
-                                    <i class="bi bi-capsule"></i> <span>Pharmacists</span>
+                                    <i class="bi bi-capsule"></i> <span data-i18n="adminPharmacistsNav">Pharmacists</span>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Admin" asp-action="Specializations">
-                                    <i class="bi bi-tags"></i> <span>Specializations</span>
+                                    <i class="bi bi-tags"></i> <span data-i18n="adminSpecializationsNav">Specializations</span>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -150,7 +166,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Admin" asp-action="Reviews">
-                                    <i class="bi bi-star-half"></i> <span>Reviews</span>
+                                    <i class="bi bi-star-half"></i> <span data-i18n="adminReviewsNav">Reviews</span>
                                 </a>
                             </li>
                         }
@@ -212,24 +228,24 @@
 
                             <!-- User Profile Chip -->
                             <li class="nav-item">
-                                <div class="user-chip">
-                                    <div class="user-avatar-badge">
-                                        @(string.IsNullOrEmpty(User.Identity.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpper())
+                                <div class="user-chip" title="@layoutDisplayName">
+                                    <div class="user-avatar-badge" aria-hidden="true">
+                                        @layoutUserInitial
                                     </div>
-                                    <div class="d-none d-sm-block text-start">
-                                        <div class="fw-bold text-dark lh-1 small">@User.Identity.Name</div>
+                                    <div class="d-none d-sm-block">
+                                        <div class="fw-bold text-body lh-1 small user-chip-name">@layoutDisplayName</div>
                                     </div>
                                     @if (User.IsInRole("Admin"))
                                     {
-                                        <span class="user-role-badge user-role-admin">Admin</span>
+                                        <span class="user-role-badge user-role-admin" data-i18n="roleAdmin">Admin</span>
                                     }
                                     else if (User.IsInRole("Doctor"))
                                     {
-                                        <span class="user-role-badge user-role-doctor">Doctor</span>
+                                        <span class="user-role-badge user-role-doctor" data-i18n="roleDoctor">Doctor</span>
                                     }
                                     else if (User.IsInRole("Patient"))
                                     {
-                                        <span class="user-role-badge user-role-patient">Patient</span>
+                                        <span class="user-role-badge user-role-patient" data-i18n="rolePatient">Patient</span>
                                     }
                                 </div>
                             </li>
@@ -433,7 +449,8 @@
 
                 function updateBadge(count) {
                     unreadCount = Math.max(0, count);
-                    if (countLabel) countLabel.textContent = unreadCount + ' unread';
+                    const isAr = (window.getMedicareLang && window.getMedicareLang() === 'ar') || document.documentElement.getAttribute('lang') === 'ar';
+                    if (countLabel) countLabel.textContent = unreadCount + (isAr ? ' غير مقروء' : ' unread');
                     if (badge) {
                         badge.textContent = unreadCount;
                         if (unreadCount > 0) {
@@ -518,7 +535,7 @@
                                         if (li) li.remove();
                                         updateBadge(unreadCount - 1);
                                         if (list.children.length === 0) {
-                                            list.innerHTML = '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> All caught up! No unread alerts.</li>';
+                                            list.innerHTML = ((window.getMedicareLang && window.getMedicareLang() === 'ar') || document.documentElement.getAttribute('lang') === 'ar' ? '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> أنت على اطلاع بكل جديد! لا توجد إشعارات غير مقروءة.</li>' : '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> All caught up! No unread alerts.</li>');
                                         }
                                     }
                                 });
@@ -533,7 +550,7 @@
                         if (res.success && res.data) {
                             updateBadge(res.data.length);
                             if (res.data.length === 0) {
-                                list.innerHTML = '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> All caught up! No unread alerts.</li>';
+                                list.innerHTML = ((window.getMedicareLang && window.getMedicareLang() === 'ar') || document.documentElement.getAttribute('lang') === 'ar' ? '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> أنت على اطلاع بكل جديد! لا توجد إشعارات غير مقروءة.</li>' : '<li class="list-group-item text-center text-muted small py-4"><i class="bi bi-check2-all text-success fs-5 d-block mb-1"></i> All caught up! No unread alerts.</li>');
                             } else {
                                 list.innerHTML = '';
                                 res.data.forEach(item => addNotificationItem(item, false));
@@ -1130,6 +1147,151 @@
                     authPromptPoint3: "Integrated digital health passport for e-prescriptions & clinical visit history",
                     authPromptLoginBtn: "Sign In Now",
                     authPromptRegisterBtn: "Create Free Patient Account",
+                    // Missing Navigation & Role Keys
+                    myProfile: "My Profile",
+                    doctorReviewsNav: "Reviews",
+                    adminPatientsNav: "Patients",
+                    adminPharmacistsNav: "Pharmacists",
+                    adminSpecializationsNav: "Specializations",
+                    adminReviewsNav: "Reviews",
+                    roleAdmin: "Admin",
+                    roleDoctor: "Doctor",
+                    rolePatient: "Patient",
+                    brandBadge: "Healthcare",
+
+                    // Financial & Payment History Keys
+                    breadcrumbHome: "Home",
+                    paymentHistoryTitle: "Consultation Payment History",
+                    paymentHistorySubtitle: "Review your completed Paymob card transactions, official clinical receipts, and payment statuses.",
+                    bookAppointment: "Book Consultation",
+                    totalPaidLabel: "Total Paid",
+                    succeededCountLabel: "Confirmed Transactions",
+                    succeededTransactionsLabel: "Confirmed Visits",
+                    totalRefundsLabel: "Total Refunds",
+                    grossPaymentsLabel: "Gross Collected",
+                    netRevenueLabel: "Net Confirmed Revenue",
+                    netFormulaNote: "Gross minus confirmed refunds",
+                    deductedFromNet: "Deducted from net revenue",
+                    failedAttemptsLabel: "Declined & Expired",
+                    totalAttemptsLabel: "Total Attempts Handled",
+                    pendingAttemptsLabel: "Pending Verification",
+                    pendingTransactionsLabel: "Pending / Incomplete",
+                    paymentChannelBreakdown: "Payment Method Breakdown",
+                    revenueTimeSeriesTitle: "Revenue Trends Over Time",
+                    reconciliationQueueTitle: "Reconciliation & Settled Queue",
+                    reconciliationQueueSubtitle: "Audit discrepancy logs and settlement verifications.",
+                    refundReconcileLabel: "Refund Reconciled",
+                    refundSettledNote: "Settled against clinic ledger",
+                    pendingNotice: "Awaiting confirmation",
+                    reconciliationAlertsLabel: "Reconciliation Status",
+                    allTransactionsTitle: "Authoritative Transaction Ledger",
+                    searchFilterLabel: "Search Reference / Doctor",
+                    statusFilterLabel: "Status",
+                    paymentMethodFilterLabel: "Payment Channel",
+                    fromDateLabel: "From Date",
+                    toDateLabel: "To Date",
+                    clearFilterBtn: "Clear",
+                    applyFilterBtn: "Apply Filter",
+                    resetFilters: "Reset Filters",
+                    noPaymentRecordsTitle: "No Payment Transactions Found",
+                    noPaymentRecordsBody: "You do not have any recorded payment transactions matching your filter criteria. Once you book consultations and complete payments, they will be archived here.",
+                    paymentSuccessTitle: "Payment Successful!",
+                    paymentSuccessSubtitle: "Your consultation booking has been officially confirmed.",
+                    paymentFailedTitle: "Payment Failed or Declined",
+                    paymentFailedSubtitle: "Your card was not charged. Please try again or use another payment method.",
+                    paymentExpiredTitle: "Payment Session Expired",
+                    paymentExpiredSubtitle: "The checkout window has timed out for safety reasons.",
+                    paymentVerifyingTitle: "Verifying Payment Status...",
+                    paymentVerifyingDesc: "Please wait while we confirm your transaction with the payment gateway.",
+                    appointmentSummaryTitle: "Appointment Details",
+                    backToAppointments: "My Appointments",
+                    viewDetailsBtn: "View Details",
+                    viewReceiptBtn: "Official Receipt",
+                    retryPaymentBtn: "Retry Payment",
+                    paymentAmountPaid: "Total Amount Paid",
+                    paymentProcessedAt: "Processed At",
+                    paymentReceiptRef: "Receipt Reference",
+                    paymentMethodLabel: "Payment Method",
+                    paymentSecurityTitle: "End-to-End Secure Processing",
+                    paymentSecurityDesc: "Transactions are processed via Paymob PCI-DSS certified gateway. Sensitive card details are never stored on MediCare servers.",
+                    receiptReadyNote: "A printable digital receipt is available for your records.",
+                    receiptBtn: "Print Receipt",
+                    prevPage: "Previous",
+                    nextPage: "Next",
+
+                    // Medical Records & Appointment Details Keys
+                    medDocHeading: "Uploaded Medical Files & Scans",
+                    medDocSub: "Secure clinical reports and diagnostic scan images shared between patient and physician.",
+                    medDocUploadBtn: "Upload Document",
+                    waTitle: "Share via WhatsApp",
+                    waSubtitle: "Send appointment details, doctor name, and time slot directly to your phone.",
+                    waActionBtn: "Open WhatsApp",
+                    queueStatusTitle: "Live Clinic Queue Status",
+                    queueNowServing: "Now Serving",
+                    queueYourTurn: "Your Turn Number",
+                    queueTrackerNotice: "Live queue numbers update automatically in real-time.",
+                    queueCallPatientBtn: "Call Next Patient",
+                    queueSignalRSync: "Live Queue Connected",
+
+                    // Terms & Policies Keys
+                    termsNavTitle: "Terms & Cancellation Policy",
+                    termsHeading: "Payment Terms & Cancellation Policy",
+                    termsSubheading: "Effective Date: November 2026 · Official Clinical Policies",
+                    termsBadgePending: "Official Policy Document",
+                    viewPrivacyBtn: "Privacy Notice",
+                    termsGovernanceTitle: "Regulatory Alignment & Legal Framework",
+                    termsGovernanceDesc: "Governing healthcare billing and appointment policies in accordance with Egyptian regulations.",
+                    termsSec1Title: "1. General Payment Terms & Scope",
+                    termsSec1P1: "These Terms govern consultation reservations, digital transactions, and refund requests across the MediCare platform.",
+                    termsSec1P2: "By confirming an appointment booking, you accept all stated financial terms.",
+                    termsSec2Title: "2. Accepted Payment Channels",
+                    termsSec3Title: "3. Server-Side Verification & Transaction Integrity",
+                    termsSec4Title: "4. Reservation Window & Automatic Expiration",
+                    termsSec4P1: "Unpaid reservations remain on temporary hold for 30 minutes before release back to public availability.",
+                    termsSec5Title: "5. Cancellation & Refund Policy",
+                    termsSec6Title: "6. Non-Emergency Declaration",
+                    termsSec7Title: "7. Official Receipts & Records",
+                    termsSec8Title: "8. Dispute Resolution & Patient Support",
+                    termsSec8P1: "For billing questions or assistance, please contact MediCare administration.",
+
+                    // Doctor Reviews Hub Keys
+                    reviewsSectionHeader: "Patient Reviews & Ratings",
+                    reviewsSectionSub: "Authentic patient feedback and verified consultation experiences.",
+                    reviewsAddBtn: "Write a Review",
+                    reviewsEligibilityNotice: "Review submission is available after completing your consultation with the physician.",
+                    reviewsLoginToReview: "Sign in to write a review",
+                    reviewsStarsOutOfFive: "out of 5 stars",
+                    reviewsBasedOn: "Based on",
+                    reviewsReviewsCount: "reviews",
+                    reviewsVerifiedVisits: "verified consultations",
+                    reviewsFilterLabel: "Filter:",
+                    reviewsSortLabel: "Sort by:",
+                    reviewsSortRecent: "Most Recent",
+                    reviewsSortHighest: "Highest Rated",
+                    reviewsSortLowest: "Lowest Rated",
+                    reviewsSortHelpful: "Most Helpful",
+                    reviewsVerifiedBadge: "Verified Visit",
+                    reviewsDemoBadge: "Demo Review",
+                    reviewsHelpful: "Helpful",
+                    reviewsDoctorReply: "Doctor's Response",
+                    reviewsNoMatchTitle: "No Matching Reviews",
+                    reviewsNoMatchDesc: "No reviews match the selected filter criteria.",
+                    reviewsViewAll: "View All Reviews",
+                    reviewsGuidelineNotice: "Review subject to medical publishing guidelines",
+                    reviewsWriteTitle: "Write a Doctor Review",
+                    reviewsRatingLabel: "Your Overall Rating:",
+                    reviewsTitleLabel: "Review Title (Optional):",
+                    reviewsTitlePh: "e.g. Excellent doctor, explained diagnosis clearly",
+                    reviewsContentLabel: "Your Review / Feedback:",
+                    reviewsContentPh: "Share your experience regarding waiting time, clinic hygiene, doctor explanation...",
+                    reviewsSubmitBtn: "Submit Review",
+                    reviewsCancelBtn: "Cancel",
+
+                    // Notifications Center
+                    notificationsTitle: "Notifications",
+                    checkingNotifications: "Checking notifications...",
+                    noUnreadNotifications: "All caught up! No unread alerts.",
+                    unreadWord: "unread",
                     authPromptDismissBtn: "Keep Browsing as Guest"
                 },
                 ar: {
@@ -1503,6 +1665,158 @@
                     authPromptPoint3: "ملف طبي رقمي متكامل لروشتاتك وفحوصاتك مع كل كشف",
                     authPromptLoginBtn: "تسجيل الدخول الآن",
                     authPromptRegisterBtn: "إنشاء حساب مريض جديد (مجاناً)",
+                    // Missing Navigation & Role Keys
+                    myProfile: "ملفي الشخصي",
+                    doctorReviewsNav: "التقييمات",
+                    adminPatientsNav: "المرضى",
+                    adminPharmacistsNav: "الصيادلة",
+                    adminSpecializationsNav: "التخصصات",
+                    adminReviewsNav: "إدارة التقييمات",
+                    roleAdmin: "مسؤول",
+                    roleDoctor: "طبيب",
+                    rolePatient: "مريض",
+                    brandBadge: "رعاية صحية",
+
+                    // Financial & Payment History Keys
+                    breadcrumbHome: "الرئيسية",
+                    paymentHistoryTitle: "سجل مدفوعات الاستشارات",
+                    paymentHistorySubtitle: "استعرض سجل معاملاتك المكتملة عبر كروت Paymob، وإيصالات الكشف الطبية المعتمدة، وحالات الدفع.",
+                    bookAppointment: "حجز موعد كشف",
+                    totalPaidLabel: "إجمالي المدفوع",
+                    succeededCountLabel: "معاملات مؤكدة",
+                    succeededTransactionsLabel: "كشوفات مؤكدة",
+                    totalRefundsLabel: "إجمالي المسترد",
+                    grossPaymentsLabel: "إجمالي التحصيل",
+                    netRevenueLabel: "صافي الإيرادات المؤكدة",
+                    netFormulaNote: "إجمالي التحصيل مطروحاً منه الاستردادات",
+                    deductedFromNet: "مخصوم من صافي الإيرادات",
+                    failedAttemptsLabel: "المرفوضة والمنتهية",
+                    totalAttemptsLabel: "إجمالي محاولات الدفع",
+                    pendingAttemptsLabel: "قيد التحقق والتأكيد",
+                    pendingTransactionsLabel: "معلقة / غير مكتملة",
+                    paymentChannelBreakdown: "توزيع طرق الدفع",
+                    revenueTimeSeriesTitle: "مؤشرات الإيرادات عبر الوقت",
+                    reconciliationQueueTitle: "طابور التسوية والمطابقة المالية",
+                    reconciliationQueueSubtitle: "سجلات المراجعة ومطابقة الحسابات المالية.",
+                    refundReconcileLabel: "تسوية مستردات",
+                    refundSettledNote: "تمت التسوية بدفتر العيادة",
+                    pendingNotice: "بانتظار التأكيد",
+                    reconciliationAlertsLabel: "حالة المطابقة",
+                    allTransactionsTitle: "سجل العمليات المالية المعتمد",
+                    searchFilterLabel: "بحث برقم المعاملة / الطبيب",
+                    statusFilterLabel: "الحالة",
+                    paymentMethodFilterLabel: "طريقة الدفع",
+                    fromDateLabel: "من تاريخ",
+                    toDateLabel: "إلى تاريخ",
+                    clearFilterBtn: "مسح",
+                    applyFilterBtn: "تطبيق التصفية",
+                    resetFilters: "إعادة ضبط التصفية",
+                    noPaymentRecordsTitle: "لا توجد معاملات دفع مسجلة",
+                    noPaymentRecordsBody: "لا توجد أي معاملات دفع مطابقة لمعايير البحث. فور قيامك بحجز كشوفات وسداد رسومها، ستظهر كافة المعاملات هنا.",
+                    paymentSuccessTitle: "تم الدفع بنجاح!",
+                    paymentSuccessSubtitle: "تم تأكيد حجز موعد الكشف رسمياً.",
+                    paymentFailedTitle: "فشلت عملية الدفع أو تم رفضها",
+                    paymentFailedSubtitle: "لم يتم خصم أي مبالغ من بطاقتك. يرجى إعادة المحاولة أو استخدام بطاقة أخرى.",
+                    paymentExpiredTitle: "انتهت صلاحية جلسة الدفع",
+                    paymentExpiredSubtitle: "انتهت المهلة الزمنية للدفع لأسباب أمنية.",
+                    paymentVerifyingTitle: "جارٍ التحقق من حالة الدفع...",
+                    paymentVerifyingDesc: "يرجى الانتظار بينما نتحقق من تأكيد المعاملة مع بوابة الدفع.",
+                    appointmentSummaryTitle: "تفاصيل الموعد",
+                    backToAppointments: "مواعيدي",
+                    viewDetailsBtn: "عرض التفاصيل",
+                    viewReceiptBtn: "الإيصال المعتمد",
+                    retryPaymentBtn: "إعادة محاولة الدفع",
+                    paymentAmountPaid: "إجمالي المبلغ المدفوع",
+                    paymentProcessedAt: "تاريخ وساعة الدفع",
+                    paymentReceiptRef: "رقم إيصال المعاملة",
+                    paymentMethodLabel: "وسيلة الدفع",
+                    paymentSecurityTitle: "معالجة مشفرة وآمنة بالكامل",
+                    paymentSecurityDesc: "تتم المعاملات عبر بوابة Paymob المعتمدة لمعايير PCI-DSS الأمنية، ولا يتم تخزين أي أرقام بطاقات على خوادم ميديكير.",
+                    receiptReadyNote: "يتوفر إيصال رقمي رسمي قابل للطباعة والحفظ.",
+                    receiptBtn: "طباعة الإيصال",
+                    prevPage: "السابق",
+                    nextPage: "التالي",
+
+                    // Medical Records & Appointment Details Keys
+                    medDocHeading: "الأشعة والتحاليل والمستندات الطبية المرفقة",
+                    medDocSub: "يمكن للمريض والطبيب مشاركة صور التحاليل وتقارير الأشعة السريرية بأمان",
+                    medDocUploadBtn: "رفع تقرير/أشعة جديدة",
+                    waTitle: "مشاركة تفاصيل الموعد عبر WhatsApp",
+                    waSubtitle: "أرسل أو احفظ تفاصيل الحجز، اسم الطبيب، والميعاد مباشرة على هاتفك بضغطة واحدة",
+                    waActionBtn: "فتح رسالة واتساب",
+                    queueStatusTitle: "طابور العيادة المباشر",
+                    queueNowServing: "يجري الكشف الآن",
+                    queueYourTurn: "دورك الحالي في الانتظار",
+                    queueTrackerNotice: "يتم تحديث ترتيب الانتظار في العيادة تلقائياً بشكل مباشر.",
+                    queueCallPatientBtn: "استدعاء المريض التالي",
+                    queueSignalRSync: "طابور الانتظار متصل ومباشر",
+
+                    // Terms & Policies Keys
+                    termsNavTitle: "الشروط وسياسة الإلغاء",
+                    termsHeading: "الشروط والأحكام وسياسة الإلغاء والاسترداد",
+                    termsSubheading: "تاريخ السريان: نوفمبر 2026 · السياسات الرسمية للمنظومة",
+                    termsBadgePending: "وثيقة السياسات المعتمدة",
+                    viewPrivacyBtn: "بيان الخصوصية",
+                    termsGovernanceTitle: "الإطار التنظيمي والقانوني",
+                    termsGovernanceDesc: "تنظيم فواتير الرعاية الصحية وسياسات المواعيد وفقاً للوائح المنظمة.",
+                    termsConsentPrefix: "أؤكد أنني قرأت ووافقت على",
+                    termsModalLink: "الشروط والأحكام وسياسة الإلغاء والاسترداد الخاصة بـ MediCare",
+                    termsQuickSummaryToggle: "عرض ملخص سياسة الدفع والاسترداد",
+                    termsSummaryPoint1: "أمان الدفع: تتم المعالجة بشكل مشفر وآمن عبر Paymob؛ لا تخزن MediCare أبداً أرقام البطاقات أو CVV.",
+                    termsSummaryPoint2: "الإلغاء: يمكن إلغاء المواعيد واسترداد المبلغ حتى 24 ساعة قبل الموعد المحدد.",
+                    termsSummaryPoint3: "عدم الحضور: المواعيد الفائتة بدون إشعار مسبق غير قابلة للاسترداد.",
+                    termsSummaryPoint4: "الاستشارة عن بُعد: تتطلب اتصال إنترنت مستقر؛ وليست مخصصة لحالات الطوارئ الطبية (اتصل بـ 123).",
+                    termsSec1Title: "١. الشروط العامة للدفع ونطاق الخدمة",
+                    termsSec1P1: "تنظم هذه الشروط إجراءات حجز الكشوفات، والمعاملات المالية الرقمية، وطلبات الاسترداد عبر منصة ميديكير.",
+                    termsSec1P2: "بتأكيدك لحجز الموعد، فإنك تقر وتوافق على كافة الشروط والسياسات المالية المعلنة.",
+                    termsSec2Title: "٢. قنوات ووسائل الدفع المعتمدة",
+                    termsSec3Title: "٣. التحقق الآمن من المعاملات من جانب الخادم",
+                    termsSec4Title: "٤. مهلة تأكيد الحجز والإلغاء التلقائي",
+                    termsSec4P1: "يتم حجز الموعد مؤقتاً لمدة 30 دقيقة لإتمام الدفع، وبعدها يُتاح الموعد للآخرين تلقائياً إذا لم يُسدد.",
+                    termsSec5Title: "٥. سياسة الإلغاء والاسترداد المالي",
+                    termsSec6Title: "٦. إقرار عدم استخدام المنصة للحالات الطارئة",
+                    termsSec7Title: "٧. الإيصالات الرقمية الرسمية وحفظ السجلات",
+                    termsSec8Title: "٨. الشكاوى وحل النزاعات وخدمة المرضى",
+                    termsSec8P1: "لأي استفسارات مالية أو شكاوى، يُرجى التواصل مع إدارة ميديكير عبر القنوات الرسمية.",
+
+                    // Doctor Reviews Hub Keys
+                    reviewsSectionHeader: "تقييمات وآراء المرضى",
+                    reviewsSectionSub: "تقييمات موثقة وتجارب حقيقية لمرضى العيادة",
+                    reviewsAddBtn: "أضف تقييمك",
+                    reviewsEligibilityNotice: "التقييم متاح بعد إتمام كشفك مع الطبيب",
+                    reviewsLoginToReview: "تسجيل الدخول لكتابة تقييم",
+                    reviewsStarsOutOfFive: "من 5 نجوم",
+                    reviewsBasedOn: "بناءً على",
+                    reviewsReviewsCount: "تقييم",
+                    reviewsVerifiedVisits: "كشف مؤكد",
+                    reviewsFilterLabel: "تصفية:",
+                    reviewsSortLabel: "ترتيب حسب:",
+                    reviewsSortRecent: "الأحدث",
+                    reviewsSortHighest: "الأعلى تقييماً",
+                    reviewsSortLowest: "الأقل تقييماً",
+                    reviewsSortHelpful: "الأكثر إفادة",
+                    reviewsVerifiedBadge: "كشف مؤكد",
+                    reviewsDemoBadge: "تجريبي",
+                    reviewsHelpful: "مفيد",
+                    reviewsDoctorReply: "رد الطبيب",
+                    reviewsNoMatchTitle: "لا توجد مراجعات مطابقة",
+                    reviewsNoMatchDesc: "لم يتم العثور على تقييمات مطابقة لخيارات التصفية المختارة.",
+                    reviewsViewAll: "عرض جميع التقييمات",
+                    reviewsGuidelineNotice: "مراجعة خاضعة لإرشادات النشر الطبية",
+                    reviewsWriteTitle: "كتابة تقييم للطبيب",
+                    reviewsRatingLabel: "تقييمك الإجمالي:",
+                    reviewsTitleLabel: "عنوان التقييم (اختياري):",
+                    reviewsTitlePh: "مثال: طبيب ممتاز وشرح وافٍ للحالة",
+                    reviewsContentLabel: "رأيك وتفاصيل تجربتك:",
+                    reviewsContentPh: "شارك تجربتك بخصوص وقت الانتظار، اهتمام الطبيب، وضوح التشخيص...",
+                    reviewsSubmitBtn: "إرسال التقييم",
+                    reviewsCancelBtn: "إلغاء",
+
+                    // Notifications Center
+                    notificationsTitle: "الإشعارات",
+                    checkingNotifications: "جارٍ فحص الإشعارات...",
+                    noUnreadNotifications: "أنت على اطلاع بكل جديد! لا توجد إشعارات غير مقروءة.",
+                    unreadWord: "غير مقروء",
                     authPromptDismissBtn: "متابعة التصفح كزائر"
                 }
             };
