@@ -121,6 +121,37 @@ public class LoginViewModel
     public string? ReturnUrl { get; set; }
 }
 
+public class ForgotPasswordViewModel
+{
+    [Required(ErrorMessage = "Email address is required / البريد الإلكتروني مطلوب.")]
+    [EmailAddress(ErrorMessage = "Please enter a valid email address / يرجى إدخال بريد إلكتروني صالح.")]
+    [Display(Name = "Email Address")]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordViewModel
+{
+    [Required(ErrorMessage = "Email address is required / البريد الإلكتروني مطلوب.")]
+    [EmailAddress(ErrorMessage = "Please enter a valid email address / يرجى إدخال بريد إلكتروني صالح.")]
+    [Display(Name = "Email Address")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Password is required / كلمة المرور مطلوبة.")]
+    [DataType(DataType.Password)]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters long / يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.")]
+    [Display(Name = "New Password")]
+    public string Password { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Password confirmation is required / تأكيد كلمة المرور مطلوب.")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Confirm Password")]
+    [Compare("Password", ErrorMessage = "Passwords do not match / كلمتا المرور غير متطابقتين.")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Reset token is required / رمز إعادة التعيين مطلوب.")]
+    public string Code { get; set; } = string.Empty;
+}
+
 public class PatientProfileViewModel
 {
     public int Id { get; set; }

@@ -51,6 +51,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Identity DataProtection Token Lifespan (Healthcare Standard: 2 Hours)
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(2);
+});
+
 // Cookie Security Configuration (SameAsRequest in Development for local HTTP, Always in Production)
 builder.Services.ConfigureSecurityCookies(builder.Environment.IsDevelopment());
 
@@ -193,6 +199,20 @@ builder.Services.AddRateLimiter(options =>
             });
     });
 
+    // Password reset endpoint brute-force protection: max 5 requests/minute per IP
+    options.AddPolicy("PasswordResetRateLimitPolicy", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
     // Public AI Chatbot endpoint rate limiter: max 10 requests/minute per IP
     options.AddPolicy("ChatbotRateLimitPolicy", httpContext =>
     {
@@ -261,6 +281,16 @@ var app = builder.Build();
 
 // Run DbInitializer seed data on startup
 await DbInitializer.InitializeAsync(app.Services);
+
+// Seed demo doctor reviews (idempotent; only in Development/Demo mode)
+using (var scope = app.Services.CreateScope())
+{
+    var reviewService = scope.ServiceProvider.GetService<IDoctorReviewService>();
+    if (reviewService != null)
+    {
+        await reviewService.SeedDemoReviewsAsync();
+    }
+}
 
 // Guarded one-time migration switch for legacy wwwroot attachments
 if (args.Contains("--migrate-attachments"))
@@ -336,4 +366,5 @@ app.MapControllerRoute(
 app.Run();
 
 public partial class Program { }
+
 

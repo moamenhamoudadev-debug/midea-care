@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using FluentValidation;
 using MediCare.Data.UnitOfWork;
 using MediCare.Services.Common;
@@ -10,11 +13,16 @@ public class DoctorService : IDoctorService
 {
     private readonly IUnitOfWork _uow;
     private readonly IValidator<DoctorFilterDto> _filterValidator;
+    private readonly IDoctorReviewService? _reviewService;
 
-    public DoctorService(IUnitOfWork uow, IValidator<DoctorFilterDto> filterValidator)
+    public DoctorService(
+        IUnitOfWork uow,
+        IValidator<DoctorFilterDto> filterValidator,
+        IDoctorReviewService? reviewService = null)
     {
         _uow = uow;
         _filterValidator = filterValidator;
+        _reviewService = reviewService;
     }
 
     public async Task<PagedResult<DoctorSummaryDto>> SearchDoctorsAsync(DoctorFilterDto filter)
@@ -50,6 +58,16 @@ public class DoctorService : IDoctorService
             EnrichDoctorSummary(d, dto);
             return dto;
         }).ToList();
+
+        if (_reviewService != null)
+        {
+            foreach (var dto in dtos)
+            {
+                var summary = await _reviewService.GetDoctorRatingSummaryAsync(dto.Id);
+                dto.Rating = summary.AverageRating;
+                dto.ReviewCount = summary.TotalReviewsCount;
+            }
+        }
 
         return new PagedResult<DoctorSummaryDto>(dtos, totalCount, page, pageSize);
     }
@@ -87,6 +105,22 @@ public class DoctorService : IDoctorService
         };
 
         EnrichDoctorDetail(doctor, dto);
+
+        if (_reviewService != null)
+        {
+            var summary = await _reviewService.GetDoctorRatingSummaryAsync(id);
+            dto.Rating = summary.AverageRating;
+            dto.ReviewCount = summary.TotalReviewsCount;
+
+            var reviewsResult = await _reviewService.GetDoctorReviewsAsync(new DoctorReviewsQueryDto
+            {
+                DoctorId = id,
+                PageNumber = 1,
+                PageSize = 5
+            });
+            dto.Reviews = reviewsResult.Items;
+        }
+
         return Result<DoctorDetailDto>.Success(dto);
     }
 
@@ -136,6 +170,14 @@ public class DoctorService : IDoctorService
         };
 
         EnrichDoctorDetail(doctor, dto);
+
+        if (_reviewService != null)
+        {
+            var summary = await _reviewService.GetDoctorRatingSummaryAsync(doctor.Id);
+            dto.Rating = summary.AverageRating;
+            dto.ReviewCount = summary.TotalReviewsCount;
+        }
+
         return Result<DoctorDetailDto>.Success(dto);
     }
 
@@ -202,8 +244,6 @@ public class DoctorService : IDoctorService
         public List<DoctorReviewDto> Reviews { get; init; } = new();
     }
 
-    // Directory claims must come from stored, reviewable evidence. The current schema
-    // has no provenance or authentic review records, so this service exposes none.
     private static ProfileMetadata GetDoctorProfileMetadata(MediCare.Data.Entities.Doctor d) => new()
     {
         Governorate = d.Governorate

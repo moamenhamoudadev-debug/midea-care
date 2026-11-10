@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using System.Threading.Tasks;
 using MediCare.Services.Contracts;
 using MediCare.Services.DTOs;
 using MediCare.Web.ViewModels;
@@ -10,10 +12,14 @@ namespace MediCare.Web.Controllers;
 public class DoctorsController : Controller
 {
     private readonly IDoctorService _doctorService;
+    private readonly IDoctorReviewService _doctorReviewService;
 
-    public DoctorsController(IDoctorService doctorService)
+    public DoctorsController(
+        IDoctorService doctorService,
+        IDoctorReviewService doctorReviewService)
     {
         _doctorService = doctorService;
+        _doctorReviewService = doctorReviewService;
     }
 
     [HttpGet]
@@ -46,7 +52,11 @@ public class DoctorsController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> Details(int id)
+    public async Task<IActionResult> Details(
+        int id,
+        [FromQuery] int? rating,
+        [FromQuery] string? sort,
+        [FromQuery] int page = 1)
     {
         var result = await _doctorService.GetDoctorDetailsAsync(id);
         if (!result.IsSuccess || result.Value == null)
@@ -54,6 +64,17 @@ public class DoctorsController : Controller
             TempData["ErrorMessage"] = "Doctor profile not found or is currently not approved.";
             return RedirectToAction(nameof(Index));
         }
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var hub = await _doctorReviewService.GetDoctorReviewsHubAsync(
+            id,
+            currentUserId,
+            rating,
+            sort ?? "recent",
+            page,
+            10);
+
+        ViewBag.ReviewsHub = hub;
 
         return View(result.Value);
     }

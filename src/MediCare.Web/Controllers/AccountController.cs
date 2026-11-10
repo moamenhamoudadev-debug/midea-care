@@ -1,3 +1,4 @@
+using System.Text;
 using MediCare.Data.Entities;
 using MediCare.Services.Contracts;
 using MediCare.Services.DTOs;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace MediCare.Web.Controllers;
 
@@ -213,6 +215,121 @@ public class AccountController : Controller
     [HttpGet]
     [AllowAnonymous]
     public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPassword()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+        return View(new ForgotPasswordViewModel());
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("PasswordResetRateLimitPolicy")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var tokenResult = await _authService.GeneratePasswordResetTokenAsync(model.Email);
+        if (tokenResult.IsSuccess && !string.IsNullOrEmpty(tokenResult.Value))
+        {
+            var rawToken = tokenResult.Value;
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(rawToken));
+            var resetUrl = Url.Action(
+                nameof(ResetPassword),
+                "Account",
+                new { code = encodedToken, email = model.Email },
+                Request.Scheme);
+
+            if (!string.IsNullOrEmpty(resetUrl))
+            {
+                await _authService.SendPasswordResetEmailAsync(model.Email, resetUrl);
+            }
+        }
+
+        // Generic anti-enumeration redirect: Always display identical confirmation
+        return RedirectToAction(nameof(ForgotPasswordConfirmation));
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string? code = null, string? email = null)
+    {
+        var model = new ResetPasswordViewModel
+        {
+            Code = code ?? string.Empty,
+            Email = email ?? string.Empty
+        };
+
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            ModelState.AddModelError(string.Empty, "A valid password reset token is required. Please check your reset link or request a new one.");
+        }
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("PasswordResetRateLimitPolicy")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        string decodedToken;
+        try
+        {
+            var bytes = WebEncoders.Base64UrlDecode(model.Code);
+            decodedToken = Encoding.UTF8.GetString(bytes);
+        }
+        catch
+        {
+            decodedToken = model.Code;
+        }
+
+        var dto = new ResetPasswordDto
+        {
+            Email = model.Email,
+            Token = decodedToken,
+            NewPassword = model.Password,
+            ConfirmPassword = model.ConfirmPassword
+        };
+
+        var result = await _authService.ResetPasswordAsync(dto);
+        if (result.IsSuccess)
+        {
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        ModelState.AddModelError(string.Empty, result.Error ?? "Invalid password reset request.");
+        return View(model);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPasswordConfirmation()
     {
         return View();
     }

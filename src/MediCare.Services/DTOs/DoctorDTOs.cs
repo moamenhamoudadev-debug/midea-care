@@ -11,15 +11,6 @@ public class DoctorFilterDto
     public int PageSize { get; set; } = 6;
 }
 
-public class DoctorReviewDto
-{
-    public string PatientName { get; set; } = string.Empty;
-    public int Rating { get; set; } = 5;
-    public string Comment { get; set; } = string.Empty;
-    public string FormattedDate { get; set; } = string.Empty;
-    public bool IsVerifiedVisit { get; set; } = true;
-}
-
 public class DoctorSummaryDto
 {
     public int Id { get; set; }

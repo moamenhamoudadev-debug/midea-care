@@ -4,8 +4,10 @@ using MediCare.Data.UnitOfWork;
 using MediCare.Services.Common;
 using MediCare.Services.Contracts;
 using MediCare.Services.DTOs;
+using MediCare.Services.Validators;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MediCare.Services.Implementations;
 
@@ -18,6 +20,9 @@ public class AuthService : IAuthService
     private readonly IValidator<DoctorRegisterDto> _doctorValidator;
     private readonly IValidator<LoginDto> _loginValidator;
     private readonly IValidator<PatientUpdateProfileDto> _updateProfileValidator;
+    private readonly IValidator<ResetPasswordDto> _resetPasswordValidator;
+    private readonly IEmailService? _emailService;
+    private readonly IOptions<DataProtectionTokenProviderOptions>? _tokenProviderOptions;
     private readonly ILogger<AuthService>? _logger;
 
     public AuthService(
@@ -28,6 +33,9 @@ public class AuthService : IAuthService
         IValidator<DoctorRegisterDto> doctorValidator,
         IValidator<LoginDto> loginValidator,
         IValidator<PatientUpdateProfileDto>? updateProfileValidator = null,
+        IValidator<ResetPasswordDto>? resetPasswordValidator = null,
+        IEmailService? emailService = null,
+        IOptions<DataProtectionTokenProviderOptions>? tokenProviderOptions = null,
         ILogger<AuthService>? logger = null)
     {
         _userManager = userManager;
@@ -36,7 +44,10 @@ public class AuthService : IAuthService
         _patientValidator = patientValidator;
         _doctorValidator = doctorValidator;
         _loginValidator = loginValidator;
-        _updateProfileValidator = updateProfileValidator ?? new MediCare.Services.Validators.PatientUpdateProfileValidator();
+        _updateProfileValidator = updateProfileValidator ?? new PatientUpdateProfileValidator();
+        _resetPasswordValidator = resetPasswordValidator ?? new ResetPasswordValidator();
+        _emailService = emailService;
+        _tokenProviderOptions = tokenProviderOptions;
         _logger = logger;
     }
 
@@ -325,6 +336,205 @@ public class AuthService : IAuthService
         await _signInManager.RefreshSignInAsync(user);
 
         _logger?.LogInformation("User {Email} (UserId {UserId}) successfully updated password and cleared MustChangePassword claim", user.Email, user.Id);
+        return Result.Success();
+    }
+
+    public async Task<Result<string?>> GeneratePasswordResetTokenAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Result<string?>.Failure("Email address is required.");
+        }
+
+        var normalizedEmail = email.Trim();
+        var user = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (user == null)
+        {
+            // Strict anti-enumeration defense: return Success(null) so caller performs uniform handling
+            _logger?.LogInformation("Password reset requested for non-existent email address (anti-enumeration active)");
+            return Result<string?>.Success(null);
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        return Result<string?>.Success(token);
+    }
+
+    public async Task<Result> SendPasswordResetEmailAsync(string email, string resetUrl, TimeSpan? tokenLifespan = null)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return Result.Failure("Email address is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(resetUrl))
+        {
+            return Result.Failure("Reset URL is required.");
+        }
+
+        if (_emailService == null)
+        {
+            _logger?.LogWarning("Email service not available; skipping password reset email dispatch for {Email}", email);
+            return Result.Success();
+        }
+
+        var normalizedEmail = email.Trim();
+        var lifespan = tokenLifespan ?? _tokenProviderOptions?.Value?.TokenLifespan ?? TimeSpan.FromHours(2);
+        var lifespanHours = Math.Max(1, (int)Math.Round(lifespan.TotalHours));
+        var hoursTextEn = lifespanHours == 1 ? "1 hour" : $"{lifespanHours} hours";
+        var hoursTextAr = lifespanHours == 1 ? "ساعة واحدة" : (lifespanHours == 2 ? "ساعتين" : $"{lifespanHours} ساعات");
+
+        var safeUrl = System.Net.WebUtility.HtmlEncode(resetUrl);
+        var safeEmail = System.Net.WebUtility.HtmlEncode(normalizedEmail);
+
+        var emailSubject = "MediCare - Password Reset Request | طلب إعادة تعيين كلمة المرور";
+        var emailBody = $@"<!DOCTYPE html>
+<html lang=""en"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>MediCare - Password Reset</title>
+</head>
+<body style=""margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b;"">
+    <table role=""presentation"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #f8fafc; padding: 32px 16px;"">
+        <tr>
+            <td align=""center"">
+                <table role=""presentation"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;"">
+                    <!-- Brand Header -->
+                    <tr>
+                        <td style=""background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%); padding: 32px; text-align: center; color: #ffffff;"">
+                            <div style=""display: inline-block; background-color: rgba(255, 255, 255, 0.2); width: 48px; height: 48px; line-height: 48px; border-radius: 12px; font-size: 24px; margin-bottom: 12px;"">
+                                &#9829;
+                            </div>
+                            <h1 style=""margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;"">MediCare</h1>
+                            <p style=""margin: 4px 0 0 0; font-size: 13px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;"">Clinic Management System</p>
+                        </td>
+                    </tr>
+
+                    <!-- English Content -->
+                    <tr>
+                        <td style=""padding: 32px 32px 16px 32px;"">
+                            <h2 style=""margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #0f172a;"">Password Reset Request</h2>
+                            <p style=""margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #334155;"">
+                                Hello,
+                            </p>
+                            <p style=""margin: 0 0 20px 0; font-size: 15px; line-height: 1.6; color: #334155;"">
+                                We received a request to reset the password for your MediCare account (<strong>{safeEmail}</strong>). To proceed with creating a new password, click the button below:
+                            </p>
+                            <div style=""text-align: center; margin: 28px 0;"">
+                                <a href=""{safeUrl}"" style=""display: inline-block; background-color: #0d6efd; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);"">
+                                    Reset My Password
+                                </a>
+                            </div>
+                            <p style=""margin: 0 0 12px 0; font-size: 13px; line-height: 1.5; color: #64748b;"">
+                                <strong>Security Notice:</strong> This link is single-use and will expire in <strong>{hoursTextEn}</strong>. If you did not request a password reset, no action is needed; your account remains completely secure.
+                            </p>
+                            <div style=""background-color: #f1f5f9; padding: 12px 16px; border-radius: 8px; font-size: 12px; color: #64748b; word-break: break-all; margin: 16px 0 0 0;"">
+                                <span>If the button above does not work, copy and paste this link into your browser:</span><br/>
+                                <a href=""{safeUrl}"" style=""color: #0d6efd;"">{safeUrl}</a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Divider -->
+                    <tr>
+                        <td style=""padding: 0 32px;"">
+                            <hr style=""border: none; border-top: 1px solid #e2e8f0; margin: 16px 0;"">
+                        </td>
+                    </tr>
+
+                    <!-- Arabic Content -->
+                    <tr>
+                        <td dir=""rtl"" style=""padding: 16px 32px 32px 32px; text-align: right;"">
+                            <h2 style=""margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #0f172a;"">طلب إعادة تعيين كلمة المرور</h2>
+                            <p style=""margin: 0 0 16px 0; font-size: 15px; line-height: 1.7; color: #334155;"">
+                                مرحباً بك،
+                            </p>
+                            <p style=""margin: 0 0 20px 0; font-size: 15px; line-height: 1.7; color: #334155;"">
+                                تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في ميديكير (<strong>{safeEmail}</strong>). لتعيين كلمة مرور جديدة، يرجى الضغط على الزر أدناه:
+                            </p>
+                            <div style=""text-align: center; margin: 24px 0;"">
+                                <a href=""{safeUrl}"" style=""display: inline-block; background-color: #0d6efd; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;"">
+                                    إعادة تعيين كلمة المرور
+                                </a>
+                            </div>
+                            <p style=""margin: 0; font-size: 13px; line-height: 1.6; color: #64748b;"">
+                                <strong>تنبيه أمان:</strong> صلاحية هذا الرابط تنتهي خلال <strong>{hoursTextAr}</strong> للاستخدام لمرة واحدة فقط. إذا لم تكن قد طلبت تغيير كلمة المرور، يمكنك تجاهل هذه الرسالة بأمان فحسابك محمي بالكامل.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style=""background-color: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8;"">
+                            <p style=""margin: 0 0 4px 0; font-weight: 500;"">MediCare Healthcare Management Platform</p>
+                            <p style=""margin: 0;"">This is an automated notification. Please do not reply directly to this email.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+        try
+        {
+            var sent = await _emailService.SendEmailAsync(normalizedEmail, emailSubject, emailBody);
+            if (!sent)
+            {
+                _logger?.LogWarning("Email provider returned failure while dispatching password reset email for user account.");
+            }
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Exception occurred while dispatching password reset email for user account.");
+            return Result.Success(); // Non-blocking: anti-enumeration and client stability
+        }
+    }
+
+    public async Task<Result> ResetPasswordAsync(ResetPasswordDto dto)
+    {
+        if (dto == null)
+        {
+            return Result.Failure("Invalid request.");
+        }
+
+        var validation = await _resetPasswordValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+        {
+            return Result.Failure(string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
+        }
+
+        var user = await _userManager.FindByEmailAsync(dto.Email.Trim());
+        if (user == null)
+        {
+            // Generic anti-enumeration response
+            return Result.Failure("The password reset token is invalid or has expired.");
+        }
+
+        var resetResult = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+        if (!resetResult.Succeeded)
+        {
+            var errors = resetResult.Errors.Select(e =>
+                e.Code == "InvalidToken"
+                    ? "The password reset token is invalid or has expired."
+                    : e.Description);
+            return Result.Failure(string.Join("; ", errors));
+        }
+
+        // Invalidate any active authentication cookies/sessions
+        await _userManager.UpdateSecurityStampAsync(user);
+
+        // If the user has a temporary MustChangePassword claim, clear it
+        var claims = await _userManager.GetClaimsAsync(user);
+        var mustChangeClaim = claims.FirstOrDefault(c => c.Type == "MustChangePassword");
+        if (mustChangeClaim != null)
+        {
+            await _userManager.RemoveClaimAsync(user, mustChangeClaim);
+        }
+
+        _logger?.LogInformation("Password reset successfully completed for user {UserId}", user.Id);
         return Result.Success();
     }
 }

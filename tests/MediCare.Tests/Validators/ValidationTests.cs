@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using MediCare.Services.DTOs;
 using MediCare.Services.Validators;
 using Xunit;
@@ -272,5 +272,81 @@ public class ValidationTests
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.ErrorMessage.Contains("150 characters"));
         result.Errors.Should().Contain(e => e.ErrorMessage.Contains("365 days"));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(6)]
+    public void SubmitDoctorReviewValidator_ShouldFail_WhenRatingOutOfRange(int rating)
+    {
+        var validator = new SubmitDoctorReviewValidator();
+        var dto = new SubmitDoctorReviewDto
+        {
+            DoctorId = 1,
+            AppointmentId = 1,
+            Rating = rating,
+            Comment = "Valid comment text."
+        };
+
+        var result = validator.Validate(dto);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Rating");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("abc")]
+    public void SubmitDoctorReviewValidator_ShouldFail_WhenCommentTooShort(string comment)
+    {
+        var validator = new SubmitDoctorReviewValidator();
+        var dto = new SubmitDoctorReviewDto
+        {
+            DoctorId = 1,
+            AppointmentId = 1,
+            Rating = 5,
+            Comment = comment
+        };
+
+        var result = validator.Validate(dto);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Comment");
+    }
+
+    [Fact]
+    public void SubmitDoctorReviewValidator_ShouldFail_WhenScriptTagsInjected()
+    {
+        var validator = new SubmitDoctorReviewValidator();
+        var dto = new SubmitDoctorReviewDto
+        {
+            DoctorId = 1,
+            AppointmentId = 1,
+            Rating = 5,
+            Comment = "<script>alert(1)</script> Hello doctor"
+        };
+
+        var result = validator.Validate(dto);
+
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Comment" && e.ErrorMessage.Contains("invalid characters"));
+    }
+
+    [Fact]
+    public void SubmitDoctorReviewValidator_ShouldPass_WhenInputIsValid()
+    {
+        var validator = new SubmitDoctorReviewValidator();
+        var dto = new SubmitDoctorReviewDto
+        {
+            DoctorId = 1,
+            AppointmentId = 10,
+            Rating = 5,
+            Title = "ممتاز جداً",
+            Comment = "طبيب متفهم واستمع لكل شكوتاي بعناية."
+        };
+
+        var result = validator.Validate(dto);
+
+        result.IsValid.Should().BeTrue();
     }
 }

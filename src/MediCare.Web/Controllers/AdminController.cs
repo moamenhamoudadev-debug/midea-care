@@ -1,3 +1,4 @@
+using MediCare.Data.Enums;
 using System.Security.Claims;
 using MediCare.Services.Contracts;
 using MediCare.Services.DTOs;
@@ -14,17 +15,20 @@ public class AdminController : Controller
     private readonly ILogger<AdminController> _logger;
     private readonly IPaymentService _paymentService;
     private readonly IPaymobRefundService? _refundService;
+    private readonly IDoctorReviewService? _doctorReviewService;
 
     public AdminController(
         IAdminService adminService,
         ILogger<AdminController> logger,
         IPaymentService paymentService,
-        IPaymobRefundService? refundService = null)
+        IPaymobRefundService? refundService = null,
+        IDoctorReviewService? doctorReviewService = null)
     {
         _adminService = adminService;
         _logger = logger;
         _paymentService = paymentService;
         _refundService = refundService;
+        _doctorReviewService = doctorReviewService;
     }
 
     [HttpGet("/Admin")]
@@ -407,4 +411,73 @@ public class AdminController : Controller
 
         return RedirectToAction(nameof(Payments));
     }
+
+    [HttpGet("/Admin/Reviews")]
+    public async Task<IActionResult> Reviews(
+        [FromQuery] ReviewModerationStatus? status,
+        [FromQuery] int? doctorId,
+        [FromQuery] int page = 1)
+    {
+        if (_doctorReviewService == null)
+        {
+            TempData["ErrorMessage"] = "Doctor review service is not configured.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var pagedReviews = await _doctorReviewService.GetAdminReviewQueueAsync(status, doctorId, page, 20);
+
+        var viewModel = new AdminReviewsViewModel
+        {
+            Reviews = pagedReviews,
+            StatusFilter = status,
+            DoctorIdFilter = doctorId,
+            TotalApprovedReviews = pagedReviews.Items.Count(r => r.ModerationStatus == ReviewModerationStatus.Approved),
+            TotalHiddenReviews = pagedReviews.Items.Count(r => r.ModerationStatus == ReviewModerationStatus.Hidden),
+            TotalDemoReviews = pagedReviews.Items.Count(r => r.IsDemo),
+            TotalVerifiedReviews = pagedReviews.Items.Count(r => r.IsVerifiedAppointment)
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpPost("/Admin/ModerateReview")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ModerateReview([FromForm] AdminModerateReviewDto dto)
+    {
+        if (_doctorReviewService == null)
+        {
+            TempData["ErrorMessage"] = "Doctor review service is not configured.";
+            return RedirectToAction(nameof(Reviews));
+        }
+
+        var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.Identity?.Name ?? "admin";
+        var result = await _doctorReviewService.AdminModerateReviewAsync(dto, adminUserId);
+
+        if (result.IsSuccess)
+        {
+            TempData["SuccessMessage"] = $"Review moderation status updated to {dto.NewStatus}.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = result.Error ?? "Failed to update review moderation status.";
+        }
+
+        return RedirectToAction(nameof(Reviews));
+    }
+
+    [HttpPost("/Admin/PurgeDemoReviews")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PurgeDemoReviews()
+    {
+        if (_doctorReviewService == null)
+        {
+            TempData["ErrorMessage"] = "Doctor review service is not configured.";
+            return RedirectToAction(nameof(Reviews));
+        }
+
+        var count = await _doctorReviewService.PurgeDemoReviewsAsync();
+        TempData["SuccessMessage"] = $"Successfully purged {count} demo reviews from the database.";
+        return RedirectToAction(nameof(Reviews));
+    }
 }
+

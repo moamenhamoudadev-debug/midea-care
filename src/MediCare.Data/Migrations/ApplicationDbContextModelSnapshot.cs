@@ -330,6 +330,142 @@ namespace MediCare.Data.Migrations
                     b.ToTable("DoctorLeaves", (string)null);
                 });
 
+            modelBuilder.Entity("MediCare.Data.Entities.DoctorReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DoctorResponse")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("DoctorResponseDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("HelpfulCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<bool>("IsDemo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsVerifiedAppointment")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("ModeratedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModeratedByAdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ModerationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ModerationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("PatientDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_DoctorReviews_AppointmentId")
+                        .HasFilter("[AppointmentId] IS NOT NULL");
+
+                    b.HasIndex("ModeratedByAdminId");
+
+                    b.HasIndex("PatientId", "DoctorId")
+                        .HasDatabaseName("IX_DoctorReviews_PatientId_DoctorId");
+
+                    b.HasIndex("DoctorId", "IsDemo", "ModerationStatus")
+                        .HasDatabaseName("IX_DoctorReviews_DoctorId_IsDemo_ModerationStatus");
+
+                    b.HasIndex("DoctorId", "ModerationStatus", "CreatedAt")
+                        .HasDatabaseName("IX_DoctorReviews_DoctorId_ModerationStatus_CreatedAt");
+
+                    b.ToTable("DoctorReviews", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_DoctorReviews_Rating", "[Rating] >= 1 AND [Rating] <= 5");
+                        });
+                });
+
+            modelBuilder.Entity("MediCare.Data.Entities.DoctorReviewHelpfulVote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserIpHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ReviewId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_DoctorReviewHelpfulVotes_ReviewId_UserId");
+
+                    b.ToTable("DoctorReviewHelpfulVotes", (string)null);
+                });
+
             modelBuilder.Entity("MediCare.Data.Entities.MedicalRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -1180,6 +1316,57 @@ namespace MediCare.Data.Migrations
                     b.Navigation("Doctor");
                 });
 
+            modelBuilder.Entity("MediCare.Data.Entities.DoctorReview", b =>
+                {
+                    b.HasOne("MediCare.Data.Entities.Appointment", "Appointment")
+                        .WithOne("Review")
+                        .HasForeignKey("MediCare.Data.Entities.DoctorReview", "AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MediCare.Data.Entities.Doctor", "Doctor")
+                        .WithMany("Reviews")
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MediCare.Data.Entities.ApplicationUser", "ModeratedByAdmin")
+                        .WithMany()
+                        .HasForeignKey("ModeratedByAdminId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MediCare.Data.Entities.Patient", "Patient")
+                        .WithMany("Reviews")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("ModeratedByAdmin");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("MediCare.Data.Entities.DoctorReviewHelpfulVote", b =>
+                {
+                    b.HasOne("MediCare.Data.Entities.DoctorReview", "Review")
+                        .WithMany("HelpfulVotes")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MediCare.Data.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MediCare.Data.Entities.MedicalRecord", b =>
                 {
                     b.HasOne("MediCare.Data.Entities.Appointment", "Appointment")
@@ -1408,6 +1595,8 @@ namespace MediCare.Data.Migrations
             modelBuilder.Entity("MediCare.Data.Entities.Appointment", b =>
                 {
                     b.Navigation("MedicalRecord");
+
+                    b.Navigation("Review");
                 });
 
             modelBuilder.Entity("MediCare.Data.Entities.Doctor", b =>
@@ -1420,7 +1609,14 @@ namespace MediCare.Data.Migrations
 
                     b.Navigation("Prescriptions");
 
+                    b.Navigation("Reviews");
+
                     b.Navigation("WorkingHours");
+                });
+
+            modelBuilder.Entity("MediCare.Data.Entities.DoctorReview", b =>
+                {
+                    b.Navigation("HelpfulVotes");
                 });
 
             modelBuilder.Entity("MediCare.Data.Entities.MedicalRecord", b =>
@@ -1435,6 +1631,8 @@ namespace MediCare.Data.Migrations
                     b.Navigation("MedicalRecords");
 
                     b.Navigation("Prescriptions");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("MediCare.Data.Entities.PaymentAttempt", b =>

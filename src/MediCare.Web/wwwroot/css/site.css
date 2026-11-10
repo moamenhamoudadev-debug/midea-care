@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    MEDICARE CLINIC MANAGEMENT SYSTEM — MODERN DESIGN SYSTEM
    World-Class Healthcare & SaaS Visual Architecture (2026 Enterprise Edition)
    ========================================================================== */
@@ -439,46 +439,82 @@ a:hover {
 
 /* User Avatar & Profile Chip */
 .user-chip {
-  max-width: 240px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.65rem 0.25rem 0.35rem;
+  background: var(--mc-slate-100);
+  border: 1px solid var(--mc-slate-200);
+  border-radius: var(--mc-radius-full);
+  font-size: 0.85rem;
+  max-width: 300px;
+  flex-shrink: 0;
+  transition: all var(--mc-transition-fast);
 }
-.user-chip .fw-bold {
+
+[dir="rtl"] .user-chip {
+  padding: 0.25rem 0.35rem 0.25rem 0.65rem;
+}
+
+.user-chip:hover {
+  border-color: var(--mc-primary-light);
+  background: #f8fafc;
+}
+
+[data-bs-theme="dark"] .user-chip {
+  background: #0F172A;
+  border-color: #334155;
+}
+
+[data-bs-theme="dark"] .user-chip:hover {
+  border-color: #475569;
+  background: #1E293B;
+}
+
+.user-avatar-badge {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  line-height: 1;
+}
+
+.user-chip-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 140px;
-}
-.user-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.35rem 0.75rem;
-  background: var(--mc-slate-100);
-  border: 1px solid var(--mc-slate-200);
-  border-radius: var(--mc-radius-full);
-  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mc-slate-800);
+  line-height: 1.2;
 }
 
-.user-avatar-badge {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-transform: uppercase;
+[data-bs-theme="dark"] .user-chip-name {
+  color: #F1F5F9;
 }
 
 .user-role-badge {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   padding: 0.15rem 0.5rem;
   border-radius: var(--mc-radius-full);
+  flex-shrink: 0;
+  line-height: 1.2;
 }
 
 .user-role-admin {

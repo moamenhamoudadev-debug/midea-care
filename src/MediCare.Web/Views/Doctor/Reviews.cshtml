@@ -1,0 +1,297 @@
+@model MediCare.Web.ViewModels.DoctorPortalReviewsViewModel
+@{
+    ViewData["Title"] = "تقييمات وآراء المرضى (Doctor Reviews)";
+    var summary = Model.Summary;
+    var reviews = Model.Reviews.Items;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h2 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <span>تقييمات وآراء المرضى (My Reviews)</span>
+                </h2>
+                <p class="text-muted mb-0">تابع آراء وتقييمات المرضى وتواصل معهم مهنياً لتحسين جودة الرعاية الطبية.</p>
+            </div>
+            <div>
+                <a asp-controller="Doctors" asp-action="Details" asp-route-id="@Model.Doctor.Id" class="btn btn-outline-primary rounded-pill px-4 fw-semibold" target="_blank">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> عرض ملفي العام (Public Profile)
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rating Summary Card -->
+<div class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+    <div class="row g-4 align-items-center">
+        <!-- Average Score -->
+        <div class="col-md-4 text-center border-md-end">
+            <div class="display-3 fw-bolder text-dark mb-1">
+                @(summary.AverageRating > 0 ? summary.AverageRating.ToString("0.0") : "0.0")
+            </div>
+            <div class="d-flex justify-content-center gap-1 mb-2 fs-5 text-warning">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    if (summary.AverageRating >= i)
+                    {
+                        <i class="bi bi-star-fill"></i>
+                    }
+                    else if (summary.AverageRating >= i - 0.5)
+                    {
+                        <i class="bi bi-star-half"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-star text-black-50"></i>
+                    }
+                }
+            </div>
+            <div class="text-muted fw-semibold">
+                <span>إجمالي التقييمات: @summary.TotalReviewsCount مراجعة</span>
+            </div>
+            @if (summary.VerifiedReviewsCount > 0)
+            {
+                <div class="mt-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill small">
+                        <i class="bi bi-patch-check-fill me-1"></i> @summary.VerifiedReviewsCount كشف مؤكد
+                    </span>
+                </div>
+            }
+        </div>
+
+        <!-- Breakdown Progress Bars -->
+        <div class="col-md-8">
+            <div class="d-flex flex-column gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted" style="min-width: 65px;">5 نجوم</span>
+                    <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.FiveStarPercentage%;"></div>
+                    </div>
+                    <span class="small text-muted text-end" style="min-width: 65px;">@summary.FiveStarCount (@summary.FiveStarPercentage%)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted" style="min-width: 65px;">4 نجوم</span>
+                    <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.FourStarPercentage%;"></div>
+                    </div>
+                    <span class="small text-muted text-end" style="min-width: 65px;">@summary.FourStarCount (@summary.FourStarPercentage%)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted" style="min-width: 65px;">3 نجوم</span>
+                    <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.ThreeStarPercentage%;"></div>
+                    </div>
+                    <span class="small text-muted text-end" style="min-width: 65px;">@summary.ThreeStarCount (@summary.ThreeStarPercentage%)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted" style="min-width: 65px;">نجمتان</span>
+                    <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.TwoStarPercentage%;"></div>
+                    </div>
+                    <span class="small text-muted text-end" style="min-width: 65px;">@summary.TwoStarCount (@summary.TwoStarPercentage%)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted" style="min-width: 65px;">نجمة 1</span>
+                    <div class="progress flex-grow-1" style="height: 10px; border-radius: 999px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @summary.OneStarPercentage%;"></div>
+                    </div>
+                    <span class="small text-muted text-end" style="min-width: 65px;">@summary.OneStarCount (@summary.OneStarPercentage%)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Toolbar -->
+<div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="small fw-bold text-muted me-1"><i class="bi bi-funnel me-1"></i>تصفية:</span>
+            <a href="?rating=&sort=@Model.SortBy" class="btn btn-sm rounded-pill @(Model.RatingFilter == null ? "btn-primary" : "btn-outline-secondary")">الكل (@summary.TotalReviewsCount)</a>
+            <a href="?rating=5&sort=@Model.SortBy" class="btn btn-sm rounded-pill @(Model.RatingFilter == 5 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">5 نجوم (@summary.FiveStarCount)</a>
+            <a href="?rating=4&sort=@Model.SortBy" class="btn btn-sm rounded-pill @(Model.RatingFilter == 4 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">4 نجوم (@summary.FourStarCount)</a>
+            <a href="?rating=3&sort=@Model.SortBy" class="btn btn-sm rounded-pill @(Model.RatingFilter == 3 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">3 نجوم (@summary.ThreeStarCount)</a>
+            <a href="?rating=2&sort=@Model.SortBy" class="btn btn-sm rounded-pill @(Model.RatingFilter == 2 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">نجمتان (@summary.TwoStarCount)</a>
+            <a href="?rating=1&sort=@Model.SortBy" class="btn btn-sm rounded-pill @(Model.RatingFilter == 1 ? "btn-warning text-dark fw-bold" : "btn-outline-secondary")">نجمة (@summary.OneStarCount)</a>
+        </div>
+        <div class="d-flex align-items-center gap-2 ms-auto">
+            <label for="doctorReviewSort" class="small fw-semibold text-muted text-nowrap mb-0">ترتيب:</label>
+            <select id="doctorReviewSort" class="form-select form-select-sm rounded-pill" style="min-width: 150px;" onchange="location.href='?rating=@Model.RatingFilter&sort=' + this.value">
+                <option value="recent" selected="@(Model.SortBy == "recent")">الأحدث</option>
+                <option value="highest" selected="@(Model.SortBy == "highest")">الأعلى تقييماً</option>
+                <option value="lowest" selected="@(Model.SortBy == "lowest")">الأقل تقييماً</option>
+                <option value="helpful" selected="@(Model.SortBy == "helpful")">الأكثر إفادة</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Reviews List -->
+@if (reviews.Count == 0)
+{
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-5 text-center mb-4">
+        <div class="text-muted display-4 mb-3"><i class="bi bi-chat-heart"></i></div>
+        <h5 class="fw-bold text-dark">لا توجد مراجعات مسجلة حتى الآن</h5>
+        <p class="text-muted mb-0">ستظهر هنا تقييمات المرضى وملاحظاتهم فور استكمال مواعيد الكشف.</p>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-column gap-3 mb-4">
+        @foreach (var r in reviews)
+        {
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-xs" style="width: 44px; height: 44px; background: linear-gradient(135deg, #2563eb, #1e40af);">
+                            @r.PatientInitials
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">@r.PatientDisplayName</h6>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <div class="text-warning small">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        <i class="bi @(s <= r.Rating ? "bi-star-fill" : "bi-star text-black-50")"></i>
+                                    }
+                                </div>
+                                <span class="text-muted small">&bull; @r.FormattedDate</span>
+                                <span class="text-muted small">(@r.TimeAgo)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        @if (r.IsVerifiedAppointment)
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small">
+                                <i class="bi bi-patch-check-fill me-1"></i> كشف موثق
+                            </span>
+                        }
+                        @if (r.IsDemo)
+                        {
+                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 rounded-pill small">
+                                <i class="bi bi-info-circle me-1"></i> تقييم تجريبي
+                            </span>
+                        }
+                        <span class="badge bg-light text-muted border px-2 py-1 rounded-pill small">
+                            <i class="bi bi-hand-thumbs-up me-1"></i> @r.HelpfulCount مفيد
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    @if (!string.IsNullOrWhiteSpace(r.Title))
+                    {
+                        <h6 class="fw-bold text-dark mb-1">@r.Title</h6>
+                    }
+                    <p class="text-secondary mb-3 lh-base" style="font-size: 0.95rem; white-space: pre-line;">@r.Comment</p>
+                </div>
+
+                <!-- Existing Doctor Reply or Add Reply Button -->
+                @if (!string.IsNullOrWhiteSpace(r.DoctorResponse))
+                {
+                    <div class="p-3 rounded-4 bg-light border-start border-4 border-primary mt-2">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                            <span class="fw-bold text-dark small"><i class="bi bi-reply-fill text-primary me-1"></i>ردك المنشور:</span>
+                            @if (r.DoctorResponseDateUtc.HasValue)
+                            {
+                                <small class="text-muted">@r.DoctorResponseDateUtc.Value.ToString("MMM dd, yyyy")</small>
+                            }
+                        </div>
+                        <p class="text-secondary small mb-2 lh-base" style="white-space: pre-line;">@r.DoctorResponse</p>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" onclick="openReplyModal(@r.Id, '@Html.Raw(Html.Encode(r.PatientDisplayName))', '@Html.Raw(Html.Encode(r.DoctorResponse))')">
+                                <i class="bi bi-pencil me-1"></i> تعديل الرد
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="pt-2 border-top text-end">
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 py-1 fw-semibold" onclick="openReplyModal(@r.Id, '@Html.Raw(Html.Encode(r.PatientDisplayName))', '')">
+                            <i class="bi bi-reply-fill me-1"></i> الرد على التقييم
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (Model.Reviews.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-center">
+            <nav aria-label="Reviews pagination">
+                <ul class="pagination pagination-sm shadow-xs rounded-pill">
+                    <li class="page-item @(Model.Reviews.HasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" href="?rating=@Model.RatingFilter&sort=@Model.SortBy&page=@(Model.Reviews.PageNumber - 1)">&laquo; السابق</a>
+                    </li>
+                    @for (int p = 1; p <= Model.Reviews.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == Model.Reviews.PageNumber ? "active" : "")">
+                            <a class="page-link" href="?rating=@Model.RatingFilter&sort=@Model.SortBy&page=@p">@p</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.Reviews.HasNextPage ? "" : "disabled")">
+                        <a class="page-link" href="?rating=@Model.RatingFilter&sort=@Model.SortBy&page=@(Model.Reviews.PageNumber + 1)">التالي &raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+}
+
+<!-- Doctor Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="replyModalLabel">
+                    <i class="bi bi-reply-fill text-primary"></i>
+                    <span>الرد على مراجعة المريض</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Doctor" asp-action="ReplyToReview" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ReviewId" id="modalReviewId" value="0" />
+                
+                <div class="modal-body pt-3">
+                    <div class="mb-3">
+                        <span class="text-muted small">الرد على: </span>
+                        <strong class="text-dark" id="modalPatientName">المريض</strong>
+                    </div>
+
+                    <div class="alert alert-light border rounded-3 p-2 small mb-3 text-muted">
+                        <i class="bi bi-info-circle me-1 text-primary"></i>
+                        نصائح للردود الطبية: احرص على الشكر المهني وتجنب مشاركة أي تفاصيل صحية أو تشخيصات خاصة بالمريض حفاظاً على خصوصية البيانات الطبية.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">نص الرد الطبي: <span class="text-danger">*</span></label>
+                        <textarea name="Response" id="modalResponseText" class="form-control rounded-3" rows="4" required minlength="5" maxlength="2000" placeholder="اكتب ردك المهني هنا..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">نشر الرد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openReplyModal(reviewId, patientName, existingResponse) {
+        document.getElementById('modalReviewId').value = reviewId;
+        document.getElementById('modalPatientName').innerText = patientName || 'المريض';
+        document.getElementById('modalResponseText').value = existingResponse || '';
+        const modal = new bootstrap.Modal(document.getElementById('replyModal'));
+        modal.show();
+    }
+</script>

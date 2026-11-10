@@ -27,4 +27,5 @@ public class Appointment : BaseAuditableEntity
     public virtual Doctor Doctor { get; set; } = null!;
     public virtual Patient Patient { get; set; } = null!;
     public virtual MedicalRecord? MedicalRecord { get; set; }
+    public virtual DoctorReview? Review { get; set; }
 }
