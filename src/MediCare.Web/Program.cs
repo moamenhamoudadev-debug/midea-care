@@ -51,6 +51,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Identity DataProtection Token Lifespan (Healthcare Standard: 2 Hours)
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(2);
+});
+
 // Cookie Security Configuration (SameAsRequest in Development for local HTTP, Always in Production)
 builder.Services.ConfigureSecurityCookies(builder.Environment.IsDevelopment());
 
@@ -181,6 +187,20 @@ builder.Services.AddRateLimiter(options =>
 
     // Registration endpoint anti-flooding / spam protection: max 5 requests/minute per IP
     options.AddPolicy("RegistrationRateLimitPolicy", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
+    // Password reset endpoint brute-force protection: max 5 requests/minute per IP
+    options.AddPolicy("PasswordResetRateLimitPolicy", httpContext =>
     {
         var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return RateLimitPartition.GetFixedWindowLimiter(

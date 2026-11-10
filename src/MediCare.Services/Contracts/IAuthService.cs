@@ -12,4 +12,7 @@ public interface IAuthService
     Task<Result<PatientProfileDto>> GetPatientProfileAsync(string userId);
     Task<Result> UpdatePatientProfileAsync(string userId, PatientUpdateProfileDto dto);
     Task<Result> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
+    Task<Result<string?>> GeneratePasswordResetTokenAsync(string email);
+    Task<Result> SendPasswordResetEmailAsync(string email, string resetUrl, TimeSpan? tokenLifespan = null);
+    Task<Result> ResetPasswordAsync(ResetPasswordDto dto);
 }

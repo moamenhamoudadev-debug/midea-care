@@ -27,6 +27,10 @@ public class ControllerAuthorizationTests
         "AccountController.RegisterPatient",
         "AccountController.RegisterDoctor",
         "AccountController.AccessDenied",
+        "AccountController.ForgotPassword",
+        "AccountController.ForgotPasswordConfirmation",
+        "AccountController.ResetPassword",
+        "AccountController.ResetPasswordConfirmation",
 
         // Public doctor directory & search catalog
         "DoctorsController.Index",
